@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect — SkillSwap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1>SkillSwap</h1>
+    <p class="sub">Trade what you know for what you want to learn.</p>
+
+    <section class="profile-card">
+      <div class="profile-head">
+        <div class="avatar" id="avatarInitials">--</div>
+        <div>
+          <div class="profile-name" id="profileName">Name</div>
+          <div class="profile-meta" id="profileMeta">Department · Year</div>
+        </div>
+      </div>
+
+      <div class="skill-block">
+        <h3>💻 Skills I Have</h3>
+        <ul class="chip-list" id="skillsHave"></ul>
+      </div>
+
+      <div class="skill-block">
+        <h3>🧑‍🏫 I Can Teach</h3>
+        <ul class="chip-list chip-teach" id="skillsTeach"></ul>
+      </div>
+
+      <div class="skill-block">
+        <h3>📚 Looking to Learn</h3>
+        <ul class="chip-list chip-learn" id="skillsLearn"></ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btnCollab">Request Collaboration</button>
+        <button class="btn btn-secondary" id="btnSession">Request Skill Session</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+  <script src="skillswap.js"></script>
+</body>
+</html>
