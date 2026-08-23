@@ -366,3 +366,22 @@ h1 {
 .post-join {
   margin-top: 20px;
 }
+.achievement-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stack-line {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--teal);
+  margin: 0;
+}

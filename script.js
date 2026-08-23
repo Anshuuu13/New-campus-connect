@@ -24,7 +24,7 @@ const dashboardItems = [
   { icon: "🧑‍🏫", label: "Mentorship Requests", tag: "Guidance" },
   { icon: "📊", label: "My Active Projects", tag: "Workspace" },
   { icon: "⭐", label: "My Skills", tag: "Profile" },
-  { icon: "🏆", label: "Achievements", tag: "Profile" },
+  { icon: "🏆", label: "Achievements", tag: "Profile", link: "achievements.html" },
   { icon: "📩", label: "Notifications", tag: "Inbox" },
 ];
 
