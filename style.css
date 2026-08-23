@@ -491,3 +491,25 @@ h1 {
   font-size: 14px;
   margin: 0 0 18px;
 }
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-bar .field-input {
+  width: auto;
+  min-width: 160px;
+}
+
+.pyq-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pyq-title {
+  margin-bottom: 10px;
+}
