@@ -460,3 +460,9 @@ h1 {
   font-size: 12px;
   color: var(--text-dim);
 }
+.recruitment-open {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--teal);
+  margin-bottom: 18px;
+}
