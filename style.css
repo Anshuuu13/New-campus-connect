@@ -466,3 +466,23 @@ h1 {
   color: var(--teal);
   margin-bottom: 18px;
 }
+.skill-bars {
+  margin-bottom: 30px;
+}
+
+.skill-row {
+  margin-bottom: 18px;
+}
+
+.skill-row-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.skill-percent {
+  font-family: var(--mono);
+  color: var(--text-dim);
+  font-size: 12px;
+}

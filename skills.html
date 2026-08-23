@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect — My Skills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1>My Skills</h1>
+    <p class="sub">Your skill profile, at a glance.</p>
+
+    <section class="profile-card">
+      <div class="skill-bars" id="skillBars">
+        <!-- skill bars are rendered by skills.js -->
+      </div>
+
+      <div class="skill-block">
+        <h3>🎯 Interested In</h3>
+        <ul class="chip-list chip-learn" id="skillInterests"></ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary">Add a Skill</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="skills.js"></script>
+</body>
+</html>
