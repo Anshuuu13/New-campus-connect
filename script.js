@@ -18,7 +18,7 @@ const dashboardItems = [
   { icon: "🔔", label: "Latest Announcements", tag: "Updates" },
   { icon: "📅", label: "Upcoming Events", tag: "Calendar" },
   { icon: "🔬", label: "Research Opportunities", tag: "Faculty", link: "research.html" },
-  { icon: "🤝", label: "Team Requests", tag: "Projects" },
+ { icon: "🤝", label: "Team Requests", tag: "Projects", link: "team.html" },
   { icon: "🧠", label: "SkillSwap Requests", tag: "Learning", link: "skillswap.html" },
   { icon: "🎯", label: "Internship & Hackathon Updates", tag: "Careers" },
   { icon: "🧑‍🏫", label: "Mentorship Requests", tag: "Guidance" },
