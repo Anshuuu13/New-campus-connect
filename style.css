@@ -513,3 +513,7 @@ h1 {
 .pyq-title {
   margin-bottom: 10px;
 }
+.search-input {
+  margin-top: 24px;
+  width: 100%;
+}
