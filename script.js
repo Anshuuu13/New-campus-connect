@@ -25,7 +25,7 @@ const dashboardItems = [
   { icon: "📊", label: "My Active Projects", tag: "Workspace" },
   { icon: "⭐", label: "My Skills", tag: "Profile" },
   { icon: "🏆", label: "Achievements", tag: "Profile", link: "achievements.html" },
-  { icon: "📩", label: "Notifications", tag: "Inbox" },
+  { icon: "📩", label: "Notifications", tag: "Inbox", link: "notifications.html" },
 ];
 
 const grid = document.getElementById("cardGrid");

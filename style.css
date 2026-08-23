@@ -385,3 +385,57 @@ h1 {
   color: var(--teal);
   margin: 0;
 }
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 28px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif-item:hover {
+  background: var(--surface);
+}
+
+.notif-unread {
+  background: var(--surface);
+}
+
+.notif-icon {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+.notif-body {
+  flex: 1;
+}
+
+.notif-text {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.notif-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 6px;
+  flex-shrink: 0;
+}

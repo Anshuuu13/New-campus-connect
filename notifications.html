@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect — Notifications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1>Notifications</h1>
+    <p class="sub">Everything that needs your attention.</p>
+
+    <section class="notif-list" id="notifList">
+      <!-- notifications are rendered by notifications.js -->
+    </section>
+  </main>
+
+  <script src="notifications.js"></script>
+</body>
+</html>
