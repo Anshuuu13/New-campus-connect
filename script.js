@@ -1,10 +1,12 @@
-// This will eventually come from login/signup data.
-// role can be "Student", "Senior", or "Professor" — later you can
-// use this to show different cards to different roles.
-const currentUser = {
-  name: "Anshika",
-  role: "Student",
-};
+// Read whoever signed in on login.html. If nobody has signed in yet,
+// send them to the login page instead of showing a blank dashboard.
+const savedUser = localStorage.getItem("campusConnectUser");
+
+if (!savedUser) {
+  window.location.href = "login.html";
+}
+
+const currentUser = JSON.parse(savedUser);
 
 document.querySelector(".name-greeting").textContent = `Welcome, ${currentUser.name}.`;
 document.getElementById("userRole").textContent = currentUser.role;
@@ -15,9 +17,9 @@ document.getElementById("userRole").textContent = currentUser.role;
 const dashboardItems = [
   { icon: "🔔", label: "Latest Announcements", tag: "Updates" },
   { icon: "📅", label: "Upcoming Events", tag: "Calendar" },
-  { icon: "🔬", label: "Research Opportunities", tag: "Faculty" },
+  { icon: "🔬", label: "Research Opportunities", tag: "Faculty", link: "research.html" },
   { icon: "🤝", label: "Team Requests", tag: "Projects" },
-  { icon: "🧠", label: "SkillSwap Requests", tag: "Learning" },
+  { icon: "🧠", label: "SkillSwap Requests", tag: "Learning", link: "skillswap.html" },
   { icon: "🎯", label: "Internship & Hackathon Updates", tag: "Careers" },
   { icon: "🧑‍🏫", label: "Mentorship Requests", tag: "Guidance" },
   { icon: "📊", label: "My Active Projects", tag: "Workspace" },
@@ -37,9 +39,13 @@ dashboardItems.forEach((item) => {
     <span class="tag">${item.tag}</span>
   `;
   card.addEventListener("click", () => {
-    // Placeholder for now — this is where you'll later navigate
-    // to each feature's own page (e.g. research.html, skillswap.html).
-    alert(`Next step: build the "${item.label}" page.`);
+    if (item.link) {
+      window.location.href = item.link;
+    } else {
+      // Placeholder for now — this is where you'll later navigate
+      // to each feature's own page (e.g. research.html, mentorship.html).
+      alert(`Next step: build the "${item.label}" page.`);
+    }
   });
   grid.appendChild(card);
 });
