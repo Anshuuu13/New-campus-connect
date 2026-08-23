@@ -22,7 +22,7 @@ const dashboardItems = [
   { icon: "🧠", label: "SkillSwap Requests", tag: "Learning", link: "skillswap.html" },
   { icon: "🎯", label: "Internship & Hackathon Updates", tag: "Careers" },
   { icon: "🧑‍🏫", label: "Mentorship Requests", tag: "Guidance" },
-  { icon: "📊", label: "My Active Projects", tag: "Workspace" },
+  { icon: "📊", label: "My Active Projects", tag: "Workspace", link: "projects.html" },
   { icon: "⭐", label: "My Skills", tag: "Profile" },
   { icon: "🏆", label: "Achievements", tag: "Profile", link: "achievements.html" },
   { icon: "📩", label: "Notifications", tag: "Inbox", link: "notifications.html" },
