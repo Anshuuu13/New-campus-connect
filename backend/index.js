@@ -6,6 +6,8 @@ require("dotenv").config();
 const usersRouter = require("./routes/users");
 const skillsRouter = require("./routes/skills");
 const achievementsRouter = require("./routes/achievements");
+const projectsRouter = require("./routes/projects");
+const teamRouter = require("./routes/team");
 
 const app = express();
 const PORT = 5000;
@@ -26,7 +28,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", usersRouter);
 app.use("/api/skills", skillsRouter);
 app.use("/api/achievements", achievementsRouter);
-
+app.use("/api/projects", projectsRouter);
+app.use("/api/team", teamRouter);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
