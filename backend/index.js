@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const usersRouter = require("./routes/users");
+const skillsRouter = require("./routes/skills");
 
 const app = express();
 const PORT = 5000;
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 
 // Any request to /api/users goes to routes/users.js
 app.use("/api/users", usersRouter);
+app.use("/api/skills", skillsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
