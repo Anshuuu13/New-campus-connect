@@ -8,7 +8,7 @@ const skillsRouter = require("./routes/skills");
 const achievementsRouter = require("./routes/achievements");
 const projectsRouter = require("./routes/projects");
 const teamRouter = require("./routes/team");
-
+const joinRequestsRouter = require("./routes/joinRequests");
 const app = express();
 const PORT = 5000;
 
@@ -30,6 +30,7 @@ app.use("/api/skills", skillsRouter);
 app.use("/api/achievements", achievementsRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/team", teamRouter);
+app.use("/api/join-requests", joinRequestsRouter);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
