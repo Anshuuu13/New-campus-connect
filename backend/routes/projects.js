@@ -32,14 +32,18 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-// UPDATE progress on a project
+// UPDATE progress and/or visibility on a project
 router.patch("/:id", async (req, res) => {
   try {
-    const { progress } = req.body;
+    const { progress, isPublic } = req.body;
+
+    const updateFields = {};
+    if (progress !== undefined) updateFields.progress = progress;
+    if (isPublic !== undefined) updateFields.isPublic = isPublic;
 
     const updated = await Project.findByIdAndUpdate(
       req.params.id,
-      { progress },
+      updateFields,
       { new: true }
     );
 
@@ -47,6 +51,16 @@ router.patch("/:id", async (req, res) => {
   } catch (err) {
     console.error("PROJECT UPDATE ERROR:", err);
     res.status(500).json({ error: "Something went wrong updating the project." });
+  }
+});
+// GET only public projects for a specific user (for public profile view)
+router.get("/public/:userId", async (req, res) => {
+  try {
+    const projects = await Project.find({ userId: req.params.userId, isPublic: true });
+    res.json(projects);
+  } catch (err) {
+    console.error("PUBLIC PROJECTS FETCH ERROR:", err);
+    res.status(500).json({ error: "Something went wrong fetching public projects." });
   }
 });
 

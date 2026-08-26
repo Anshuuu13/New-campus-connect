@@ -14,6 +14,10 @@ const projectSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -31,5 +31,14 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Something went wrong fetching achievements." });
   }
 });
-
+// GET approved achievements for a specific user (for public profile)
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const achievements = await Achievement.find({ userId: req.params.userId, status: "approved" });
+    res.json(achievements);
+  } catch (err) {
+    console.error("USER ACHIEVEMENTS FETCH ERROR:", err);
+    res.status(500).json({ error: "Something went wrong fetching achievements." });
+  }
+});
 module.exports = router;

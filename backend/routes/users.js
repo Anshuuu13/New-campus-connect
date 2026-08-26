@@ -74,13 +74,27 @@ router.post("/login", async (req, res) => {
 });
 
 // GET all users (for testing)
-router.get("/", async (req, res) => {
+router.get("/", async (req, res) => { 
+
   try {
     const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
     console.error("USERS FETCH ERROR:", err);
     res.status(500).json({ error: "Something went wrong fetching users." });
+  }
+}); 
+// GET a single user's public info (for profile page)
+router.get("/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("name department role");
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error("USER FETCH ERROR:", err);
+    res.status(500).json({ error: "Something went wrong fetching the user." });
   }
 });
 
