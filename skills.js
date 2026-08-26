@@ -1,30 +1,70 @@
-// Each skill: name and proficiency (0-100). Later, this will come
-// from the user's real profile instead of being hardcoded here.
-const mySkills = [
-  { name: "Python", level: 85 },
-  { name: "React", level: 70 },
-  { name: "AutoCAD", level: 60 },
-  { name: "HTML / CSS", level: 90 },
-];
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = JSON.parse(localStorage.getItem("campusConnectUser"));
 
-const interests = ["AI/ML", "UI/UX Design", "Flutter"];
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-const skillBars = document.getElementById("skillBars");
+  const skillBars = document.getElementById("skillBars");
+  const newSkillName = document.getElementById("newSkillName");
+  const addSkillBtn = document.getElementById("addSkillBtn");
 
-mySkills.forEach((skill) => {
-  const row = document.createElement("div");
-  row.className = "skill-row";
-  row.innerHTML = `
-    <div class="skill-row-head">
-      <span>${skill.name}</span>
-      <span class="skill-percent">${skill.level}%</span>
-    </div>
-    <div class="progress-track">
-      <div class="progress-fill" style="width: ${skill.level}%"></div>
-    </div>
-  `;
-  skillBars.appendChild(row);
+  async function loadSkills() {
+    try {
+      const response = await fetch(`http://localhost:5000/api/skills/${user._id}`);
+      const skills = await response.json();
+
+      skillBars.innerHTML = "";
+
+      if (skills.length === 0) {
+        skillBars.innerHTML = "<p class='sub'>No skills added yet.</p>";
+        return;
+      }
+
+      skills.forEach((skill) => {
+        const row = document.createElement("div");
+        row.className = "skill-row";
+        row.innerHTML = `
+          <span>${skill.name}</span>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: ${skill.level}%;"></div>
+          </div>
+        `;
+        skillBars.appendChild(row);
+      });
+    } catch (err) {
+      console.error("LOAD SKILLS ERROR:", err);
+      skillBars.innerHTML = "<p class='sub'>Something went wrong loading skills.</p>";
+    }
+  }
+
+  addSkillBtn.addEventListener("click", async () => {
+    const name = newSkillName.value.trim();
+
+    if (!name) {
+      alert("Please enter a skill name.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id, name, level: 50 })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add skill");
+      }
+
+      newSkillName.value = "";
+      loadSkills();
+    } catch (err) {
+      console.error("ADD SKILL ERROR:", err);
+      alert("Something went wrong adding the skill.");
+    }
+  });
+
+  loadSkills();
 });
-
-const interestsList = document.getElementById("skillInterests");
-interestsList.innerHTML = interests.map((s) => `<li>${s}</li>`).join("");

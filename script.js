@@ -52,3 +52,7 @@ dashboardItems.forEach((item) => {
   });
   grid.appendChild(card);
 });
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("campusConnectUser");
+    window.location.href = "login.html";
+});

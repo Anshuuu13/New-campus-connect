@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusConnect — SkillSwap</title>
+  <title>CampusConnect — Profile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -24,25 +24,25 @@
   <main class="page">
     <a href="index.html" class="back-link">← Back to Dashboard</a>
     <div class="rule"></div>
-    <h1>SkillSwap</h1>
-    <p class="sub">Trade what you know for what you want to learn.</p>
+    <h1 id="profileName">Profile</h1>
+    <p class="sub" id="profileMeta"></p>
 
     <div class="skill-block">
-      <h3>Requests I've Received</h3>
-      <div id="incomingRequests"></div>
+      <h3>Skills</h3>
+      <div id="profileSkills"></div>
     </div>
 
     <div class="skill-block">
-      <h3>Requests I've Sent</h3>
-      <div id="sentRequests"></div>
+      <h3>Achievements</h3>
+      <div id="profileAchievements"></div>
     </div>
 
     <div class="skill-block">
-      <h3>Browse Students</h3>
-      <div id="directoryList"></div>
+      <h3>Public Projects</h3>
+      <div id="profileProjects"></div>
     </div>
   </main>
 
-  <script src="skillswap.js"></script>
+  <script src="profile.js"></script>
 </body>
 </html>

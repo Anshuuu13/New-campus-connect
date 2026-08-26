@@ -1,61 +1,77 @@
-// Each achievement: a standout project, who led it, what it won,
-// and its tech stack. Later, this will come from a database of
-// projects that have been marked as "featured" or "winning" entries.
-const achievements = [
-  {
-    title: "CampusConnect",
-    badge: "Best Senior Project",
-    leader: "Rahul Sharma",
-    batch: "2024-25",
-    won: "SIH College Round",
-    stack: "Flutter · Node.js · MongoDB",
-    rating: "4.9/5",
-  },
-  {
-    title: "AgriSense",
-    badge: "Best Innovation Award",
-    leader: "Neha Kapoor",
-    batch: "2023-24",
-    won: "Smart India Hackathon Finalist",
-    stack: "React · Firebase · TensorFlow",
-    rating: "4.7/5",
-  },
-  {
-    title: "EduTrack",
-    badge: "People's Choice",
-    leader: "Aditya Singh",
-    batch: "2024-25",
-    won: "Inter-College Hackathon Winner",
-    stack: "Vue · Express · PostgreSQL",
-    rating: "4.6/5",
-  },
-];
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = JSON.parse(localStorage.getItem("campusConnectUser"));
 
-const list = document.getElementById("achievementList");
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-achievements.forEach((item) => {
-  const card = document.createElement("div");
-  card.className = "post-card";
-  card.innerHTML = `
-    <div class="achievement-badge">🏆 ${item.badge}</div>
-    <h2 class="post-title">${item.title}</h2>
-    <div class="post-meta">
-      <span><strong>Team Leader:</strong> ${item.leader}</span>
-      <span><strong>Batch:</strong> ${item.batch}</span>
-    </div>
-    <div class="post-meta">
-      <span><strong>Winner:</strong> ${item.won}</span>
-      <span><strong>Rating:</strong> ${item.rating}</span>
-    </div>
-    <div class="post-looking">
-      <h3>Tech Stack</h3>
-      <p class="stack-line">${item.stack}</p>
-    </div>
-    <div class="actions">
-      <button class="btn btn-secondary">View Project</button>
-      <button class="btn btn-secondary">Demo</button>
-      <button class="btn btn-secondary">Source Code</button>
-    </div>
-  `;
-  list.appendChild(card);
+  const achievementList = document.getElementById("achievementList");
+  const titleInput = document.getElementById("titleInput");
+  const descInput = document.getElementById("descInput");
+  const stackInput = document.getElementById("stackInput");
+  const submitBtn = document.getElementById("submitAchievementBtn");
+  const submitMsg = document.getElementById("submitMsg");
+
+  async function loadAchievements() {
+    try {
+      const response = await fetch("http://localhost:5000/api/achievements");
+      const achievements = await response.json();
+
+      achievementList.innerHTML = "";
+
+      if (achievements.length === 0) {
+        achievementList.innerHTML = "<p class='sub'>No approved projects yet.</p>";
+        return;
+      }
+
+      achievements.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "post-card";
+        card.innerHTML = `
+          <div class="post-title">${item.title}</div>
+          <p class="post-meta">${item.description}</p>
+          <p class="post-meta">Stack: ${item.stack}</p>
+          <p class="post-meta">By ${item.userId?.name || "Unknown"} — ${item.userId?.department || ""}</p>
+        `;
+        achievementList.appendChild(card);
+      });
+    } catch (err) {
+      console.error("LOAD ACHIEVEMENTS ERROR:", err);
+      achievementList.innerHTML = "<p class='sub'>Something went wrong loading projects.</p>";
+    }
+  }
+
+  submitBtn.addEventListener("click", async () => {
+    const title = titleInput.value.trim();
+    const description = descInput.value.trim();
+    const stack = stackInput.value.trim();
+
+    if (!title) {
+      alert("Please enter a project title.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/achievements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id, title, description, stack })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit");
+      }
+
+      titleInput.value = "";
+      descInput.value = "";
+      stackInput.value = "";
+      submitMsg.textContent = "Submitted! Your project will appear here once approved.";
+    } catch (err) {
+      console.error("SUBMIT ACHIEVEMENT ERROR:", err);
+      alert("Something went wrong submitting the project.");
+    }
+  });
+
+  loadAchievements();
 });

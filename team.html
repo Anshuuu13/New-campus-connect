@@ -26,7 +26,25 @@
     <div class="rule"></div>
     <h1>Team Finder</h1>
     <p class="sub">Student projects looking for teammates.</p>
+    <div class="field-row" style="margin-bottom: 24px;">
+  <label class="field-label" for="teamTitleInput">Project Title</label>
+  <input class="field-input" type="text" id="teamTitleInput" placeholder="e.g. Smart Campus Navigation App">
 
+  <label class="field-label" for="teamDescInput">Description</label>
+  <input class="field-input" type="text" id="teamDescInput" placeholder="Brief idea of the project">
+
+  <label class="field-label" for="teamRolesInput">Roles Needed</label>
+  <input class="field-input" type="text" id="teamRolesInput" placeholder="e.g. 1 AI/ML student, 1 Electrical student">
+
+  <label class="field-label" for="teamStatusInput">Status</label>
+  <select class="field-input" id="teamStatusInput">
+    <option value="Not started yet">Not started yet</option>
+    <option value="Ongoing">Ongoing — still needs people</option>
+  </select>
+
+  <button class="btn btn-primary" id="postTeamBtn" style="margin-top: 12px;">Post Project</button>
+</div>
+<div id="myRequests" style="margin-bottom: 24px;"></div>
     <section class="post-list" id="teamList">
       <!-- team posts are rendered by team.js -->
     </section>

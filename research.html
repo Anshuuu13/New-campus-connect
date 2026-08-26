@@ -26,7 +26,35 @@
     <div class="rule"></div>
     <h1>Research Collaboration</h1>
     <p class="sub">Open research positions posted by faculty.</p>
+<div class="field-row" id="postFormArea" style="margin-bottom: 24px; display: none;">
+  <label class="field-label" for="categoryInput">Category</label>
+  <select class="field-input" id="categoryInput">
+    <option value="Research">Research</option>
+    <option value="Lab Assistance">Lab Assistance</option>
+    <option value="Writing & Publishing">Writing & Publishing</option>
+    <option value="Event Support">Event Support</option>
+    <option value="Technical Work">Technical Work</option>
+    <option value="Other">Other</option>
+  </select>
 
+  <label class="field-label" for="postTitleInput">Title</label>
+  <input class="field-input" type="text" id="postTitleInput" placeholder="e.g. Data Analysis for Urban Water Study">
+
+  <label class="field-label" for="postDescInput">Description</label>
+  <input class="field-input" type="text" id="postDescInput" placeholder="What the work involves">
+
+  <label class="field-label" for="postSkillsInput">Skills Needed</label>
+  <input class="field-input" type="text" id="postSkillsInput" placeholder="e.g. 2 students, Python + statistics">
+
+  <label class="field-label" for="postTimeInput">Discussion Time</label>
+  <input class="field-input" type="text" id="postTimeInput" placeholder="e.g. Fri 26 Aug, 4 PM, Room 204">
+
+  <label class="field-label" for="postEmailInput">Contact Email</label>
+  <input class="field-input" type="email" id="postEmailInput" placeholder="your.email@college.edu">
+
+  <button class="btn btn-primary" id="submitPostBtn" style="margin-top: 12px;">Post</button>
+  <p class="sub" id="postMsg" style="margin-top: 8px;"></p>
+</div>
     <section class="post-list" id="postList">
       <!-- research posts are rendered by research.js -->
     </section>

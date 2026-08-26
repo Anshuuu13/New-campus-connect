@@ -21,7 +21,7 @@
       <form id="loginForm">
         <label class="field-label" for="nameInput">Name</label>
         <input class="field-input" type="text" id="nameInput" placeholder="e.g. Anshika Sharma" required>
-
+<div id="extraFields">
         <label class="field-label" for="deptInput">Department</label>
         <input class="field-input" type="text" id="deptInput" placeholder="e.g. Computer Science">
 
@@ -30,10 +30,15 @@
           <option value="Student">Student</option>
           <option value="Senior">Senior</option>
           <option value="Professor">Professor</option>
-        </select>
+        </select> </div>
+         <label class="field-label" for="passwordInput">Password</label>
+<input class="field-input" type="password" id="passwordInput" placeholder="Enter a password" required>
 
         <button type="submit" class="btn btn-primary auth-submit">Continue</button>
-      </form>
+      </form> <p class="sub" style="margin-top: 12px; text-align: center;">
+  <span id="toggleText">Already have an account?</span>
+  <a href="#" id="toggleLink">Log In</a>
+</p>
     </div>
   </main>
 

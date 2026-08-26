@@ -26,6 +26,19 @@
     <div class="rule"></div>
     <h1>Achievements</h1>
     <p class="sub">Standout projects from across campus.</p>
+    <div class="field-row" style="margin-bottom: 24px;">
+  <label class="field-label" for="titleInput">Project Title</label>
+  <input class="field-input" type="text" id="titleInput" placeholder="e.g. Smart Attendance System">
+
+  <label class="field-label" for="descInput">Description</label>
+  <input class="field-input" type="text" id="descInput" placeholder="Short description of the project">
+
+  <label class="field-label" for="stackInput">Tech Stack</label>
+  <input class="field-input" type="text" id="stackInput" placeholder="e.g. React, Node, MongoDB">
+
+  <button class="btn btn-primary" id="submitAchievementBtn" style="margin-top: 12px;">Submit Project</button>
+  <p class="sub" id="submitMsg" style="margin-top: 8px;"></p>
+</div>
 
     <section class="post-list" id="achievementList">
       <!-- achievement cards are rendered by achievements.js -->
