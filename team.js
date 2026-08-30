@@ -181,6 +181,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Please enter a project title.");
       return;
     }
+    postTeamBtn.disabled = true;
+postTeamBtn.textContent = "Posting...";
 
     try {
       const response = await fetch("https://campus-connect-1q2c.onrender.com/api/team", {
@@ -201,8 +203,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (err) {
       console.error("POST TEAM ERROR:", err);
       alert("Something went wrong posting the project.");
-    }
-  });
+      } finally {
+  postTeamBtn.disabled = false;
+  postTeamBtn.textContent = "Post Project";
+}
+    
+  }); 
 
   loadTeamPosts();
   loadMyRequests();
