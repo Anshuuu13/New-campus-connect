@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const url = mode === "signup"
-      ? "https://campus-connect-1q2c.onrender.com00/api/users"
-      : "https://campus-connect-1q2c.onrender.com00/api/users/login";
+      ? "https://campus-connect-1q2c.onrender.com/api/users"
+      : "https://campus-connect-1q2c.onrender.com/api/users/login";
 
     const body = mode === "signup"
       ? { name, department, role, password }

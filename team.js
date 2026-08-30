@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadTeamPosts() {
     try {
-      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/team");
+      const response = await fetch("https://campus-connect-1q2c.onrender.com/api/team");
       const posts = await response.json();
 
       teamList.innerHTML = "";
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const requestArea = card.querySelector(".request-area");
 
         if (isOwner) {
-          const reqResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/join-requests/post/${post._id}`);
+          const reqResponse = await fetch(`https://campus-connect-1q2c.onrender.com/api/join-requests/post/${post._id}`);
           const requests = await reqResponse.json();
 
           if (requests.length === 0) {
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!confirmed) return;
 
           try {
-            await fetch(`https://campus-connect-1q2c.onrender.com00/api/team/${id}`, { method: "DELETE" });
+            await fetch(`https://campus-connect-1q2c.onrender.com/api/team/${id}`, { method: "DELETE" });
             loadTeamPosts();
           } catch (err) {
             console.error("DELETE TEAM POST ERROR:", err);
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const teamPostId = e.target.dataset.postId;
 
           try {
-            const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/join-requests", {
+            const response = await fetch("https://campus-connect-1q2c.onrender.com/api/join-requests", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ teamPostId, requesterId: user._id })
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener("click", async (e) => {
           const id = e.target.dataset.id;
           try {
-            await fetch(`https://campus-connect-1q2c.onrender.com00/api/join-requests/${id}`, {
+            await fetch(`https://campus-connect-1q2c.onrender.com/api/join-requests/${id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "accepted" })
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener("click", async (e) => {
           const id = e.target.dataset.id;
           try {
-            await fetch(`https://campus-connect-1q2c.onrender.com00/api/join-requests/${id}`, {
+            await fetch(`https://campus-connect-1q2c.onrender.com/api/join-requests/${id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "rejected" })
@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadMyRequests() {
     try {
-      const response = await fetch(`https://campus-connect-1q2c.onrender.com00/api/join-requests/user/${user._id}`);
+      const response = await fetch(`https://campus-connect-1q2c.onrender.com/api/join-requests/user/${user._id}`);
       const requests = await response.json();
 
       if (requests.length === 0) {
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/team", {
+      const response = await fetch("https://campus-connect-1q2c.onrender.com/api/team", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id, title, description, rolesNeeded, status })

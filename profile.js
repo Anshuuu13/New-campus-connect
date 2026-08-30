@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load skills (also gives us the user's name/department via the first skill's owner info if needed later)
   try {
-    const skillsResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/skills/${profileUserId}`);
+    const skillsResponse = await fetch(`https://campus-connect-1q2c.onrender.com/api/skills/${profileUserId}`);
     const skills = await skillsResponse.json();
 
     if (skills.length === 0) {
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load achievements
   try {
-    const achResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/achievements/user/${profileUserId}`);
+    const achResponse = await fetch(`https://campus-connect-1q2c.onrender.com/api/achievements/user/${profileUserId}`);
     const achievements = await achResponse.json();
 
     if (achievements.length === 0) {
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load public projects
   try {
-    const projResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/projects/public/${profileUserId}`);
+    const projResponse = await fetch(`https://campus-connect-1q2c.onrender.com/api/projects/public/${profileUserId}`);
     const projects = await projResponse.json();
 
     if (projects.length === 0) {
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const userResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/users/${profileUserId}`);
+    const userResponse = await fetch(`https://campus-connect-1q2c.onrender.com/api/users/${profileUserId}`);
     const profileUser = await userResponse.json();
 
     profileName.textContent = `${profileUser.name}'s Profile`;
