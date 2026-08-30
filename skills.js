@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadSkills() {
     try {
-      const response = await fetch(`http://localhost:5000/api/skills/${user._id}`);
+      const response = await fetch(`https://campus-connect-1q2c.onrender.com00/api/skills/${user._id}`);
       const skills = await response.json();
 
       skillBars.innerHTML = "";
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/skills", {
+      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/skills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id, name, level: 50 })

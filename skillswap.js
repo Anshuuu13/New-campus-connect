@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadDirectory() {
     try {
-      const response = await fetch("http://localhost:5000/api/users");
+      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/users");
       const users = await response.json();
 
       const others = users.filter((u) => u._id !== user._id);
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       directoryList.innerHTML = "";
 
       for (const person of others) {
-        const skillsResponse = await fetch(`http://localhost:5000/api/skills/${person._id}`);
+        const skillsResponse = await fetch(`https://campus-connect-1q2c.onrender.com00/api/skills/${person._id}`);
         const skills = await skillsResponse.json();
 
         const card = document.createElement("div");
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/swap-requests", {
+      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/swap-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requesterId: user._id, recipientId, skillWanted, skillOffered })
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadIncomingRequests() {
     try {
-      const response = await fetch(`http://localhost:5000/api/swap-requests/incoming/${user._id}`);
+      const response = await fetch(`https://campus-connect-1q2c.onrender.com00/api/swap-requests/incoming/${user._id}`);
       const requests = await response.json();
 
       if (requests.length === 0) {
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           try {
-            await fetch(`http://localhost:5000/api/swap-requests/${id}`, {
+            await fetch(`https://campus-connect-1q2c.onrender.com00/api/swap-requests/${id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "accepted", time, venue, notes })
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener("click", async (e) => {
           const id = e.target.dataset.id;
           try {
-            await fetch(`http://localhost:5000/api/swap-requests/${id}`, {
+            await fetch(`https://campus-connect-1q2c.onrender.com00/api/swap-requests/${id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "rejected" })
@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadSentRequests() {
     try {
-      const response = await fetch(`http://localhost:5000/api/swap-requests/sent/${user._id}`);
+      const response = await fetch(`https://campus-connect-1q2c.onrender.com00/api/swap-requests/sent/${user._id}`);
       const requests = await response.json();
 
       if (requests.length === 0) {

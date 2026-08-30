@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadAchievements() {
     try {
-      const response = await fetch("http://localhost:5000/api/achievements");
+      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/achievements");
       const achievements = await response.json();
 
       achievementList.innerHTML = "";
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/achievements", {
+      const response = await fetch("https://campus-connect-1q2c.onrender.com00/api/achievements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id, title, description, stack })
