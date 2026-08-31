@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Announcements - CampusConnect</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <h1>📢 Announcements</h1>
+    <a href="index.html">← Back to Dashboard</a>
+
+    <div id="postFormSection" style="display: none;">
+      <h2>Post an Announcement</h2>
+      <input type="text" id="titleInput" placeholder="Title" />
+      <textarea id="messageInput" placeholder="Message"></textarea>
+
+      <label>Type:</label>
+      <select id="typeInput">
+        <option value="General">General</option>
+        <option value="Club Recruitment">Club Recruitment</option>
+      </select>
+
+      <div id="clubFieldsSection" style="display: none;">
+        <input type="text" id="clubNameInput" placeholder="Club Name" />
+        <input type="text" id="posterImageInput" placeholder="Poster Image URL (optional)" />
+        <input type="text" id="formLinkInput" placeholder="Google Form Link" />
+      </div>
+
+      <button id="postAnnouncementBtn">Post Announcement</button>
+    </div>
+
+    <div id="announcementsList">
+      <p class="sub">Loading announcements...</p>
+    </div>
+  </div>
+
+  <script src="announcements.js"></script>
+</body>
+</html>

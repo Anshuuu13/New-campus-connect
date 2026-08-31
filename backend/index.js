@@ -11,6 +11,7 @@ const teamRouter = require("./routes/team");
 const joinRequestsRouter = require("./routes/joinRequests");
 const facultyPostsRouter = require("./routes/facultyposts");
 const swapRequestsRouter = require("./routes/swapRequests");
+const announcementsRouter = require("./routes/announcements");
 const app = express();
 const PORT = 5000;
 
@@ -35,6 +36,6 @@ app.use("/api/team", teamRouter);
 app.use("/api/join-requests", joinRequestsRouter);
 app.use("/api/faculty-posts", facultyPostsRouter);
 app.use("/api/swap-requests", swapRequestsRouter);
-app.listen(PORT, () => {
+app.use("/api/announcements", announcementsRouter);app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

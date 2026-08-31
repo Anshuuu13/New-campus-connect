@@ -15,7 +15,7 @@ document.getElementById("userRole").textContent = currentUser.role;
 // This array is the "data" for the dashboard. Later, this can come from
 // a real backend/database instead of being hardcoded here.
 const dashboardItems = [
-  { icon: "🔔", label: "Latest Announcements", tag: "Updates" },
+  { icon: "🔔", label: "Latest Announcements", tag: "Updates", link: "announcements.html" },
   { icon: "📅", label: "Upcoming Events", tag: "Calendar" },
   { icon: "🔬", label: "Research Opportunities", tag: "Faculty", link: "research.html" },
  { icon: "🤝", label: "Team Requests", tag: "Projects", link: "team.html" },
