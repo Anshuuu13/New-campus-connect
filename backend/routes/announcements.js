@@ -9,10 +9,10 @@ router.get("/", async (req, res) => {
     const announcements = await Announcement.find().sort({ createdAt: -1 });
     res.json(announcements);
   } catch (err) {
+    console.error("GET ANNOUNCEMENTS ERROR:", err);
     res.status(500).json({ error: "Failed to fetch announcements" });
   }
 });
-
 // POST a new announcement
 router.post("/", async (req, res) => {
   try {
