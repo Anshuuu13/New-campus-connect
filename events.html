@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events - CampusConnect</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1>Upcoming Events</h1>
+    <p class="sub">Holidays, exams, and college events — all in one calendar.</p>
+
+    <div id="calendarSection" style="margin-bottom: 32px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <button class="btn" id="prevMonthBtn">←</button>
+        <h2 id="calendarMonthLabel"></h2>
+        <button class="btn" id="nextMonthBtn">→</button>
+      </div>
+      <div id="calendarGrid"></div>
+    </div>
+
+    <h2>All Upcoming Events</h2>
+    <section class="post-list" id="eventsList">
+      <p class="sub">Loading events...</p>
+    </section>
+  </main>
+
+  <script src="events.js"></script>
+</body>
+</html>

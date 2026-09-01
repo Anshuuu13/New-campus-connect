@@ -16,7 +16,7 @@ document.getElementById("userRole").textContent = currentUser.role;
 // a real backend/database instead of being hardcoded here.
 const dashboardItems = [
   { icon: "🔔", label: "Latest Announcements", tag: "Updates", link: "announcements.html" },
-  { icon: "📅", label: "Upcoming Events", tag: "Calendar" },
+  { icon: "📅", label: "Upcoming Events", tag: "Calendar", link: "events.html" },
   { icon: "🔬", label: "Research Opportunities", tag: "Faculty", link: "research.html" },
  { icon: "🤝", label: "Team Requests", tag: "Projects", link: "team.html" },
   { icon: "🧠", label: "SkillSwap Requests", tag: "Learning", link: "skillswap.html" },
