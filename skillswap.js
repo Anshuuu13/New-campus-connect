@@ -53,6 +53,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Please enter which skill you want to learn.");
       return;
     }
+    btn.disabled = true;
+const originalText = btn.textContent;
+btn.textContent = "Sending...";
+
 
     try {
       const response = await fetch("https://campus-connect-1q2c.onrender.com/api/swap-requests", {
@@ -71,10 +75,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             skillInput.value = "";
             loadSentRequests();
           } catch (err) {
-            console.error("REQUEST SWAP ERROR:", err);
-            alert("Something went wrong sending the request.");
-          }
-        });
+  console.error("Send Swap Request error:", err);
+  alert("Something went wrong.");
+} finally {
+  btn.disabled = false;
+  btn.textContent = originalText;
+}
+});
       });
     } catch (err) {
       console.error("LOAD DIRECTORY ERROR:", err);
