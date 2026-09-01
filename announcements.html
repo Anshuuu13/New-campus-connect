@@ -2,39 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Announcements - CampusConnect</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div class="container">
-    <h1>📢 Announcements</h1>
-    <a href="index.html">← Back to Dashboard</a>
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
 
-    <div id="postFormSection" style="display: none;">
-      <h2>Post an Announcement</h2>
-      <input type="text" id="titleInput" placeholder="Title" />
-      <textarea id="messageInput" placeholder="Message"></textarea>
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1>Announcements</h1>
+    <p class="sub">Updates, events, and club recruitment posts from campus.</p>
 
-      <label>Type:</label>
-      <select id="typeInput">
+    <div id="postFormSection" style="display: none; margin-bottom: 24px;">
+      <div class="field-row">
+        <label class="field-label" for="titleInput">Title</label>
+        <input class="field-input" type="text" id="titleInput" placeholder="e.g. Mid-sem exam schedule released" />
+      </div>
+
+      <label class="field-label" for="messageInput">Message</label>
+      <input class="field-input" type="text" id="messageInput" placeholder="Details of the announcement" />
+
+      <label class="field-label" for="typeInput">Type</label>
+      <select class="field-input" id="typeInput">
         <option value="General">General</option>
         <option value="Club Recruitment">Club Recruitment</option>
       </select>
 
       <div id="clubFieldsSection" style="display: none;">
-        <input type="text" id="clubNameInput" placeholder="Club Name" />
-        <input type="text" id="posterImageInput" placeholder="Poster Image URL (optional)" />
-        <input type="text" id="formLinkInput" placeholder="Google Form Link" />
+        <label class="field-label" for="clubNameInput">Club Name</label>
+        <input class="field-input" type="text" id="clubNameInput" placeholder="e.g. Robotics Club" />
+
+        <label class="field-label" for="posterImageInput">Poster Image URL (optional)</label>
+        <input class="field-input" type="text" id="posterImageInput" placeholder="Paste image link" />
+
+        <label class="field-label" for="formLinkInput">Google Form Link</label>
+        <input class="field-input" type="text" id="formLinkInput" placeholder="Application form link" />
       </div>
 
-      <button id="postAnnouncementBtn">Post Announcement</button>
+      <button class="btn btn-primary" id="postAnnouncementBtn" style="margin-top: 12px;">Post Announcement</button>
     </div>
 
-    <div id="announcementsList">
+    <section class="post-list" id="announcementsList">
       <p class="sub">Loading announcements...</p>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <script src="announcements.js"></script>
 </body>
