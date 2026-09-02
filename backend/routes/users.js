@@ -84,10 +84,13 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Something went wrong fetching users." });
   }
 }); 
+
 // GET a single user's public info (for profile page)
 router.get("/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("name department role");
+    const user = await User.findById(req.params.id).select(
+      "name department role profilePicture bio branch year linkedin github contactEmail"
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
@@ -95,6 +98,28 @@ router.get("/:id", async (req, res) => {
   } catch (err) {
     console.error("USER FETCH ERROR:", err);
     res.status(500).json({ error: "Something went wrong fetching the user." });
+  }
+});
+
+// UPDATE profile fields (picture, bio, branch, year, social links)
+router.patch("/:id", async (req, res) => {
+  try {
+    const { profilePicture, bio, branch, year, linkedin, github, contactEmail } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { profilePicture, bio, branch, year, linkedin, github, contactEmail },
+      { new: true }
+    ).select("name department role profilePicture bio branch year linkedin github contactEmail");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("PROFILE UPDATE ERROR:", err);
+    res.status(500).json({ error: "Something went wrong updating the profile." });
   }
 });
 

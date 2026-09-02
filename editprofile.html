@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect — Edit Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="auth-wrap">
+    <div class="auth-card">
+      <div class="wordmark auth-brand">
+        <span class="seal">CC</span>
+        <span class="name">Edit Profile</span>
+      </div>
+      <p class="sub">Update your picture and details.</p>
+
+      <form id="editProfileForm">
+
+        <label class="field-label">Profile Picture</label>
+        <img id="picPreview" src="" alt="" style="width:100px;height:100px;border-radius:50%;object-fit:cover;display:none;margin-bottom:10px;">
+        <input class="field-input" type="file" id="picInput" accept="image/*">
+
+        <label class="field-label" for="bioInput">Bio</label>
+        <textarea class="field-input" id="bioInput" placeholder="A short line about yourself" rows="3"></textarea>
+
+        <label class="field-label" for="branchInput">Branch</label>
+        <input class="field-input" type="text" id="branchInput" placeholder="e.g. Computer Science">
+
+        <label class="field-label" for="yearInput">Year</label>
+        <input class="field-input" type="text" id="yearInput" placeholder="e.g. 2nd Year">
+
+        <label class="field-label" for="linkedinInput">LinkedIn URL</label>
+        <input class="field-input" type="text" id="linkedinInput" placeholder="https://linkedin.com/in/...">
+
+        <label class="field-label" for="githubInput">GitHub URL</label>
+        <input class="field-input" type="text" id="githubInput" placeholder="https://github.com/...">
+
+        <label class="field-label" for="contactEmailInput">Public Contact Email</label>
+        <input class="field-input" type="email" id="contactEmailInput" placeholder="optional">
+
+        <button type="submit" class="btn btn-primary auth-submit">Save Profile</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="editprofile.js"></script>
+</body>
+</html>
