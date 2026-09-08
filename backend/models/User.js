@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  clubRole: {
+    type: String,
+    default: ""
+  },
   createdAt: {
     type: Date,
     default: Date.now

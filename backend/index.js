@@ -18,7 +18,7 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors());
-app.use(express.json({ limit: "5mb"}));
+app.use(express.json({ limit: "5mb" }));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -39,7 +39,7 @@ app.use("/api/join-requests", joinRequestsRouter);
 app.use("/api/swap-requests", swapRequestsRouter);
 app.use("/api/events", eventsRouter);
 app.use("/api/announcements", announcementsRouter);
-app.use("/api/clubhead", clubheadRouter);
+app.use("/api/clubhead", clubheadrouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

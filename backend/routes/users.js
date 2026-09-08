@@ -122,5 +122,32 @@ router.patch("/:id", async (req, res) => {
     res.status(500).json({ error: "Something went wrong updating the profile." });
   }
 });
+// Update profile
+router.patch('/:id', async (req, res) => {
+  try {
+    const updates = {
+      profilePicture: req.body.profilePicture,
+      bio: req.body.bio,
+      branch: req.body.branch,
+      year: req.body.year,
+      linkedin: req.body.linkedin,
+      github: req.body.github,
+      contactEmail: req.body.contactEmail
+    };
 
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;
