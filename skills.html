@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CampusConnect — My Skills</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect — Student Portfolio &amp; Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -24,25 +24,258 @@
   <main class="page">
     <a href="index.html" class="back-link">← Back to Dashboard</a>
     <div class="rule"></div>
-    <h1>My Skills</h1>
-    <p class="sub">Your skill profile, at a glance.</p>
 
-    <section class="profile-card">
-      <div class="skill-bars" id="skillBars">
-  <!-- skill bars are rendered by skills.js -->
-</div>
-<input class="field-input" type="text" id="newSkillName" placeholder="e.g. Python" style="margin-top: 12px;">
-
-      <div class="skill-block">
-        <h3>🎯 Interested In</h3>
-        <ul class="chip-list chip-learn" id="skillInterests"></ul>
+    <!-- Student Portfolio Profile Card -->
+    <section class="portfolio-header-card">
+      <div class="portfolio-user-info">
+        <img id="portfolioAvatar" src="https://ui-avatars.com/api/?name=Student&background=0b132b&color=38bdf8" alt="Profile" class="portfolio-avatar">
+        <div>
+          <h2 id="portfolioUserName" style="margin: 0 0 4px; font-family: var(--display); font-size: 22px;">Student Name</h2>
+          <p id="portfolioUserMeta" class="sub" style="margin: 0; font-size: 13px;">MITS Gwalior • Student Portfolio</p>
+        </div>
       </div>
-
-      <div class="actions">
-        <button class="btn btn-primary" id="addSkillBtn">Add a Skill</button>
+      <div class="portfolio-metrics">
+        <div class="metric-pill"><strong id="metricSkillsCount">0</strong> Skills</div>
+        <div class="metric-pill"><strong id="metricProjectsCount">0</strong> Projects</div>
+        <div class="metric-pill"><strong id="metricCertsCount">0</strong> Certifications</div>
       </div>
     </section>
+
+    <!-- Unified Portfolio Tabs -->
+    <div class="nav-tabs" style="margin-bottom: 24px;">
+      <button class="tab-link active" data-tab="skills">🛠️ My Skills &amp; Interests</button>
+      <button class="tab-link" data-tab="projects">🚀 My Projects</button>
+      <button class="tab-link" data-tab="certifications">📜 My Certifications</button>
+      <a href="achievements.html" class="tab-link">🏆 Campus Achievements</a>
+    </div>
+
+    <!-- Alert / Message Banner -->
+    <div id="portfolioFeedback" style="display: none; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 13px;"></div>
+
+    <!-- TAB 1: MY SKILLS & INTERESTS -->
+    <section id="tabContentSkills" class="portfolio-tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <h2 style="margin: 0 0 4px; font-size: 20px; font-family: var(--display);">Technical &amp; Professional Skills</h2>
+          <p class="sub" style="margin: 0;">Showcase your competencies, programming languages, and tools with verified proficiency levels.</p>
+        </div>
+        <button class="btn btn-primary" id="openAddSkillModalBtn">+ Add Skill</button>
+      </div>
+
+      <!-- Skills Category Filter -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;" id="skillsCategoryFilter">
+        <button class="tab-link active" data-cat="ALL" style="padding: 5px 12px; font-size: 12px;">All</button>
+        <button class="tab-link" data-cat="Programming" style="padding: 5px 12px; font-size: 12px;">Programming</button>
+        <button class="tab-link" data-cat="Web Development" style="padding: 5px 12px; font-size: 12px;">Web Dev</button>
+        <button class="tab-link" data-cat="AI/ML" style="padding: 5px 12px; font-size: 12px;">AI/ML</button>
+        <button class="tab-link" data-cat="Database" style="padding: 5px 12px; font-size: 12px;">Database</button>
+        <button class="tab-link" data-cat="Cloud & DevOps" style="padding: 5px 12px; font-size: 12px;">Cloud</button>
+        <button class="tab-link" data-cat="Soft Skills" style="padding: 5px 12px; font-size: 12px;">Soft Skills</button>
+      </div>
+
+      <!-- Skills Cards Grid -->
+      <div class="skills-cards-grid" id="skillsGrid">
+        <!-- Rendered dynamically by skills.js -->
+      </div>
+
+      <!-- Technical Interests Section -->
+      <div class="profile-card" style="margin-top: 36px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin: 0 0 4px; font-size: 16px; font-family: var(--display);">🎯 Technical Interests &amp; Learning Goals</h3>
+            <p class="sub" style="margin: 0; font-size: 13px;">Topics, domains, and technologies you are actively exploring or interested in collaborating on.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 14px;">
+          <input class="field-input" type="text" id="newInterestInput" placeholder="e.g. Distributed Systems, GenAI, Edge Computing" style="flex: 1;">
+          <button class="btn btn-primary" id="addInterestBtn" style="white-space: nowrap;">Add Interest</button>
+        </div>
+
+        <div class="interests-tags-container" id="interestsContainer">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: MY PROJECTS -->
+    <section id="tabContentProjects" class="portfolio-tab-content" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <h2 style="margin: 0 0 4px; font-size: 20px; font-family: var(--display);">Projects &amp; Builds</h2>
+          <p class="sub" style="margin: 0;">Showcase real applications, hardware prototypes, research code, and hackathon submissions.</p>
+        </div>
+        <button class="btn btn-primary" id="openAddProjectModalBtn">+ Add Project</button>
+      </div>
+
+      <!-- Projects Grid -->
+      <div class="projects-portfolio-grid" id="projectsGrid">
+        <!-- Rendered dynamically by skills.js -->
+      </div>
+    </section>
+
+    <!-- TAB 3: MY CERTIFICATIONS -->
+    <section id="tabContentCertifications" class="portfolio-tab-content" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <h2 style="margin: 0 0 4px; font-size: 20px; font-family: var(--display);">Licenses &amp; Certifications</h2>
+          <p class="sub" style="margin: 0;">Verified credentials, NPTEL course completions, cloud certifications, and technical diplomas.</p>
+        </div>
+        <button class="btn btn-primary" id="openAddCertModalBtn">+ Add Certification</button>
+      </div>
+
+      <!-- Certifications Grid -->
+      <div class="certifications-cards-grid" id="certificationsGrid">
+        <!-- Rendered dynamically by skills.js -->
+      </div>
+    </section>
+
   </main>
+
+  <!-- MODAL: ADD / EDIT SKILL -->
+  <div class="portfolio-modal-overlay" id="skillModal">
+    <div class="portfolio-modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="skillModalTitle" style="margin: 0; font-family: var(--display); font-size: 18px;">Add New Skill</h3>
+        <button class="close-modal-btn" data-modal="skillModal" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+      <input type="hidden" id="editSkillId" value="">
+
+      <div style="margin-bottom: 14px;">
+        <label class="field-label" for="skillNameInput">Skill Name *</label>
+        <input class="field-input" type="text" id="skillNameInput" placeholder="e.g. Python, Docker, UI/UX Design">
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label class="field-label" for="skillCategoryInput">Category *</label>
+          <select class="field-input" id="skillCategoryInput">
+            <option value="Programming">Programming</option>
+            <option value="Web Development">Web Development</option>
+            <option value="AI/ML">AI / Machine Learning</option>
+            <option value="Database">Database &amp; SQL</option>
+            <option value="Mobile Development">Mobile Development</option>
+            <option value="Cloud & DevOps">Cloud &amp; DevOps</option>
+            <option value="Cybersecurity">Cybersecurity</option>
+            <option value="Soft Skills">Soft Skills</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="skillProficiencyInput">Proficiency Level *</label>
+          <select class="field-input" id="skillProficiencyInput">
+            <option value="Beginner">Beginner (Foundations)</option>
+            <option value="Intermediate" selected>Intermediate (Independent)</option>
+            <option value="Advanced">Advanced (Expert / Production)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary close-modal-btn" data-modal="skillModal">Cancel</button>
+        <button class="btn btn-primary" id="saveSkillBtn">Save Skill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT PROJECT -->
+  <div class="portfolio-modal-overlay" id="projectModal">
+    <div class="portfolio-modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="projectModalTitle" style="margin: 0; font-family: var(--display); font-size: 18px;">Add New Project</h3>
+        <button class="close-modal-btn" data-modal="projectModal" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+      <input type="hidden" id="editProjectId" value="">
+
+      <div style="margin-bottom: 14px;">
+        <label class="field-label" for="projectTitleField">Project Title *</label>
+        <input class="field-input" type="text" id="projectTitleField" placeholder="e.g. AI-Powered Smart Agriculture Portal">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label class="field-label" for="projectDescField">Project Description *</label>
+        <textarea class="field-input" id="projectDescField" rows="3" placeholder="Explain the problem solved, architecture, and key features" style="resize: vertical; font-family: inherit;"></textarea>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label class="field-label" for="projectTechField">Technologies &amp; Tools Used *</label>
+        <input class="field-input" type="text" id="projectTechField" placeholder="e.g. React, Node.js, Express, MongoDB, Tailwind">
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label class="field-label" for="projectGithubField">GitHub Repository URL</label>
+          <input class="field-input" type="url" id="projectGithubField" placeholder="https://github.com/username/project">
+        </div>
+        <div>
+          <label class="field-label" for="projectLiveField">Live Demo URL</label>
+          <input class="field-input" type="url" id="projectLiveField" placeholder="https://project.vercel.app">
+        </div>
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label class="field-label" for="projectStatusField">Status *</label>
+          <select class="field-input" id="projectStatusField">
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="projectImgField">Project Image / Screenshot URL</label>
+          <input class="field-input" type="url" id="projectImgField" placeholder="https://... or leave blank for preset icon">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary close-modal-btn" data-modal="projectModal">Cancel</button>
+        <button class="btn btn-primary" id="saveProjectBtn">Save Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT CERTIFICATION -->
+  <div class="portfolio-modal-overlay" id="certModal">
+    <div class="portfolio-modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="certModalTitle" style="margin: 0; font-family: var(--display); font-size: 18px;">Add New Certification</h3>
+        <button class="close-modal-btn" data-modal="certModal" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+      <input type="hidden" id="editCertId" value="">
+
+      <div style="margin-bottom: 14px;">
+        <label class="field-label" for="certNameField">Certification Name *</label>
+        <input class="field-input" type="text" id="certNameField" placeholder="e.g. AWS Certified Cloud Practitioner / NPTEL Elite+Gold">
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label class="field-label" for="certIssuerField">Issuing Organization *</label>
+          <input class="field-input" type="text" id="certIssuerField" placeholder="e.g. Amazon Web Services, IIT Kharagpur, Google">
+        </div>
+        <div>
+          <label class="field-label" for="certDateField">Issue Date / Period *</label>
+          <input class="field-input" type="text" id="certDateField" placeholder="e.g. October 2024">
+        </div>
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label class="field-label" for="certUrlField">Credential Verification URL</label>
+          <input class="field-input" type="url" id="certUrlField" placeholder="https://credly.com/badges/... or certificate link">
+        </div>
+        <div>
+          <label class="field-label" for="certImgField">Certificate Image URL (Optional)</label>
+          <input class="field-input" type="url" id="certImgField" placeholder="https://... or certificate document URL">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary close-modal-btn" data-modal="certModal">Cancel</button>
+        <button class="btn btn-primary" id="saveCertBtn">Save Certification</button>
+      </div>
+    </div>
+  </div>
 
   <script src="skills.js"></script>
 </body>

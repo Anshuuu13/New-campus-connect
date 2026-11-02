@@ -4,15 +4,56 @@ const achievementSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: false
   },
   title: {
     type: String,
     required: true
   },
+  studentName: {
+    type: String,
+    default: ""
+  },
+  competition: {
+    type: String,
+    default: ""
+  },
+  category: {
+    type: String,
+    default: "Hackathon"
+  },
+  achievementType: {
+    type: String,
+    enum: ["Student", "Institutional"],
+    default: "Student"
+  },
   description: {
     type: String,
     default: ""
+  },
+  date: {
+    type: String,
+    default: ""
+  },
+  photoUrl: {
+    type: String,
+    default: ""
+  },
+  sourceName: {
+    type: String,
+    default: ""
+  },
+  sourceUrl: {
+    type: String,
+    default: ""
+  },
+  evidenceUrl: {
+    type: String,
+    default: ""
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   },
   stack: {
     type: String,
@@ -20,8 +61,8 @@ const achievementSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "approved"],
-    default: "pending"
+    enum: ["pending", "approved", "self-reported", "rejected"],
+    default: "self-reported"
   },
   createdAt: {
     type: Date,

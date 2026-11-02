@@ -1,37 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CampusConnect — Notifications</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Notifications &amp; Alerts | MITS Gwalior - CampusConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="topbar">
-    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
-      <span class="seal">CC</span>
-      <span class="name">CampusConnect</span>
-    </a>
-    <div class="user-chip">
-      <span class="dot"></span>
-      <span id="userRole">Student</span>
+  <div class="app-shell">
+
+    <!-- Unified Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Sidebar links dynamically rendered by script.js -->
+      </nav>
+
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Notification Center</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <div class="ams-live-pill" id="fcmStatusBadge" title="Browser Push Notifications via FCM">
+            <span class="ams-live-dot" style="background: #38bdf8;"></span>
+            <span class="ams-live-text" id="fcmStatusLabel">FCM Push: Ready</span>
+          </div>
+
+          <a href="notifications.html" class="navbar-icon-btn" title="Notifications" id="navNotifBellBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge-counter" id="navNotifBadgeCounter" style="display: none;">0</span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="assets/images/mits-campus.jpg" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Institutional Header Banner -->
+      <section style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(13, 31, 68, 0.95) 0%, rgba(10, 28, 61, 0.9) 100%); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 16px; padding: 26px; position: relative;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <span class="circular-stamp">🔔 SMART NOTIFICATION CENTER</span>
+          <span style="font-family: var(--mono); font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px 8px; border-radius: 6px;">
+            Targeted by Branch &amp; Semester
+          </span>
+        </div>
+
+        <h1 style="font-size: 26px; font-weight: 700; margin: 0 0 6px; color: #f8fafc; font-family: var(--display);">
+          Notifications &amp; Urgent Deadlines
+        </h1>
+        <p style="color: #94a3b8; font-size: 14px; max-width: 720px; margin: 0; line-height: 1.5;">
+          Real-time alerts for autonomous exams, fee deadlines, hall ticket issuances, project evaluations, and departmental announcements tailored for your registered semester.
+        </p>
+      </section>
+
+      <!-- FCM Browser Push Banner -->
+      <section class="notif-push-banner" id="pushActivationBanner">
+        <div class="push-banner-content">
+          <div class="push-banner-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="push-banner-text">
+            <h4>Never Miss an Academic Deadline or Exam Update</h4>
+            <p id="pushBannerDescription">Enable browser push notifications to receive instant alerts even when CampusConnect is closed.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-primary" id="enablePushBtn" style="font-size: 13px; padding: 8px 16px;">
+            🔔 Enable Push Notifications
+          </button>
+          <button class="btn btn-secondary" id="testPushBtn" style="font-size: 13px; padding: 8px 14px; display: none;">
+            Send Test Alert
+          </button>
+        </div>
+      </section>
+
+      <!-- Action & Filter Bar -->
+      <div class="notif-action-bar">
+        <div class="notif-filter-tabs" id="notifFilterTabs">
+          <button class="notif-tab active" data-category="ALL">All Alerts</button>
+          <button class="notif-tab" data-category="unread">🔴 Unread Only</button>
+          <button class="notif-tab" data-category="Academic Deadlines">⚠️ Deadlines</button>
+          <button class="notif-tab" data-category="Examinations">📝 Exams</button>
+          <button class="notif-tab" data-category="Placements">💼 Placements</button>
+          <button class="notif-tab" data-category="Holidays">🏖️ Holidays</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button id="markAllReadBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-family: var(--mono); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
+            ✓ Mark All as Read
+          </button>
+          <button id="openPreferencesBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-family: var(--mono);">
+            ⚙️ Preferences
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Notifications List -->
+      <section id="notificationsListContainer">
+        <div style="text-align: center; padding: 40px 16px; color: var(--text-dim);">
+          <div style="font-size: 28px; margin-bottom: 8px;">🔄</div>
+          <p>Syncing notifications tailored to your profile...</p>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Notification Preferences Modal -->
+  <div class="modal-overlay" id="notifPreferencesModal">
+    <div class="modal-box">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">⚙️</span>
+          <h3 style="margin: 0; font-size: 18px; color: #f8fafc; font-family: var(--display);">
+            Smart Notification Preferences
+          </h3>
+        </div>
+        <button id="closePreferencesModalBtn" style="background: transparent; border: none; color: #94a3b8; font-size: 22px; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="prefPushEnabled" checked style="margin-top: 4px; accent-color: #38bdf8;">
+          <div>
+            <div style="font-weight: 600; color: #f8fafc; font-size: 14px;">Browser Push Notifications (FCM)</div>
+            <div style="font-size: 12px; color: #94a3b8;">Receive high-priority circulars and deadline reminders via browser notifications.</div>
+          </div>
+        </label>
+
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="prefExamAlerts" checked style="margin-top: 4px; accent-color: #38bdf8;">
+          <div>
+            <div style="font-weight: 600; color: #f8fafc; font-size: 14px;">Examination &amp; Time Table Alerts</div>
+            <div style="font-size: 12px; color: #94a3b8;">Notifies you 48 hours and 24 hours prior to Mid-Sem &amp; End-Sem examinations.</div>
+          </div>
+        </label>
+
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="prefDeadlineAlerts" checked style="margin-top: 4px; accent-color: #38bdf8;">
+          <div>
+            <div style="font-weight: 600; color: #f8fafc; font-size: 14px;">Exam Form &amp; Fee Submission Deadlines</div>
+            <div style="font-size: 12px; color: #94a3b8;">Never miss Rs. 500 late penalty cutoffs on the IMS portal.</div>
+          </div>
+        </label>
+
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="prefPlacementAlerts" checked style="margin-top: 4px; accent-color: #38bdf8;">
+          <div>
+            <div style="font-weight: 600; color: #f8fafc; font-size: 14px;">Training &amp; Placement (T&amp;P) Opportunities</div>
+            <div style="font-size: 12px; color: #94a3b8;">Get shortlisted company interview notices and aptitude schedules.</div>
+          </div>
+        </label>
+
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <input type="checkbox" id="prefSoundAlerts" checked style="margin-top: 4px; accent-color: #38bdf8;">
+          <div>
+            <div style="font-weight: 600; color: #f8fafc; font-size: 14px;">Audible Notification Chime</div>
+            <div style="font-size: 12px; color: #94a3b8;">Play a subtle chime when an urgent notice arrives while browsing.</div>
+          </div>
+        </label>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-primary" id="savePreferencesBtn">Save Preferences</button>
+      </div>
     </div>
-  </header>
+  </div>
 
-  <main class="page">
-    <a href="index.html" class="back-link">← Back to Dashboard</a>
-    <div class="rule"></div>
-    <h1>Notifications</h1>
-    <p class="sub">Everything that needs your attention.</p>
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;" aria-live="polite"></div>
 
-    <section class="notif-list" id="notifList">
-      <!-- notifications are rendered by notifications.js -->
-    </section>
-  </main>
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
+  <!-- CampusConnect Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
   <script src="notifications.js"></script>
 </body>
 </html>

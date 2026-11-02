@@ -11,12 +11,31 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Student", "Senior", "Professor", "Admin", "ClubCoordinator"],
+    enum: ["Student", "Faculty", "Professor", "Senior", "Admin", "ClubCoordinator"],
     default: "Student"
+  },
+  email: {
+    type: String,
+    default: "",
+    trim: true,
+    lowercase: true
+  },
+  googleId: {
+    type: String,
+    default: ""
+  },
+  authProvider: {
+    type: String,
+    enum: ["local", "google"],
+    default: "google"
   },
   password: {
     type: String,
-    required: true
+    required: false
+  },
+  profileCompleted: {
+    type: Boolean,
+    default: false
   },
   profilePicture: {
     type: String,
@@ -49,6 +68,10 @@ const userSchema = new mongoose.Schema({
   clubRole: {
     type: String,
     default: ""
+  },
+  interests: {
+    type: [String],
+    default: []
   },
   createdAt: {
     type: Date,

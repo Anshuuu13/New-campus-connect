@@ -1,3 +1,4 @@
+const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.host ? "/api" : "https://campus-connect-1q2c.onrender.com/api";
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("campusConnectUser"));
 
@@ -23,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadPosts() {
     try {
-      const response = await fetch("https://campus-connect-1q2c.onrender.com/api/faculty-posts");
+      const response = await fetch(`${API_BASE}/faculty-posts`);
       const posts = await response.json();
 
       postList.innerHTML = "";
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const id = e.target.dataset.id;
 
           try {
-            const response = await fetch(`https://campus-connect-1q2c.onrender.com/api/faculty-posts/${id}/apply`, {
+            const response = await fetch(`${API_BASE}/faculty-posts/${id}/apply`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ userId: user._id })
@@ -112,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        const response = await fetch("https://campus-connect-1q2c.onrender.com/api/faculty-posts", {
+        const response = await fetch(`${API_BASE}/faculty-posts`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: user._id, category, title, description, skillsNeeded, discussionTime, contactEmail })

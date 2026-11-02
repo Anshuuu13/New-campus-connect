@@ -10,13 +10,38 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  description: {
+    type: String,
+    default: ""
+  },
+  technologies: {
+    type: String,
+    default: ""
+  },
+  githubUrl: {
+    type: String,
+    default: ""
+  },
+  liveUrl: {
+    type: String,
+    default: ""
+  },
+  imageUrl: {
+    type: String,
+    default: ""
+  },
+  status: {
+    type: String,
+    enum: ["In Progress", "Completed"],
+    default: "In Progress"
+  },
   progress: {
     type: Number,
     default: 0
   },
   isPublic: {
     type: Boolean,
-    default: false
+    default: true
   },
   createdAt: {
     type: Date,

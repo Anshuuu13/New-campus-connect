@@ -1,3 +1,4 @@
+const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.host ? "/api" : "https://campus-connect-1q2c.onrender.com/api";
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("campusConnectUser"));
 
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadProjects() {
     try {
-      const response = await fetch(`https://campus-connect-1q2c.onrender.com/api/projects/${user._id}`);
+      const response = await fetch(`${API_BASE}/projects/${user._id}`);
       const projects = await response.json();
 
       projectList.innerHTML = "";
@@ -46,7 +47,7 @@ document.querySelectorAll(".public-toggle").forEach((checkbox) => {
     const isPublic = e.target.checked;
 
     try {
-      await fetch(`https://campus-connect-1q2c.onrender.com/api/projects/${id}`, {
+      await fetch(`${API_BASE}/projects/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPublic })
@@ -62,7 +63,7 @@ document.querySelectorAll(".public-toggle").forEach((checkbox) => {
           const progress = e.target.value;
 
           try {
-            await fetch(`https://campus-connect-1q2c.onrender.com/api/projects/${id}`, {
+            await fetch(`${API_BASE}/projects/${id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ progress })
@@ -88,7 +89,7 @@ document.querySelectorAll(".public-toggle").forEach((checkbox) => {
     }
 
     try {
-      const response = await fetch("https://campus-connect-1q2c.onrender.com/api/projects", {
+      const response = await fetch(`${API_BASE}/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id, title, progress: 0 })

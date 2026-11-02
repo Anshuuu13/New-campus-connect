@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect — Academic Resource Library | MITS Gwalior</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- Unified Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Sidebar links dynamically rendered by script.js -->
+      </nav>
+
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Academic Resources &amp; PYQs</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <a href="notifications.html" class="navbar-icon-btn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Header -->
+      <div class="page-header-banner">
+        <div class="banner-content">
+          <div class="mits-header-badge">
+            <span>🏛️ Madhav Institute of Technology &amp; Science</span>
+          </div>
+          <h1 class="page-title">Academic Resource Library</h1>
+          <p class="sub page-subtitle">
+            Comprehensive repository of branch-wise Previous Year Question Papers (PYQs), unit notes, lab manuals, autonomous schemes, and GATE preparation guides.
+          </p>
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-primary" id="openUploadModalBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Upload Resource</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Personalization Alert -->
+      <div class="personalization-strip" id="personalizationStrip" style="display: none;">
+        <div class="personalization-info">
+          <span class="sparkle-icon">✨</span>
+          <span>Showing study materials customized for your profile: <strong id="studentBranchDisplay">CSE</strong> • <strong id="studentSemDisplay">3rd Semester</strong></span>
+        </div>
+        <button class="btn btn-outline-sm" id="resetPersonalizationBtn">Show All Branches</button>
+      </div>
+
+      <!-- Resource Summary Metrics -->
+      <section class="resource-metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon-box blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+          <div>
+            <div class="metric-number" id="totalResourcesCount">...</div>
+            <div class="metric-label">Total Verified Resources</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+          <div>
+            <div class="metric-number" id="pyqResourcesCount">...</div>
+            <div class="metric-label">Previous Year Papers (PYQs)</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div>
+            <div class="metric-number" id="notesResourcesCount">...</div>
+            <div class="metric-label">Subject &amp; Unit Notes</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2v6l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V2"/><line x1="9" y1="2" x2="15" y2="2"/></svg></div>
+          <div>
+            <div class="metric-number" id="labResourcesCount">...</div>
+            <div class="metric-label">Lab &amp; Practical Manuals</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Search & Filtering Hub -->
+      <section class="resource-control-hub">
+        
+        <!-- Live Search Bar -->
+        <div class="resource-search-wrapper">
+          <svg class="search-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="resourceSearchInput" class="resource-search-input" placeholder="Search papers by subject name (e.g. Operating Systems), subject code (e.g. 160402), or topic...">
+          <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">&times;</button>
+        </div>
+
+        <!-- Branch Selection Grid -->
+        <div class="branch-selector-section">
+          <div class="section-micro-label">SELECT ENGINEERING BRANCH:</div>
+          <div class="branch-pills-scroll" id="branchPillsGroup">
+            <button class="branch-pill active" data-branch="all">All Branches</button>
+            <button class="branch-pill" data-branch="CSE">💻 CSE</button>
+            <button class="branch-pill" data-branch="IT">🌐 IT</button>
+            <button class="branch-pill" data-branch="AI-DS">🤖 AI &amp; DS</button>
+            <button class="branch-pill" data-branch="ECE">📡 ECE</button>
+            <button class="branch-pill" data-branch="EE">⚡ Electrical</button>
+            <button class="branch-pill" data-branch="ME">⚙️ Mechanical</button>
+            <button class="branch-pill" data-branch="CE">🏗️ Civil</button>
+            <button class="branch-pill" data-branch="Common">📚 1st Year (Common)</button>
+          </div>
+        </div>
+
+        <!-- Secondary Filters Row (Semester, Academic Year & Exam Type) -->
+        <div class="filter-controls-row">
+          <div class="filter-item">
+            <label class="filter-label" for="semesterFilter">Semester:</label>
+            <select class="custom-select" id="semesterFilter">
+              <option value="all">All Semesters (1 - 8)</option>
+              <option value="1">Semester 1 (1st Year)</option>
+              <option value="2">Semester 2 (1st Year)</option>
+              <option value="3">Semester 3 (2nd Year)</option>
+              <option value="4">Semester 4 (2nd Year)</option>
+              <option value="5">Semester 5 (3rd Year)</option>
+              <option value="6">Semester 6 (3rd Year)</option>
+              <option value="7">Semester 7 (4th Year)</option>
+              <option value="8">Semester 8 (4th Year)</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label class="filter-label" for="examTypeFilter">Exam Type:</label>
+            <select class="custom-select" id="examTypeFilter">
+              <option value="all">All Exam Types</option>
+              <option value="End-Sem">End-Sem Examination</option>
+              <option value="Mid-Sem">Mid-Sem Test (MST)</option>
+              <option value="Supplementary">Supplementary / Remid</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label class="filter-label" for="yearFilter">Exam / Academic Year:</label>
+            <select class="custom-select" id="yearFilter">
+              <option value="all">All Examination Years</option>
+              <option value="2024">2024 - 2025</option>
+              <option value="2023">2023 - 2024</option>
+              <option value="2022">2022 - 2023</option>
+              <option value="2021">2021 - 2022</option>
+              <option value="2020">2020 - 2021</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label class="filter-label" for="sortFilter">Sort By:</label>
+            <select class="custom-select" id="sortFilter">
+              <option value="recent">Most Recent First</option>
+              <option value="downloads">Most Downloaded</option>
+              <option value="popular">Most Viewed</option>
+            </select>
+          </div>
+
+          <div class="filter-actions-right">
+            <button class="btn btn-outline-sm" id="resetAllFiltersBtn">Reset Filters</button>
+          </div>
+        </div>
+
+        <!-- Category Tabs Navigation -->
+        <div class="resource-category-tabs" id="categoryTabsGroup">
+          <button class="cat-tab active" data-category="all">📂 All Materials</button>
+          <button class="cat-tab" data-category="PYQ">📄 Question Papers (PYQs)</button>
+          <button class="cat-tab" data-category="Subject Notes">📘 Subject Notes</button>
+          <button class="cat-tab" data-category="Unit Notes">📑 Unit Notes</button>
+          <button class="cat-tab" data-category="Important Questions">❓ Important Questions</button>
+          <button class="cat-tab" data-category="Lab Manual">🧪 Lab Manuals</button>
+          <button class="cat-tab" data-category="Syllabus">📜 Syllabus &amp; Scheme</button>
+          <button class="cat-tab" data-category="GATE Prep">🚀 GATE &amp; Placement</button>
+          <button class="cat-tab" data-category="bookmarks">⭐ My Bookmarks (<span id="bookmarkCountPill">0</span>)</button>
+        </div>
+
+      </section>
+
+      <!-- Results Count Bar -->
+      <div class="results-meta-bar">
+        <span id="resultsCountText">Loading academic resources...</span>
+        <span class="results-tag-hint" id="activeFilterTags"></span>
+      </div>
+
+      <!-- Resource Grid Container -->
+      <section class="resources-gallery-grid" id="resourcesGalleryGrid">
+        <!-- Resource cards rendered by resources.js -->
+      </section>
+
+      <!-- Empty State Container -->
+      <div class="empty-resource-state" id="emptyResourceState" style="display: none;">
+        <div class="empty-icon">🔍</div>
+        <h3>No resources match your current filters</h3>
+        <p class="sub">Try switching semesters, selecting "All Branches", or clearing your search keywords.</p>
+        <button class="btn btn-primary" id="emptyResetBtn">View All Resources</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- PDF Preview Modal -->
+  <div class="pdf-modal-overlay" id="pdfPreviewModal" style="display: none;">
+    <div class="pdf-modal-box">
+      <div class="pdf-modal-header">
+        <div>
+          <span class="preview-badge" id="modalCategoryBadge">PYQ • End Sem</span>
+          <h3 id="modalResourceTitle" class="modal-doc-title">Document Title</h3>
+          <p class="modal-doc-meta" id="modalResourceMeta">Subject Code • Branch • Semester</p>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn btn-outline-sm" id="modalBookmarkBtn">⭐ Bookmark</button>
+          <a href="#" target="_blank" class="btn btn-primary-sm" id="modalDownloadBtn" download>📥 Download PDF</a>
+          <button class="modal-close-icon" id="closePdfModalBtn">&times;</button>
+        </div>
+      </div>
+      <div class="pdf-modal-body">
+        <div class="pdf-frame-wrapper" id="pdfFrameWrapper">
+          <iframe id="pdfPreviewIframe" src="" title="MITS Examination Paper Preview" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="pdf-modal-footer">
+        <span class="footer-note">Official Document from MITS Gwalior Autonomous Examination Repository</span>
+        <a href="#" id="modalDirectLink" target="_blank" class="preview-external-link">Open in New Tab ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin/Faculty Resource Upload Modal -->
+  <div class="upload-modal-overlay" id="uploadModal" style="display: none;">
+    <div class="upload-modal-box">
+      <div class="upload-modal-header">
+        <div>
+          <span class="step-tag">FACULTY / ADMIN PORTAL</span>
+          <h3 style="font-family: var(--display); font-size: 20px; margin: 4px 0 0;">Upload Academic Resource</h3>
+        </div>
+        <button class="modal-close-icon" id="closeUploadModalBtn">&times;</button>
+      </div>
+
+      <form id="uploadResourceForm" style="margin-top: 18px;">
+        <label class="field-label" for="resTitleInput">Document Title *</label>
+        <input class="field-input" type="text" id="resTitleInput" placeholder="e.g. Operating Systems End Sem Paper 2024" required>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div>
+            <label class="field-label" for="resSubjectNameInput">Subject Name *</label>
+            <input class="field-input" type="text" id="resSubjectNameInput" placeholder="e.g. Operating Systems" required>
+          </div>
+          <div>
+            <label class="field-label" for="resSubjectCodeInput">Subject Code</label>
+            <input class="field-input" type="text" id="resSubjectCodeInput" placeholder="e.g. 160402">
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div>
+            <label class="field-label" for="resBranchInput">Branch *</label>
+            <select class="field-input" id="resBranchInput" required>
+              <option value="CSE">Computer Science &amp; Engineering (CSE)</option>
+              <option value="IT">Information Technology (IT)</option>
+              <option value="AI-DS">Artificial Intelligence &amp; Data Science</option>
+              <option value="ECE">Electronics &amp; Communication (ECE)</option>
+              <option value="EE">Electrical Engineering (EE)</option>
+              <option value="ME">Mechanical Engineering (ME)</option>
+              <option value="CE">Civil Engineering (CE)</option>
+              <option value="Common">Common First Year (All Branches)</option>
+              <option value="Other">Other Disciplines</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="resSemesterInput">Semester *</label>
+            <select class="field-input" id="resSemesterInput" required>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div>
+            <label class="field-label" for="resCategoryInput">Category *</label>
+            <select class="field-input" id="resCategoryInput" required>
+              <option value="PYQ">Previous Year Question Paper (PYQ)</option>
+              <option value="Subject Notes">Subject-wise Notes</option>
+              <option value="Unit Notes">Unit-wise Notes</option>
+              <option value="Important Questions">Important Questions Bank</option>
+              <option value="Lab Manual">Lab Manual &amp; Practical File</option>
+              <option value="Lecture PDF">Lecture Slides / PDF</option>
+              <option value="Syllabus">Curriculum &amp; Scheme</option>
+              <option value="GATE Prep">GATE &amp; Placement Preparation</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="resYearInput">Academic Year *</label>
+            <select class="field-input" id="resYearInput" required>
+              <option value="2024">2024 - 2025</option>
+              <option value="2023">2023 - 2024</option>
+              <option value="2022">2022 - 2023</option>
+              <option value="2021">2021 - 2022</option>
+              <option value="2020">2020 - 2021</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <label class="field-label" for="resFileUrlInput">Public PDF Link / Document URL *</label>
+          <input class="field-input" type="url" id="resFileUrlInput" placeholder="https://web.mitsgwalior.in/... or Google Drive public link" required>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <label class="field-label" for="resDescInput">Description &amp; Key Topics</label>
+          <textarea class="field-input" id="resDescInput" rows="2" placeholder="Brief outline of syllabus covered in this paper/notes..."></textarea>
+        </div>
+
+        <div id="uploadFeedbackMsg" class="auth-status-msg" style="display: none; margin-top: 14px;"></div>
+
+        <button type="submit" class="btn btn-primary" id="submitResourceBtn" style="width: 100%; margin-top: 20px;">
+          Publish to MITS Resource Library
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="resources.js"></script>
+</body>
+</html>

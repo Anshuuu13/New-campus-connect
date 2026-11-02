@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect — Campus Complaints & Grievances | MITS Gwalior</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- Unified Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Rendered by script.js -->
+      </nav>
+
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Campus Complaints &amp; Grievances</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <a href="notifications.html" class="navbar-icon-btn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Banner -->
+      <div class="page-header-banner">
+        <div class="banner-content">
+          <div class="mits-header-badge">
+            <span>🛡️ MITS Student Support &amp; Grievance Cell</span>
+          </div>
+          <h1 class="page-title">Campus Complaints &amp; Support</h1>
+          <p class="sub page-subtitle">
+            Submit anonymous or verified feedback regarding academic facilities, hostels, labs, or campus infrastructure. Monitored directly by the administration.
+          </p>
+        </div>
+      </div>
+
+      <!-- Complaints Container -->
+      <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+        
+        <!-- Submit Form -->
+        <div class="section-card" style="padding: 24px;">
+          <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Submit a Concern or Grievance</h3>
+          <p class="sub" style="font-size: 13px; margin-bottom: 20px;">All submissions are treated with strict confidentiality and routed to the corresponding department head.</p>
+
+          <form id="complaintForm" onsubmit="event.preventDefault(); document.getElementById('complaintSuccess').style.display='block'; this.reset();">
+            <div style="margin-bottom: 14px;">
+              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">CATEGORY</label>
+              <select class="custom-select" required style="width: 100%;">
+                <option value="">Select Category...</option>
+                <option value="academic">Academic &amp; Faculty</option>
+                <option value="hostel">Hostel &amp; Mess</option>
+                <option value="infrastructure">Classrooms &amp; Labs</option>
+                <option value="library">Central Library</option>
+                <option value="wifi">Campus Wi-Fi &amp; IT</option>
+                <option value="anti-ragging">Anti-Ragging / Student Welfare</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">SUBJECT / TITLE</label>
+              <input type="text" class="field-input" placeholder="Brief summary of the issue..." required style="width:100%;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">DETAILS &amp; LOCATION</label>
+              <textarea class="field-input" rows="4" placeholder="Specific block, room number, or detailed description..." required style="width:100%;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" id="anonCheck" style="accent-color: var(--teal);">
+              <label for="anonCheck" style="font-size: 13px; color: var(--text-dim); cursor: pointer;">Submit anonymously (hide your student ID &amp; name)</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Grievance</button>
+            <div id="complaintSuccess" style="display:none; margin-top:14px; padding:12px; border-radius:8px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; font-size:13px;">
+              ✓ Grievance submitted successfully! Reference ID: MITS-GRV-2026-894. The grievance committee will review it within 48 hours.
+            </div>
+          </form>
+        </div>
+
+        <!-- Track / FAQ -->
+        <div>
+          <div class="section-card" style="padding: 24px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Direct Contacts &amp; Helpline</h3>
+            <ul style="list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+              <li style="padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                <strong style="color: var(--teal);">Dean of Student Welfare:</strong><br>
+                <span style="color: var(--text-dim);">Email: dsw@mitsgwalior.in | Ph: 0751-2409300</span>
+              </li>
+              <li style="padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                <strong style="color: var(--gold);">Anti-Ragging Squad (24x7):</strong><br>
+                <span style="color: var(--text-dim);">Toll-Free: 1800-180-5522 | antiragging@mitsgwalior.in</span>
+              </li>
+              <li>
+                <strong style="color: #a78bfa;">IT &amp; Portal Helpdesk:</strong><br>
+                <span style="color: var(--text-dim);">CCF Room 104, Administrative Block | helpdesk@mitsgwl.ac.in</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="section-card" style="padding: 24px;">
+            <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Active Support Status</h3>
+            <div style="display: flex; gap: 12px; margin-top: 14px;">
+              <div style="flex:1; padding: 14px; border-radius: 8px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); text-align: center;">
+                <div style="font-size: 22px; font-weight: 700; color: #60a5fa; font-family: var(--mono);">96.4%</div>
+                <div style="font-size: 12px; color: var(--text-dim);">Resolution Rate</div>
+              </div>
+              <div style="flex:1; padding: 14px; border-radius: 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); text-align: center;">
+                <div style="font-size: 22px; font-weight: 700; color: #86efac; font-family: var(--mono);">&lt; 48h</div>
+                <div style="font-size: 12px; color: var(--text-dim);">Avg. Response Time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

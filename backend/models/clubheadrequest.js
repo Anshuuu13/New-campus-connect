@@ -1,12 +1,28 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const clubHeadRequestSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  userName: { type: String, required: true },
-  clubName: { type: String, required: true },
-  domain: { type: String, required: true },
-  status: { type: String, default: 'pending' }, // pending / approved / rejected
-  createdAt: { type: Date, default: Date.now }
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  club: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('ClubHeadRequest', clubHeadRequestSchema);
+module.exports = mongoose.model("ClubHeadRequest", clubHeadRequestSchema);

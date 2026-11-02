@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusConnect — Complete Your Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </div>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span>MITS Gwalior</span>
+    </div>
+  </header>
+
+  <main class="page" style="max-width: 680px; margin: 32px auto; padding: 0 20px;">
+    <div class="onboarding-card">
+      <div class="step-tag">STEP 1 OF 1 • ONBOARDING</div>
+      <h1 style="font-family: var(--display); font-size: 28px; font-weight: 600; margin: 8px 0 8px;">Complete Your Profile</h1>
+      <p class="sub" style="margin-bottom: 24px;">Welcome to MITS CampusConnect! Please provide a few academic details so your peers and faculty can connect with you.</p>
+
+      <!-- Google Profile Sync Preview -->
+      <div class="google-sync-card">
+        <img id="obAvatar" src="" alt="Google Profile" class="ob-avatar">
+        <div class="ob-user-info">
+          <div class="ob-name-row">
+            <span id="obDisplayName" class="ob-name">Loading...</span>
+            <span class="verified-pill">✓ Google Verified</span>
+          </div>
+          <div id="obDisplayEmail" class="ob-email">...@mitsgwl.ac.in</div>
+        </div>
+      </div>
+
+      <form id="onboardingForm" style="margin-top: 24px;">
+        <!-- Hidden auto-populated values -->
+        <input type="hidden" id="obName">
+        <input type="hidden" id="obEmail">
+
+        <!-- Role Selection -->
+        <label class="field-label">I am a *</label>
+        <div class="role-selector-group">
+          <label class="role-option">
+            <input type="radio" name="roleOption" value="Student" checked>
+            <div class="role-box">
+              <span class="role-icon">🎓</span>
+              <span class="role-title">Student</span>
+              <span class="role-desc">Enrolled in an undergraduate or postgraduate program</span>
+            </div>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="roleOption" value="Faculty">
+            <div class="role-box">
+              <span class="role-icon">🏛️</span>
+              <span class="role-title">Faculty</span>
+              <span class="role-desc">Professor, Lecturer, or Academic Staff member</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Department -->
+        <label class="field-label" for="obDepartment" style="margin-top: 20px;">Department *</label>
+        <select class="field-input" id="obDepartment" required>
+          <option value="" disabled selected>Select your department...</option>
+          <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+          <option value="Information Technology">Information Technology</option>
+          <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+          <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
+          <option value="Electronics & Telecommunication Engineering">Electronics & Telecommunication Engineering</option>
+          <option value="Electrical Engineering">Electrical Engineering</option>
+          <option value="Mechanical Engineering">Mechanical Engineering</option>
+          <option value="Civil Engineering">Civil Engineering</option>
+          <option value="Chemical Engineering">Chemical Engineering</option>
+          <option value="Architecture & Planning">Architecture & Planning</option>
+          <option value="Applied Sciences & Humanities">Applied Sciences & Humanities</option>
+        </select>
+
+        <!-- Academic Year / Batch -->
+        <div id="studentYearContainer">
+          <label class="field-label" for="obYear" style="margin-top: 20px;">Current Year / Level *</label>
+          <select class="field-input" id="obYear">
+            <option value="1st Year">1st Year (Freshman)</option>
+            <option value="2nd Year" selected>2nd Year (Sophomore)</option>
+            <option value="3rd Year">3rd Year (Junior)</option>
+            <option value="4th Year">4th Year (Senior / Final Year)</option>
+            <option value="Postgraduate">Postgraduate (M.Tech / MCA / MBA / PhD)</option>
+          </select>
+        </div>
+
+        <!-- Skills & Technical Interests -->
+        <label class="field-label" style="margin-top: 20px;">Skills &amp; Technical Interests</label>
+        <p class="sub" style="font-size: 12px; margin-bottom: 10px;">Click the tags below or add your own to find project partners and study groups.</p>
+        
+        <div class="quick-chip-group" id="chipSuggestionGroup">
+          <button type="button" class="tag-chip" data-skill="Python">Python</button>
+          <button type="button" class="tag-chip" data-skill="Web Development">Web Development</button>
+          <button type="button" class="tag-chip" data-skill="React">React</button>
+          <button type="button" class="tag-chip" data-skill="Machine Learning">Machine Learning</button>
+          <button type="button" class="tag-chip" data-skill="Data Structures">Data Structures</button>
+          <button type="button" class="tag-chip" data-skill="IoT & Robotics">IoT &amp; Robotics</button>
+          <button type="button" class="tag-chip" data-skill="Cloud Computing">Cloud Computing</button>
+          <button type="button" class="tag-chip" data-skill="Cyber Security">Cyber Security</button>
+          <button type="button" class="tag-chip" data-skill="UI/UX Design">UI/UX Design</button>
+        </div>
+
+        <input class="field-input" type="text" id="customSkillsInput" placeholder="Add custom skills (comma-separated, e.g. Java, Docker, CAD)" style="margin-top: 10px;">
+
+        <!-- Selected Skills Display -->
+        <div id="selectedSkillsContainer" class="selected-skills-box" style="margin-top: 10px; display: none;">
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim);">Selected skills:</span>
+          <div id="selectedSkillsChips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
+        </div>
+
+        <!-- Short Bio -->
+        <label class="field-label" for="obBio" style="margin-top: 20px;">Short Bio (Optional)</label>
+        <textarea class="field-input" id="obBio" rows="2" placeholder="e.g. 2nd year student excited about Open Source and Hackathons."></textarea>
+
+        <!-- Status Message -->
+        <div id="onboardingStatus" class="auth-status-msg" style="display: none; margin-top: 18px;"></div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary" id="saveProfileBtn" style="width: 100%; margin-top: 24px; padding: 14px 20px; font-size: 15px; font-weight: 600;">
+          Complete Profile &amp; Go to Campus Feed →
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="onboarding.js"></script>
+</body>
+</html>

@@ -1,37 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CampusConnect — Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect — Dashboard | MITS Gwalior</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="topbar">
-    <div class="wordmark">
-      <span class="seal">CC</span>
-      <span class="name">CampusConnect</span>
-    </div>
-    <div class="user-chip">
-    <span class="dot"></span>
-    <span id="userRole">Student</span>
-    <button id="logoutBtn">Logout</button>
-    <a href="editprofile.html">edit profile</a>
-</div>
-  </header>
+  <div class="app-shell">
 
-  <main class="dashboard">
-    <div class="rule"></div>
-    <h1 class="name-greeting">Welcome.</h1>
-    <p class="sub">Everything happening on campus, in one place.</p>
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
+      </div>
 
-    <section class="grid" id="cardGrid">
-      <!-- cards are rendered by script.js from the data below -->
-    </section>
-  </main>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- links rendered dynamically by script.js -->
+      </nav>
+
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Student Portal</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <a href="notifications.html" class="navbar-icon-btn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MITS Gwalior Hero Section with authentic campus photograph -->
+      <div class="hero">
+        <div class="hero-main-content">
+          <div class="hero-college-badge">
+            <span>🏛️ Madhav Institute of Technology &amp; Science, Gwalior</span>
+          </div>
+          <h1 class="name-greeting">Welcome.</h1>
+          <p class="sub">Everything happening on campus, in one place — explore Previous Year Papers (PYQs), branch study materials, find project teammates, and shape your journey at MITS Gwalior.</p>
+          <div style="margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="resources.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span>Explore PYQs &amp; Resources</span>
+            </a>
+            <a href="skills.html" class="btn btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              <span>My Portfolio &amp; Skills</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-aside-badge">
+          <div style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: #fbbf24; font-weight: 600;">
+            ⭐ ACADEMIC REPOSITORY
+          </div>
+          <div class="hero-aside-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Semesters 1 to 8 PYQs</span>
+          </div>
+          <div class="hero-aside-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Branch-wise Notes &amp; Labs</span>
+          </div>
+          <div class="hero-aside-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Autonomous Exam Schemes</span>
+          </div>
+          <a href="resources.html" class="hero-aside-link">
+            <span>Browse Library</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <section class="stats-row">
+        <a href="team.html" class="stat-card" id="cardActiveRequests" title="Click to view Active Team &amp; Skill Requests">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <div style="flex: 1;">
+            <div class="stat-value" id="statActiveRequests">12</div>
+            <div class="stat-label">Active Requests</div>
+          </div>
+          <span class="stat-arrow">→</span>
+        </a>
+
+        <a href="research.html" class="stat-card" id="cardResearchOpps" title="Click to explore Faculty Research Opportunities">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V2"/><line x1="9" y1="2" x2="15" y2="2"/></svg></span>
+          <div style="flex: 1;">
+            <div class="stat-value" id="statResearchOpps">5</div>
+            <div class="stat-label">Research Opportunities</div>
+          </div>
+          <span class="stat-arrow">→</span>
+        </a>
+
+        <a href="resources.html" class="stat-card" id="cardVerifiedResources" title="Click to open Academic Resource Library &amp; PYQs">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+          <div style="flex: 1;">
+            <div class="stat-value" id="statVerifiedResources">37+</div>
+            <div class="stat-label">Verified PYQs &amp; Notes</div>
+          </div>
+          <span class="stat-arrow">→</span>
+        </a>
+
+        <a href="announcements.html" class="stat-card" id="cardUnreadAnnouncements" title="Click to view Official Circulars &amp; Announcements">
+          <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+          <div style="flex: 1;">
+            <div class="stat-value" id="statUnreadAnnouncements">7</div>
+            <div class="stat-label">Unread Announcements</div>
+          </div>
+          <span class="stat-arrow">→</span>
+        </a>
+      </section>
+
+      <!-- Prominently Positioned Academic Repository Section -->
+      <section class="dashboard-academic-repository" style="margin-top: 24px; background: var(--ams-navy-card, #0d1f44); border: 1px solid var(--line); border-radius: 16px; padding: 24px 28px; position: relative; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="circular-stamp" style="color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.15);">
+                ⭐ CENTRAL ACADEMIC REPOSITORY
+              </span>
+              <span style="font-family: var(--mono); font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                Semesters 1 to 8 • Real Question Papers
+              </span>
+            </div>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #f8fafc; font-family: var(--display);">
+              Previous Year Papers (PYQs) &amp; Branch Study Materials
+            </h2>
+            <p style="margin: 4px 0 0; color: var(--text-dim, #94a3b8); font-size: 13px;">
+              Verified MITS autonomous exam papers, syllabus schemes, lab manuals, and faculty notes with instant PDF preview &amp; download.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="resources.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 18px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span>Explore Complete Library</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Branch Fast Navigation Pills -->
+        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; scrollbar-width: thin;">
+          <a href="resources.html?branch=CSE" class="branch-pill">Computer Science (CSE)</a>
+          <a href="resources.html?branch=IT" class="branch-pill">Information Tech (IT)</a>
+          <a href="resources.html?branch=AI-DS" class="branch-pill">AI &amp; Data Science</a>
+          <a href="resources.html?branch=CSD" class="branch-pill">CS &amp; Design (CSD)</a>
+          <a href="resources.html?branch=ECE" class="branch-pill">Electronics (ECE)</a>
+          <a href="resources.html?branch=EE" class="branch-pill">Electrical (EE)</a>
+          <a href="resources.html?branch=ME" class="branch-pill">Mechanical (ME)</a>
+          <a href="resources.html?branch=CE" class="branch-pill">Civil Engg (CE)</a>
+          <a href="resources.html?branch=Common" class="branch-pill" style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">1st Year Common</a>
+        </div>
+
+        <!-- Live Featured Papers Cards (Populated by script.js from real database) -->
+        <div id="dashboardFeaturedResources" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+          <!-- Live items populated from /api/dashboard/summary -->
+          <div class="repo-card">
+            <div>
+              <div class="repo-card-meta"><span>CSE</span> • <span>3rd Semester</span> • <span>2024</span></div>
+              <h4 class="repo-card-title">Data Structures &amp; Algorithms</h4>
+            </div>
+            <div class="repo-card-actions">
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e126/preview" target="_blank" class="btn-preview-sm">Preview PDF</a>
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e126/download" class="btn-download-sm">Download</a>
+            </div>
+          </div>
+          <div class="repo-card">
+            <div>
+              <div class="repo-card-meta"><span>IT</span> • <span>5th Semester</span> • <span>2024</span></div>
+              <h4 class="repo-card-title">Design &amp; Analysis of Algorithms</h4>
+            </div>
+            <div class="repo-card-actions">
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e132/preview" target="_blank" class="btn-preview-sm">Preview PDF</a>
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e132/download" class="btn-download-sm">Download</a>
+            </div>
+          </div>
+          <div class="repo-card">
+            <div>
+              <div class="repo-card-meta"><span>CSE</span> • <span>4th Semester</span> • <span>2023</span></div>
+              <h4 class="repo-card-title">Operating Systems</h4>
+            </div>
+            <div class="repo-card-actions">
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e127/preview" target="_blank" class="btn-preview-sm">Preview PDF</a>
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e127/download" class="btn-download-sm">Download</a>
+            </div>
+          </div>
+          <div class="repo-card">
+            <div>
+              <div class="repo-card-meta"><span>Common</span> • <span>1st Semester</span> • <span>2024</span></div>
+              <h4 class="repo-card-title">Engineering Mathematics-I</h4>
+            </div>
+            <div class="repo-card-actions">
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e129/preview" target="_blank" class="btn-preview-sm">Preview PDF</a>
+              <a href="/api/resources/6ae6f0f8e0e99a44da69e129/download" class="btn-download-sm">Download</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-grid">
+        <div class="section-card">
+          <h3>📅 Upcoming Events <span style="margin-left:auto"><a href="events.html" class="preview-link">View all</a></span></h3>
+          <ul id="dashboardUpcomingEvents">
+            <li><strong>Mid-Semester Test II (MST-II)</strong>Nov 18 • 10:30 AM</li>
+            <li><strong>Practical Sign-Off Cutoff</strong>Nov 28 • 05:00 PM</li>
+            <li><strong>End-Semester Theory Exams</strong>Dec 08 • 10:00 AM</li>
+          </ul>
+        </div>
+
+        <div class="section-card">
+          <h3>📢 Latest Announcements <span style="margin-left:auto"><a href="announcements.html" class="preview-link">View all</a></span></h3>
+          <ul id="dashboardLatestAnnouncements">
+            <li><strong>MST-II Time Table &amp; Seating Chart</strong>Official Notice MITS/COE/2026/112</li>
+            <li><strong>Autonomous Exam Form Deadline</strong>Notice MITS/Acad/2026/894</li>
+            <li><strong>TCS NQT Interview Schedule</strong>Notice MITS/TNP/2026/047</li>
+          </ul>
+        </div>
+
+        <div class="section-card">
+          <h3>⚡ Quick Actions</h3>
+          <div class="quick-actions-grid">
+            <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Resources &amp; PYQs</a>
+            <a href="skills.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>My Skills</a>
+            <a href="achievements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>Achievements</a>
+            <a href="team.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Find a Team</a>
+            <a href="research.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V2"/><line x1="9" y1="2" x2="15" y2="2"/></svg>Research</a>
+            <a href="complaints.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="3"/></svg>Complaints</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-grid" style="margin-bottom: 24px;">
+        <div class="section-card" style="grid-column: 1 / -1;">
+          <h3>📋 Live Campus Activity Stream <span style="margin-left:auto"><span class="circular-stamp" style="font-size: 10px;">Live Real-Time Feed</span></span></h3>
+          <ul id="dashboardCampusActivity">
+            <li>Someone requested to join your team — <strong>Smart Irrigation System</strong></li>
+            <li>New faculty research opportunity posted — <strong>Autonomous Drone Navigation</strong></li>
+            <li>Official examination circular released — <strong>Mid-Semester Test II (MST-II) Schedule</strong></li>
+            <li>New verified PYQ added to library — <strong>Design &amp; Analysis of Algorithms (IT Sem 5)</strong></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Embedded PDF Preview Modal -->
+      <div class="modal-overlay" id="dashboardPdfModal" style="display: none;">
+        <div class="modal-box" style="max-width: 900px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>📑</span>
+              <h3 id="dashboardPdfTitle" style="margin: 0; font-size: 16px; color: #f8fafc; font-family: var(--display);">Document Preview</h3>
+            </div>
+            <button id="closeDashboardPdfBtn" style="background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer;">&times;</button>
+          </div>
+          <iframe id="dashboardPdfFrame" src="" style="width: 100%; flex: 1; border: 1px solid var(--line); border-radius: 8px; background: #fff;"></iframe>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
 
   <script src="script.js"></script>
 </body>

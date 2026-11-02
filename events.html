@@ -1,45 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Events - CampusConnect</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Campus Events &amp; Academic Calendar | MITS Gwalior - CampusConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="topbar">
-    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
-      <span class="seal">CC</span>
-      <span class="name">CampusConnect</span>
-    </a>
-    <div class="user-chip">
-      <span class="dot"></span>
-      <span id="userRole">Student</span>
-    </div>
-  </header>
+  <div class="app-shell">
 
-  <main class="page">
-    <a href="index.html" class="back-link">← Back to Dashboard</a>
-    <div class="rule"></div>
-    <h1>Upcoming Events</h1>
-    <p class="sub">Holidays, exams, and college events — all in one calendar.</p>
-
-    <div id="calendarSection" style="margin-bottom: 32px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-        <button class="btn" id="prevMonthBtn">←</button>
-        <h2 id="calendarMonthLabel"></h2>
-        <button class="btn" id="nextMonthBtn">→</button>
+    <!-- Unified Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
       </div>
-      <div id="calendarGrid"></div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Sidebar links dynamically rendered by script.js -->
+      </nav>
+
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Campus Events &amp; Academic Calendar</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <div class="ams-live-pill" id="amsLiveIndicator" title="Synchronized with MITS AMS Portal">
+            <span class="ams-live-dot"></span>
+            <span class="ams-live-text" id="amsSyncTimestamp">AMS Sync: Live (100% Verified)</span>
+          </div>
+
+          <a href="notifications.html" class="navbar-icon-btn" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="assets/images/mits-campus.jpg" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Header Hero Banner -->
+      <section class="events-hero-banner">
+        <div class="hero-banner-content">
+          <div class="mits-header-badge">
+            <span class="badge-icon">🏛️</span>
+            <span>Madhav Institute of Technology &amp; Science &bull; Autonomous Deemed University</span>
+          </div>
+          <h1 class="page-title">MITS Gwalior Academic Calendar &amp; Events Hub</h1>
+          <p class="sub page-subtitle">
+            Autonomous Examination Schedules &bull; Mid-Semester Tests (MST-I &amp; II) &bull; College Fests (Dyuti, Aura, Spardha) &bull; Hackathons &bull; Placement Drives &bull; Gazetted Holidays
+          </p>
+
+          <div class="hero-quick-meta">
+            <span class="meta-tag"><span>📅</span> Current Academic Session: <strong>2026 - 2027</strong></span>
+            <span class="meta-tag"><span>📜</span> Regulations: <strong>MITS Autonomous Curriculum (OBE)</strong></span>
+            <span class="meta-tag"><span>🛡️</span> Accreditation: <strong>NAAC A++ &bull; NIRF Ranked</strong></span>
+          </div>
+        </div>
+
+        <div class="hero-actions-panel">
+          <button class="btn btn-primary" id="openAddEventModalBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ Schedule Event</span>
+          </button>
+          <button class="btn btn-outline" id="exportAllIcsBtn" title="Download .ICS file for Apple Calendar, Outlook, and Android">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export Calendar (.ICS)</span>
+          </button>
+          <button class="btn btn-outline" id="toggleSavedFilterBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <span id="savedFilterLabel">Saved Events (0)</span>
+          </button>
+          <button class="btn btn-outline" id="syncAmsBtn" title="Sync latest notices from official MITS AMS portal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>Sync MITS AMS</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Live Countdowns & Academic Metrics Ribbon -->
+      <section class="events-countdown-ribbon" aria-label="Upcoming Academic Deadlines & Countdowns">
+        <!-- Card 1: Next Examination -->
+        <div class="countdown-card exam-card" id="examCountdownCard">
+          <div class="countdown-card-header">
+            <span class="countdown-card-badge exam-badge">🔴 NEXT EXAMINATION</span>
+            <span class="countdown-status-pill" id="examTargetName">Mid-Semester Test II (MST-II)</span>
+          </div>
+          <div class="countdown-timer-display" id="examCountdownTimer">
+            <div class="timer-unit"><span class="unit-val" id="examDays">--</span><span class="unit-lbl">DAYS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="examHours">--</span><span class="unit-lbl">HOURS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="examMins">--</span><span class="unit-lbl">MINS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="examSecs">--</span><span class="unit-lbl">SECS</span></div>
+          </div>
+          <div class="countdown-card-footer">
+            <span id="examTargetDate">Commencing 18 Nov 2026</span>
+            <button class="link-btn" id="viewExamDetailsBtn">Seating &amp; Guidelines &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Card 2: Next Holiday & Festival Break -->
+        <div class="countdown-card holiday-card" id="holidayCountdownCard">
+          <div class="countdown-card-header">
+            <span class="countdown-card-badge holiday-badge">🟢 NEXT HOLIDAY</span>
+            <span class="countdown-status-pill" id="holidayTargetName">Guru Nanak Jayanti</span>
+          </div>
+          <div class="countdown-timer-display" id="holidayCountdownTimer">
+            <div class="timer-unit"><span class="unit-val" id="holidayDays">--</span><span class="unit-lbl">DAYS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="holidayHours">--</span><span class="unit-lbl">HOURS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="holidayMins">--</span><span class="unit-lbl">MINS</span></div>
+            <span class="timer-sep">:</span>
+            <div class="timer-unit"><span class="unit-val" id="holidaySecs">--</span><span class="unit-lbl">SECS</span></div>
+          </div>
+          <div class="countdown-card-footer">
+            <span id="holidayTargetDate">15 Nov 2026 &bull; Gazetted Holiday</span>
+            <button class="link-btn" id="viewHolidayDetailsBtn">All Holidays &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Card 3: Urgent Deadlines -->
+        <div class="countdown-card deadline-card" id="deadlinesCounterCard">
+          <div class="countdown-card-header">
+            <span class="countdown-card-badge deadline-badge">⚠️ URGENT DEADLINES</span>
+            <span class="pill-count" id="urgentDeadlineCount">3 Pending</span>
+          </div>
+          <div class="deadline-highlight-content">
+            <div class="deadline-highlight-title" id="nextUrgentDeadlineTitle">Exam Form Submission (Without Late Fee)</div>
+            <div class="deadline-highlight-meta" id="nextUrgentDeadlineMeta">Due in 14 days &bull; IMS Portal</div>
+          </div>
+          <div class="countdown-card-footer">
+            <span id="nextUrgentDeadlineDate">Deadline: 15 Nov 2026</span>
+            <button class="link-btn" id="jumpToDeadlinesBtn">Review All &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Card 4: Academic Session Info -->
+        <div class="countdown-card session-card" id="academicSessionCard">
+          <div class="countdown-card-header">
+            <span class="countdown-card-badge session-badge">🏛️ MITS SESSION</span>
+            <span class="session-year-pill" id="activeSessionPill">Autonomous 2026-27</span>
+          </div>
+          <div class="session-stats-group">
+            <div class="session-stat-item">
+              <span class="stat-number" id="totalEventsCount">60+</span>
+              <span class="stat-desc">Verified Events</span>
+            </div>
+            <div class="session-stat-item">
+              <span class="stat-number" id="thisMonthCount">--</span>
+              <span class="stat-desc">This Month</span>
+            </div>
+          </div>
+          <div class="countdown-card-footer">
+            <span>Official Academic Calendar</span>
+            <button class="link-btn" id="refreshEventsBtn">Re-fetch &circlearrowright;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Calendar Controls & Navigation Panel -->
+      <section class="calendar-control-panel">
+        <div class="calendar-nav-group">
+          <button class="btn btn-icon-nav" id="prevPeriodBtn" title="Previous Period" aria-label="Previous">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="btn btn-outline btn-today" id="todayBtn">Today</button>
+          <button class="btn btn-icon-nav" id="nextPeriodBtn" title="Next Period" aria-label="Next">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <h2 class="calendar-period-heading" id="calendarPeriodTitle">November 2026</h2>
+        </div>
+
+        <!-- Multi-View Mode Switcher -->
+        <div class="calendar-view-switcher" role="tablist" aria-label="Calendar Views">
+          <button class="view-btn active" id="viewMonthBtn" data-view="month" role="tab" aria-selected="true">
+            <span class="vb-icon">📅</span> <span>Month</span>
+          </button>
+          <button class="view-btn" id="viewWeekBtn" data-view="week" role="tab" aria-selected="false">
+            <span class="vb-icon">📆</span> <span>Week</span>
+          </button>
+          <button class="view-btn" id="viewYearBtn" data-view="year" role="tab" aria-selected="false">
+            <span class="vb-icon">🗓️</span> <span>Year</span>
+          </button>
+          <button class="view-btn" id="viewCardsBtn" data-view="cards" role="tab" aria-selected="false">
+            <span class="vb-icon">🗂️</span> <span>Cards</span>
+          </button>
+          <button class="view-btn" id="viewDirectoryBtn" data-view="directory" role="tab" aria-selected="false">
+            <span class="vb-icon">📋</span> <span>Directory</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Category Filter Pills Bar -->
+      <nav class="events-category-bar" aria-label="Event Categories">
+        <button class="cat-pill active" data-category="all">
+          <span class="cat-dot dot-all"></span>
+          <span>All Categories</span>
+          <span class="cat-count" id="countCatAll">0</span>
+        </button>
+        <button class="cat-pill" data-category="Examination">
+          <span class="cat-dot dot-exam"></span>
+          <span>Examinations</span>
+          <span class="cat-count" id="countCatExam">0</span>
+        </button>
+        <button class="cat-pill" data-category="Holiday">
+          <span class="cat-dot dot-holiday"></span>
+          <span>Holidays &amp; Breaks</span>
+          <span class="cat-count" id="countCatHoliday">0</span>
+        </button>
+        <button class="cat-pill" data-category="Lab &amp; Practical">
+          <span class="cat-dot dot-lab"></span>
+          <span>Lab &amp; Practical</span>
+          <span class="cat-count" id="countCatLab">0</span>
+        </button>
+        <button class="cat-pill" data-category="Club Activity">
+          <span class="cat-dot dot-club"></span>
+          <span>Club Activities</span>
+          <span class="cat-count" id="countCatClub">0</span>
+        </button>
+        <button class="cat-pill" data-category="Workshop &amp; Seminar">
+          <span class="cat-dot dot-workshop"></span>
+          <span>Workshops &amp; Seminars</span>
+          <span class="cat-count" id="countCatWorkshop">0</span>
+        </button>
+        <button class="cat-pill" data-category="Placement &amp; Career">
+          <span class="cat-dot dot-placement"></span>
+          <span>Placements &amp; Careers</span>
+          <span class="cat-count" id="countCatPlacement">0</span>
+        </button>
+        <button class="cat-pill" data-category="Deadline">
+          <span class="cat-dot dot-deadline"></span>
+          <span>Deadlines</span>
+          <span class="cat-count" id="countCatDeadline">0</span>
+        </button>
+        <button class="cat-pill" data-category="Cultural &amp; Sports">
+          <span class="cat-dot dot-cultural"></span>
+          <span>Cultural &amp; Sports</span>
+          <span class="cat-count" id="countCatCultural">0</span>
+        </button>
+      </nav>
+
+      <!-- Multi-Filter Toolbar (Academic Year, Branch, Semester, Status, Search) -->
+      <div class="events-filter-toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="eventSearchInput" placeholder="Search event title, exam name, club, speaker, room, or subject code..." aria-label="Search events">
+          <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display: none;">&times;</button>
+        </div>
+
+        <div class="filter-dropdowns">
+          <!-- Academic Year Filter -->
+          <div class="select-wrapper">
+            <select id="academicYearFilterSelect" aria-label="Filter by Academic Year">
+              <option value="all">All Academic Years</option>
+              <option value="2026-2027" selected>2026 - 2027 (Current)</option>
+              <option value="2025-2026">2025 - 2026</option>
+              <option value="2024-2025">2024 - 2025</option>
+            </select>
+          </div>
+
+          <!-- Branch Filter -->
+          <div class="select-wrapper">
+            <select id="branchFilterSelect" aria-label="Filter by Branch">
+              <option value="all">All Branches</option>
+              <option value="CSE">CSE - Computer Science &amp; Engg</option>
+              <option value="IT">IT - Information Technology</option>
+              <option value="AI-DS">AI-DS - Artificial Intelligence &amp; Data Science</option>
+              <option value="CSD">CSD - Computer Science &amp; Design</option>
+              <option value="ECE">ECE - Electronics &amp; Communication</option>
+              <option value="EE">EE - Electrical Engineering</option>
+              <option value="ME">ME - Mechanical Engineering</option>
+              <option value="CE">CE - Civil Engineering</option>
+              <option value="MAC">MAC - Mathematics &amp; Computing</option>
+            </select>
+          </div>
+
+          <!-- Semester Filter -->
+          <div class="select-wrapper">
+            <select id="semesterFilterSelect" aria-label="Filter by Semester">
+              <option value="all">All Semesters (1–8)</option>
+              <option value="1">1st Semester (Freshers)</option>
+              <option value="2">2nd Semester</option>
+              <option value="3">3rd Semester (Sophomores)</option>
+              <option value="4">4th Semester</option>
+              <option value="5">5th Semester (Pre-Final)</option>
+              <option value="6">6th Semester</option>
+              <option value="7">7th Semester (Final Year)</option>
+              <option value="8">8th Semester (Final Year)</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="select-wrapper">
+            <select id="statusFilterSelect" aria-label="Filter by Status">
+              <option value="all">All Statuses</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Completed">Completed</option>
+              <option value="Postponed">Postponed</option>
+            </select>
+          </div>
+
+          <button class="btn btn-outline btn-reset" id="resetFiltersBtn" title="Reset all filters">
+            <span>Reset</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Filter Chips Bar -->
+      <div class="active-filter-indicators" id="activeFilterIndicators" style="display: none;">
+        <span class="active-filter-label">Active Filters:</span>
+        <div class="filter-tags-list" id="filterTagsList"></div>
+      </div>
+
+      <!-- ================= MAIN DISPLAY CONTAINERS ================= -->
+      <section class="calendar-display-section" id="calendarDisplaySection">
+
+        <!-- 1. Month View (Interactive 7x6 Grid) -->
+        <div class="calendar-view-container month-view-container" id="monthViewContainer">
+          <div class="calendar-weekdays-header">
+            <div class="weekday-col weekend-sun">Sun</div>
+            <div class="weekday-col">Mon</div>
+            <div class="weekday-col">Tue</div>
+            <div class="weekday-col">Wed</div>
+            <div class="weekday-col">Thu</div>
+            <div class="weekday-col">Fri</div>
+            <div class="weekday-col weekend-sat">Sat</div>
+          </div>
+          <div class="calendar-month-grid" id="monthGrid" role="grid" aria-label="Month View Calendar Grid">
+            <!-- 42 interactive date cells generated dynamically by events.js -->
+          </div>
+        </div>
+
+        <!-- 2. Week View (Timeline Schedule) -->
+        <div class="calendar-view-container week-view-container" id="weekViewContainer" style="display: none;">
+          <div class="week-timeline-grid" id="weekGrid">
+            <!-- 7 daily schedule columns generated dynamically by events.js -->
+          </div>
+        </div>
+
+        <!-- 3. Year View (12 Interactive Mini-Months Heatmap) -->
+        <div class="calendar-view-container year-view-container" id="yearViewContainer" style="display: none;">
+          <div class="year-overview-grid" id="yearGrid">
+            <!-- 12 mini-calendar months generated dynamically by events.js -->
+          </div>
+        </div>
+
+        <!-- 4. Cards View (Modern Event Cards with Photography & Badges) -->
+        <div class="calendar-view-container cards-view-container" id="cardsViewContainer" style="display: none;">
+          <div class="event-cards-modern-grid" id="eventCardsModernGrid">
+            <!-- Rich event cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- 5. Directory Table View -->
+        <div class="calendar-view-container directory-view-container" id="directoryViewContainer" style="display: none;">
+          <div class="table-responsive">
+            <table class="events-directory-table">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Category</th>
+                  <th>Event Name &amp; Description</th>
+                  <th>Venue &amp; Organizer</th>
+                  <th>Eligibility</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="eventsDirectoryTbody">
+                <!-- Directory rows generated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= SMART HIGHLIGHTS SECTION ================= -->
+      <section class="events-highlights-section">
+        <div class="highlights-tabs-header">
+          <button class="h-tab active" data-tab="this-week" id="tabThisWeekBtn">
+            <span>📅 Happening This Week at MITS</span>
+            <span class="badge-mini" id="badgeThisWeek">0</span>
+          </button>
+          <button class="h-tab" data-tab="deadlines" id="tabDeadlinesBtn">
+            <span>⏳ Urgent Academic Deadlines</span>
+            <span class="badge-mini" id="badgeDeadlines">0</span>
+          </button>
+          <button class="h-tab" data-tab="flagship" id="tabFlagshipBtn">
+            <span>🏆 Flagship Fests &amp; Hackathons</span>
+            <span class="badge-mini" id="badgeFlagship">0</span>
+          </button>
+        </div>
+
+        <!-- Tab Pane 1: Happening This Week -->
+        <div class="h-tab-pane active" id="paneThisWeek">
+          <div class="highlight-cards-grid" id="thisWeekGrid">
+            <!-- Highlight cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab Pane 2: Urgent Deadlines -->
+        <div class="h-tab-pane" id="paneDeadlines" style="display: none;">
+          <div class="highlight-cards-grid" id="deadlinesGrid">
+            <!-- Deadline cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab Pane 3: Flagship Fests & Hackathons -->
+        <div class="h-tab-pane" id="paneFlagship" style="display: none;">
+          <div class="highlight-cards-grid" id="flagshipGrid">
+            <!-- Fest cards generated dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer Info & Verification Notice -->
+      <footer class="events-page-footer">
+        <div class="footer-official-badge">
+          <span>🏛️ MITS Gwalior Autonomous Academic Calendar &bull; Verified by Academic Council</span>
+        </div>
+        <p class="sub">
+          Official schedules are derived from Madhav Institute of Technology &amp; Science Academic Council circulars. Dates are subject to change as per competent authority notifications.
+        </p>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- ================= DETAILED DATE & EVENT POPUP MODAL ================= -->
+  <div class="modal-backdrop" id="eventDetailsBackdrop" style="display: none;">
+    <div class="modal-dialog event-details-dialog" role="dialog" aria-labelledby="modalDateHeader">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag">📅 MITS CAMPUS CALENDAR DETAILS</span>
+          <h2 class="modal-heading" id="modalDateHeader">Wednesday, 18 November 2026</h2>
+        </div>
+        <button class="modal-close-btn" id="closeEventDetailsBtn" aria-label="Close details modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modalEventsListContainer">
+        <!-- Rendered dynamically: supports single or multiple events on the clicked date with full details, photography, rules, and actions -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="closeModalBottomBtn">Close</button>
+      </div>
     </div>
+  </div>
 
-    <h2>All Upcoming Events</h2>
-    <section class="post-list" id="eventsList">
-      <p class="sub">Loading events...</p>
-    </section>
-  </main>
+  <!-- ================= ADMIN ADD / EDIT EVENT MODAL ================= -->
+  <div class="modal-backdrop" id="adminEventBackdrop" style="display: none;">
+    <div class="modal-dialog admin-event-dialog" role="dialog" aria-labelledby="adminModalHeading">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-tag">🏛️ EVENT MANAGEMENT</span>
+          <h2 class="modal-heading" id="adminModalHeading">Schedule New Campus Event</h2>
+        </div>
+        <button class="modal-close-btn" id="closeAdminModalBtn" aria-label="Close event form">&times;</button>
+      </div>
 
+      <form id="adminEventForm" class="admin-event-form">
+        <div class="form-grid-2">
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="field-label" for="evtTitle">Event Title *</label>
+            <input class="field-input" type="text" id="evtTitle" placeholder="e.g. Mid-Semester Test II (MST-II)" required>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtCategory">Category *</label>
+            <select class="field-input" id="evtCategory" required>
+              <option value="Examination">Examination</option>
+              <option value="Holiday">Holiday &amp; Festival Break</option>
+              <option value="Lab &amp; Practical">Lab &amp; Practical Evaluation</option>
+              <option value="Club Activity">Club Activity</option>
+              <option value="Workshop &amp; Seminar">Workshop &amp; Seminar</option>
+              <option value="Placement &amp; Career">Placement &amp; Career Drive</option>
+              <option value="Deadline">Deadline &amp; Registration Cutoff</option>
+              <option value="Cultural &amp; Sports">Cultural &amp; Sports Fest</option>
+              <option value="General">General Campus Activity</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtAcademicYear">Academic Year *</label>
+            <select class="field-input" id="evtAcademicYear" required>
+              <option value="2026-2027">2026 - 2027 (Active Session)</option>
+              <option value="2025-2026">2025 - 2026</option>
+              <option value="2024-2025">2024 - 2025</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtStatus">Status *</label>
+            <select class="field-input" id="evtStatus" required>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Postponed">Postponed</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtStartDate">Start Date *</label>
+            <input class="field-input" type="date" id="evtStartDate" required>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtEndDate">End Date (Optional)</label>
+            <input class="field-input" type="date" id="evtEndDate">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtStartTime">Start Time</label>
+            <input class="field-input" type="text" id="evtStartTime" placeholder="e.g. 10:30 AM" value="10:00 AM">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtEndTime">End Time</label>
+            <input class="field-input" type="text" id="evtEndTime" placeholder="e.g. 04:30 PM" value="05:00 PM">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtVenue">Venue *</label>
+            <input class="field-input" type="text" id="evtVenue" placeholder="e.g. Examination Blocks / Main Auditorium" value="MITS Gwalior Campus" required>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtDepartment">Department / Organizing Body *</label>
+            <input class="field-input" type="text" id="evtDepartment" placeholder="e.g. Office of Controller of Examination" value="Dean Academics Office" required>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtBranches">Eligible Branches (comma separated or ALL)</label>
+            <input class="field-input" type="text" id="evtBranches" placeholder="ALL, CSE, IT, ECE, EE..." value="ALL">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtSemesters">Eligible Semesters (comma separated)</label>
+            <input class="field-input" type="text" id="evtSemesters" placeholder="e.g. 1, 2, 3, 4, 5, 6, 7, 8" value="1, 2, 3, 4, 5, 6, 7, 8">
+          </div>
+
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="field-label" for="evtDescription">Event Description &amp; Syllabus Coverage *</label>
+            <textarea class="field-input" id="evtDescription" rows="3" placeholder="Provide full context, syllabus coverage, schedule, or rules..." required></textarea>
+          </div>
+
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="field-label" for="evtInstructions">Important Instructions &amp; Examination Rules</label>
+            <textarea class="field-input" id="evtInstructions" rows="2" placeholder="e.g. College ID Card &amp; Uniform mandatory; scientific calculators permitted..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtRegUrl">Registration / Notice Link URL</label>
+            <input class="field-input" type="url" id="evtRegUrl" placeholder="https://ims.mitsgwalior.in or Google Form link">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtSourceUrl">Official Circular Source URL</label>
+            <input class="field-input" type="url" id="evtSourceUrl" placeholder="https://web.mitsgwalior.in/examination/notices" value="https://web.mitsgwalior.in">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtContactPerson">Coordinator Name</label>
+            <input class="field-input" type="text" id="evtContactPerson" placeholder="e.g. Dr. P. K. Singhal (COE)">
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtContactEmail">Coordinator Email</label>
+            <input class="field-input" type="email" id="evtContactEmail" placeholder="coe@mitsgwalior.in">
+          </div>
+        </div>
+
+        <div id="adminFormFeedback" class="auth-status-msg" style="display: none; margin-top: 14px;"></div>
+
+        <div class="modal-actions" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" id="cancelAdminModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEventSubmitBtn">Publish Campus Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Core Scripts -->
+  <script src="script.js"></script>
   <script src="events.js"></script>
 </body>
 </html>

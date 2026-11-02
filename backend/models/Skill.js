@@ -10,9 +10,29 @@ const skillSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  proficiency: {
+    type: String,
+    enum: ["Beginner", "Intermediate", "Advanced"],
+    default: "Intermediate"
+  },
+  category: {
+    type: String,
+    enum: [
+      "Programming",
+      "Web Development",
+      "AI/ML",
+      "Database",
+      "Mobile Development",
+      "Cloud & DevOps",
+      "Cybersecurity",
+      "Soft Skills",
+      "Other"
+    ],
+    default: "Programming"
+  },
   level: {
     type: Number,
-    default: 50
+    default: 65
   },
   createdAt: {
     type: Date,

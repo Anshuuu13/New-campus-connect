@@ -1,64 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Announcements - CampusConnect</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Official Announcements &amp; Circulars | MITS Gwalior - CampusConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="topbar">
-    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
-      <span class="seal">CC</span>
-      <span class="name">CampusConnect</span>
-    </a>
-    <div class="user-chip">
-      <span class="dot"></span>
-      <span id="userRole">Student</span>
-    </div>
-  </header>
+  <div class="app-shell">
 
-  <main class="page">
-    <a href="index.html" class="back-link">← Back to Dashboard</a>
-    <div class="rule"></div>
-    <h1>Announcements</h1>
-    <p class="sub">Updates, events, and club recruitment posts from campus.</p>
-
-    <div id="postFormSection" style="display: none; margin-bottom: 24px;">
-      <div class="field-row">
-        <label class="field-label" for="titleInput">Title</label>
-        <input class="field-input" type="text" id="titleInput" placeholder="e.g. Mid-sem exam schedule released" />
+    <!-- Unified Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="wordmark">
+        <span class="seal">CC</span>
+        <span class="name">CampusConnect</span>
       </div>
 
-      <label class="field-label" for="messageInput">Message</label>
-      <input class="field-input" type="text" id="messageInput" placeholder="Details of the announcement" />
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Sidebar navigation rendered dynamically by script.js -->
+      </nav>
 
-      <label class="field-label" for="typeInput">Type</label>
-      <select class="field-input" id="typeInput">
-        <option value="General">General</option>
-        <option value="Club Recruitment">Club Recruitment</option>
-      </select>
+      <div class="sidebar-footer-text">
+        MITS Gwalior<br>Autonomous &amp; NAAC A++
+      </div>
+    </aside>
 
-      <div id="clubFieldsSection" style="display: none;">
-        <label class="field-label" for="clubNameInput">Club Name</label>
-        <input class="field-input" type="text" id="clubNameInput" placeholder="e.g. Robotics Club" />
+    <!-- Main Content Area -->
+    <main class="main-content">
 
-        <label class="field-label" for="posterImageInput">Poster Image URL (optional)</label>
-        <input class="field-input" type="text" id="posterImageInput" placeholder="Paste image link" />
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
 
-        <label class="field-label" for="formLinkInput">Google Form Link</label>
-        <input class="field-input" type="text" id="formLinkInput" placeholder="Application form link" />
+        <div class="navbar-title-crumb">
+          <span class="crumb-root">MITS Gwalior</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb-current">Announcements &amp; Circulars</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <div class="ams-live-pill" id="firestoreLiveIndicator" title="Live Real-Time Cloud Sync">
+            <span class="ams-live-dot" style="background: #10b981;"></span>
+            <span class="ams-live-text" id="liveSyncStatusText">Firestore: Live Sync</span>
+          </div>
+
+          <a href="notifications.html" class="navbar-icon-btn" title="Smart Notifications" id="navNotifBellBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge-counter" id="navNotifBadgeCounter" style="display: none;">0</span>
+          </a>
+
+          <div class="profile-menu" id="profileMenu">
+            <button class="profile-trigger" id="profileTrigger">
+              <img id="navProfilePic" src="assets/images/mits-campus.jpg" alt="Profile" class="nav-profile-pic">
+              <span id="navUserName">Loading...</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="profile.html" id="profileMenuLink">Profile</a>
+              <a href="settings.html">Settings</a>
+              <button id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <button class="btn btn-primary" id="postAnnouncementBtn" style="margin-top: 12px;">Post Announcement</button>
+      <!-- Institutional Header & Quick Stats -->
+      <section class="mec-hero-banner" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(13, 31, 68, 0.95) 0%, rgba(10, 28, 61, 0.9) 100%); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 16px; padding: 28px; position: relative; overflow: hidden;">
+        <div style="position: relative; z-index: 2;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+            <span class="circular-stamp">🏛️ OFFICIAL INSTITUTIONAL NOTICES</span>
+            <span style="font-family: var(--mono); font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px 8px; border-radius: 6px;">
+              MITS AMS Real-Time Sync
+            </span>
+          </div>
+
+          <h1 style="font-size: 26px; font-weight: 700; margin: 0 0 8px; color: #f8fafc; font-family: var(--display);">
+            Campus Announcements &amp; Notice Board
+          </h1>
+          <p style="color: #94a3b8; font-size: 14px; max-width: 780px; margin: 0 0 20px; line-height: 1.5;">
+            Verified real-time notices directly synchronized from the Office of the Registrar, Dean Academics, Controller of Examinations (COE), Training &amp; Placement Cell, and Autonomous Departmental Councils.
+          </p>
+
+          <!-- Quick Metric Stats -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; max-width: 700px;">
+            <div style="background: rgba(8, 19, 41, 0.7); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 11px; font-family: var(--mono); color: #94a3b8; text-transform: uppercase;">Active Circulars</span>
+              <div id="statTotalNotices" style="font-size: 22px; font-weight: 700; color: #f8fafc; font-family: var(--mono); margin-top: 4px;">--</div>
+            </div>
+            <div style="background: rgba(8, 19, 41, 0.7); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 11px; font-family: var(--mono); color: #f87171; text-transform: uppercase;">Urgent Deadlines</span>
+              <div id="statUrgentNotices" style="font-size: 22px; font-weight: 700; color: #f87171; font-family: var(--mono); margin-top: 4px;">--</div>
+            </div>
+            <div style="background: rgba(8, 19, 41, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 11px; font-family: var(--mono); color: #38bdf8; text-transform: uppercase;">Examinations</span>
+              <div id="statExamNotices" style="font-size: 22px; font-weight: 700; color: #38bdf8; font-family: var(--mono); margin-top: 4px;">--</div>
+            </div>
+            <div style="background: rgba(8, 19, 41, 0.7); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 11px; font-family: var(--mono); color: #fbbf24; text-transform: uppercase;">T&amp;P Placements</span>
+              <div id="statTnpNotices" style="font-size: 22px; font-weight: 700; color: #fbbf24; font-family: var(--mono); margin-top: 4px;">--</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filter Controls & Action Bar -->
+      <section style="background: var(--ams-navy-card, #0d1f44); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 22px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 14px;">
+          
+          <!-- Search Input -->
+          <div style="flex: 1; min-width: 240px; position: relative;">
+            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="announcementSearchInput" placeholder="Search notices by title, circular number, or keyword..." style="width: 100%; padding: 10px 14px 10px 38px; background: rgba(8, 19, 41, 0.8); border: 1px solid var(--line); border-radius: 8px; color: #f8fafc; font-family: var(--body); font-size: 13px;">
+          </div>
+
+          <!-- Branch Filter -->
+          <select id="branchSelectFilter" style="background: rgba(8, 19, 41, 0.8); border: 1px solid var(--line); border-radius: 8px; color: #f8fafc; padding: 10px 14px; font-family: var(--body); font-size: 13px;">
+            <option value="ALL">All Branches</option>
+            <option value="CSE">Computer Science &amp; Engg (CSE)</option>
+            <option value="IT">Information Technology (IT)</option>
+            <option value="AI-DS">Artificial Intelligence &amp; Data Science</option>
+            <option value="CSD">Computer Science &amp; Design</option>
+            <option value="ECE">Electronics &amp; Comm. (ECE)</option>
+            <option value="EE">Electrical Engineering (EE)</option>
+            <option value="ME">Mechanical Engineering (ME)</option>
+            <option value="CE">Civil Engineering (CE)</option>
+          </select>
+
+          <!-- Semester Filter -->
+          <select id="semesterSelectFilter" style="background: rgba(8, 19, 41, 0.8); border: 1px solid var(--line); border-radius: 8px; color: #f8fafc; padding: 10px 14px; font-family: var(--body); font-size: 13px;">
+            <option value="all">All Semesters</option>
+            <option value="1">1st Semester</option>
+            <option value="2">2nd Semester</option>
+            <option value="3">3rd Semester</option>
+            <option value="4">4th Semester</option>
+            <option value="5">5th Semester</option>
+            <option value="6">6th Semester</option>
+            <option value="7">7th Semester</option>
+            <option value="8">8th Semester</option>
+          </select>
+
+          <!-- Admin Publish Button -->
+          <button id="openAdminPublishModalBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Publish Notice</span>
+          </button>
+        </div>
+
+        <!-- Category Filter Tabs -->
+        <div class="notif-filter-tabs" id="categoryFilterTabs">
+          <button class="notif-tab active" data-category="ALL">All Circulars</button>
+          <button class="notif-tab" data-category="Examinations">📝 Examinations</button>
+          <button class="notif-tab" data-category="Academic Deadlines">⚠️ Academic Deadlines</button>
+          <button class="notif-tab" data-category="Placements">💼 Placements (T&amp;P)</button>
+          <button class="notif-tab" data-category="Results">📊 Results &amp; Grades</button>
+          <button class="notif-tab" data-category="Holidays">🏖️ Holidays &amp; Breaks</button>
+          <button class="notif-tab" data-category="College Events">🏆 Campus Events</button>
+          <button class="notif-tab" data-category="Club Recruitment">🎯 Club Recruitment</button>
+        </div>
+      </section>
+
+      <!-- Real-Time Announcements Stream -->
+      <section id="announcementsFeedContainer">
+        <div style="text-align: center; padding: 40px 16px; color: var(--text-dim);">
+          <div style="font-size: 28px; margin-bottom: 8px;">🔄</div>
+          <p>Connecting to Firebase Firestore &amp; MITS Circular Database...</p>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Admin Publish Announcement Modal -->
+  <div class="modal-overlay" id="adminPublishModal">
+    <div class="modal-box">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">📢</span>
+          <h3 style="margin: 0; font-size: 18px; color: #f8fafc; font-family: var(--display);">
+            Publish Official Campus Circular
+          </h3>
+        </div>
+        <button id="closeAdminPublishModalBtn" style="background: transparent; border: none; color: #94a3b8; font-size: 22px; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="adminPublishForm">
+        <div style="margin-bottom: 14px;">
+          <label class="field-label" for="pubTitle">Circular Title *</label>
+          <input class="field-input" type="text" id="pubTitle" required placeholder="e.g. End Semester Theory Examination Time Table November 2026" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="field-label" for="pubMessage">Circular Description &amp; Detailed Guidelines *</label>
+          <textarea class="field-input" id="pubMessage" rows="4" required placeholder="Enter full circular guidelines, eligibility, dates, and instructions..." style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff; font-family: var(--body);"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="field-label" for="pubCategory">Category *</label>
+            <select class="field-input" id="pubCategory" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+              <option value="Examinations">Examinations</option>
+              <option value="Academic Deadlines">Academic Deadlines</option>
+              <option value="Placements">Placements</option>
+              <option value="Results">Results</option>
+              <option value="Holidays">Holidays</option>
+              <option value="College Events">College Events</option>
+              <option value="Club Recruitment">Club Recruitment</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="pubPriority">Priority Level *</label>
+            <select class="field-input" id="pubPriority" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+              <option value="Normal">Normal</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent / Immediate Action</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="field-label" for="pubCircularNumber">Official Circular No.</label>
+            <input class="field-input" type="text" id="pubCircularNumber" placeholder="e.g. MITS/COE/2026/115" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+          </div>
+
+          <div>
+            <label class="field-label" for="pubIssuedBy">Issuing Department / Officer</label>
+            <input class="field-input" type="text" id="pubIssuedBy" placeholder="e.g. Controller of Examinations" value="Dean Academics Office" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="field-label" for="pubDocumentUrl">PDF Attachment / Circular Link</label>
+            <input class="field-input" type="text" id="pubDocumentUrl" placeholder="https://web.mitsgwalior.in/circular.pdf" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+          </div>
+
+          <div>
+            <label class="field-label" for="pubFormLink">Application / Registration URL</label>
+            <input class="field-input" type="text" id="pubFormLink" placeholder="https://ims.mitsgwalior.in or Google Form" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="field-label" for="pubPosterImage">Poster / Banner Image URL (Optional)</label>
+          <input class="field-input" type="text" id="pubPosterImage" placeholder="assets/images/mits-campus.jpg" style="width: 100%; padding: 10px 12px; background: #081329; border: 1px solid var(--line); border-radius: 8px; color: #fff;">
+        </div>
+
+        <div id="publishFeedbackMsg" style="display: none; padding: 10px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;"></div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" class="btn btn-secondary" id="cancelPublishModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitPublishBtn">
+            🚀 Broadcast Circular &amp; Send FCM Notification
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <section class="post-list" id="announcementsList">
-      <p class="sub">Loading announcements...</p>
-    </section>
-  </main>
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;" aria-live="polite"></div>
 
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+  <!-- CampusConnect Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
   <script src="announcements.js"></script>
 </body>
 </html>
