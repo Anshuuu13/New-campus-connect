@@ -3,10 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusConnect — SkillSwap</title>
+  <title>CampusConnect — SkillSwap | MITS Gwalior</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <style>
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .action-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      background: #0d1f44;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #1e3a70;
+    }
+    .search-box-wrap {
+      flex: 1 1 240px;
+    }
+    .filter-select {
+      padding: 10px 14px;
+      background: #081329;
+      color: #e2e8f0;
+      border: 1px solid #1e3a70;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-panel-card {
+      background: #0d1f44;
+      border: 1px solid #2563eb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .skill-badge-offered {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+    }
+    .skill-badge-wanted {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+    }
+    .proficiency-pill {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .requests-section-card {
+      background: #0d1f44;
+      border: 1px solid #1e3a70;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+    .tab-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid #1e3a70;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .tab-btn.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .request-row-item {
+      background: #081329;
+      border: 1px solid #1e3a70;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+    }
+    .btn-edit {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-edit:hover {
+      background: #0369a1;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+  </style>
 </head>
 <body>
 
@@ -15,33 +150,202 @@
       <span class="seal">CC</span>
       <span class="name">CampusConnect</span>
     </a>
-    <div class="user-chip">
-      <span class="dot"></span>
-      <span id="userRole">Student</span>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="user-chip">
+        <span class="dot"></span>
+        <span id="userRole">Student</span>
+      </div>
+      <button id="logoutBtn" class="btn btn-secondary btn-sm" style="display:none;">Sign Out</button>
     </div>
   </header>
 
   <main class="page">
     <a href="index.html" class="back-link">← Back to Dashboard</a>
     <div class="rule"></div>
-    <h1>SkillSwap</h1>
-    <p class="sub">Trade what you know for what you want to learn.</p>
 
-    <div class="skill-block">
-      <h3>Requests I've Received</h3>
-      <div id="incomingRequests"></div>
+    <div class="module-header">
+      <div>
+        <h1 style="margin: 0 0 6px 0;">SkillSwap Exchange</h1>
+        <p class="sub" style="margin:0;">Trade what you know for what you want to learn with fellow MITS Gwalior students.</p>
+      </div>
+      <button class="btn btn-primary" id="togglePostFormBtn">+ Offer / Request Skills</button>
     </div>
 
-    <div class="skill-block">
-      <h3>Requests I've Sent</h3>
-      <div id="sentRequests"></div>
+    <!-- Collapsible Create Skill Swap Listing Form -->
+    <div class="form-panel-card" id="createFormCard" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; color:#38bdf8;">Create a New Skill Exchange Listing</h3>
+        <button id="closeCreateFormBtn" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr; gap: 14px;">
+        <div>
+          <label class="field-label" for="skillTitleInput">Listing Headline *</label>
+          <input class="field-input" type="text" id="skillTitleInput" placeholder="e.g. C++ &amp; DSA Mastery in exchange for React &amp; Tailwind CSS">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label class="field-label" for="skillOfferedInput">Skills You Offer / Can Teach *</label>
+            <input class="field-input" type="text" id="skillOfferedInput" placeholder="e.g. C++, STL, Algorithms, LeetCode">
+          </div>
+          <div>
+            <label class="field-label" for="skillWantedInput">Skills You Want to Learn *</label>
+            <input class="field-input" type="text" id="skillWantedInput" placeholder="e.g. React.js, Web Development, UI/UX">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label class="field-label" for="proficiencyInput">Your Skill Proficiency Level</label>
+            <select class="field-input" id="proficiencyInput">
+              <option value="Intermediate">Intermediate (Hands-on experience)</option>
+              <option value="Advanced">Advanced (Projects / Competitive level)</option>
+              <option value="Beginner">Beginner (Foundational)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="availabilityInput">Preferred Availability</label>
+            <input class="field-input" type="text" id="availabilityInput" placeholder="e.g. Weekends, Mon/Wed evenings, Campus Library">
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="skillDescInput">Details &amp; Learning Goals</label>
+          <textarea class="field-input" id="skillDescInput" rows="3" placeholder="Tell peers what you can help them with and what you hope to achieve together..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+          <button class="btn btn-secondary" id="cancelPostBtn" type="button">Cancel</button>
+          <button class="btn btn-primary" id="publishSkillBtn" type="button">Publish Listing</button>
+        </div>
+      </div>
     </div>
 
-    <div class="skill-block">
-      <h3>Browse Students</h3>
-      <div id="directoryList"></div>
+    <!-- Active User's Swap Requests Center (Incoming & Sent) -->
+    <div class="requests-section-card">
+      <div class="tab-nav">
+        <button class="tab-btn active" id="tabIncomingBtn">Incoming Requests (<span id="incomingCount">0</span>)</button>
+        <button class="tab-btn" id="tabSentBtn">Sent Requests (<span id="sentCount">0</span>)</button>
+      </div>
+
+      <div id="incomingContainer">
+        <div id="incomingRequestsList">Loading received requests...</div>
+      </div>
+
+      <div id="sentContainer" style="display:none;">
+        <div id="sentRequestsList">Loading sent requests...</div>
+      </div>
     </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="action-controls-row">
+      <div class="search-box-wrap">
+        <input type="text" id="skillSearchInput" class="field-input" placeholder="Search by skill (e.g. Python, React, C++, Machine Learning, AutoCAD)..." style="margin:0;">
+      </div>
+      <div>
+        <select id="statusFilterSelect" class="filter-select">
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Completed">Completed</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+      <div id="postsCountBadge" style="font-size:13px; color:#94a3b8; margin-left:auto;">
+        Loading listings...
+      </div>
+    </div>
+
+    <!-- Main Skill Listings Feed -->
+    <section class="post-list" id="skillListings">
+      <!-- rendered by skillswap.js -->
+    </section>
   </main>
+
+  <!-- Edit Skill Listing Modal -->
+  <div id="editSkillModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:540px; background:#0d1f44; border:1px solid #38bdf8; padding:24px; border-radius:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:18px; color:#38bdf8;">Edit Skill Exchange Listing</h3>
+        <button id="closeEditModalBtn" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <input type="hidden" id="editListingId">
+
+      <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+        <div>
+          <label class="field-label" for="editSkillTitle">Headline</label>
+          <input class="field-input" type="text" id="editSkillTitle">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label class="field-label" for="editSkillOffered">Skills You Offer</label>
+            <input class="field-input" type="text" id="editSkillOffered">
+          </div>
+          <div>
+            <label class="field-label" for="editSkillWanted">Skills You Want</label>
+            <input class="field-input" type="text" id="editSkillWanted">
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label class="field-label" for="editProficiency">Proficiency</label>
+            <select class="field-input" id="editProficiency">
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+              <option value="Beginner">Beginner</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="editStatus">Status</label>
+            <select class="field-input" id="editStatus">
+              <option value="Active">Active</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="editAvailability">Availability</label>
+          <input class="field-input" type="text" id="editAvailability">
+        </div>
+        <div>
+          <label class="field-label" for="editSkillDesc">Description</label>
+          <textarea class="field-input" id="editSkillDesc" rows="3"></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button class="btn btn-secondary" id="cancelEditBtn" type="button">Cancel</button>
+          <button class="btn btn-primary" id="saveEditBtn" type="button">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Swap Modal -->
+  <div id="requestSwapModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:500px; background:#0d1f44; border:1px solid #38bdf8; padding:24px; border-radius:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; color:#38bdf8;">Request Skill Swap</h3>
+        <button id="closeRequestModalBtn" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <input type="hidden" id="swapTargetUserId">
+      <p id="swapTargetName" style="color:#cbd5e1; font-size:14px; margin-bottom:14px;"></p>
+
+      <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+        <div>
+          <label class="field-label" for="reqSkillWanted">Skill you want to learn from them *</label>
+          <input class="field-input" type="text" id="reqSkillWanted" placeholder="e.g. Python, React, C++">
+        </div>
+        <div>
+          <label class="field-label" for="reqSkillOffered">Skill you can teach them in return</label>
+          <input class="field-input" type="text" id="reqSkillOffered" placeholder="e.g. Figma UI/UX, Node.js, Math">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button class="btn btn-secondary" id="cancelRequestModalBtn" type="button">Cancel</button>
+          <button class="btn btn-primary" id="submitSwapRequestBtn" type="button">Send Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="skillswap.js"></script>
 </body>
