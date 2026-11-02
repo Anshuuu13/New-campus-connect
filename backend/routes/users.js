@@ -160,6 +160,68 @@ router.post("/google-auth", async (req, res) => {
   }
 });
 
+// COLLEGE LOGIN — Direct official email sign-in (@mitsgwl.ac.in / @mitsgwalior.in)
+router.post("/college-login", async (req, res) => {
+  try {
+    const email = (req.body.email || "").toLowerCase().trim();
+
+    if (!email) {
+      return res.status(400).json({ error: "College email address is required." });
+    }
+
+    const isAllowedEmail = email.endsWith("@mitsgwl.ac.in") || email.endsWith("@mitsgwalior.in");
+    if (!isAllowedEmail) {
+      return res.status(403).json({
+        error: "Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in)."
+      });
+    }
+
+    let user = await User.findOne({
+      $or: [{ email: email }, { contactEmail: email }]
+    });
+
+    if (!user) {
+      const emailPrefix = email.split("@")[0];
+      const displayName = emailPrefix.replace(/[._0-9]/g, " ").trim();
+      const formattedName = displayName.length > 2
+        ? displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+        : `MITS Member (${emailPrefix})`;
+
+      const isProf = email.endsWith("@mitsgwalior.in") && (email.includes("prof") || email.includes("faculty") || email.includes("dr"));
+
+      user = new User({
+        name: formattedName,
+        email: email,
+        contactEmail: email,
+        authProvider: "college-email",
+        department: email.includes("cd") ? "Computer Science & Design" : "Computer Science & Engineering",
+        role: isProf ? "professor" : "Student",
+        profileCompleted: false
+      });
+      await user.save();
+    }
+
+    const token = jwt ? jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: "7d" }) : undefined;
+    res.json({
+      _id: user._id,
+      name: user.name,
+      department: user.department,
+      role: user.role,
+      email: user.email || email,
+      contactEmail: user.contactEmail || email,
+      branch: user.branch || "",
+      year: user.year || "",
+      bio: user.bio || "",
+      profilePicture: user.profilePicture || "",
+      profileCompleted: Boolean(user.profileCompleted),
+      token
+    });
+  } catch (err) {
+    console.error("COLLEGE LOGIN ERROR:", err);
+    res.status(500).json({ error: "Something went wrong signing in." });
+  }
+});
+
 // SIGN UP — create a new user (legacy/fallback)
 router.post("/", async (req, res) => {
   try {

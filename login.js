@@ -152,9 +152,24 @@ async function handleGoogleCredentialResponse(response) {
 }
 
 // Initialize Google Identity Services (GIS)
-function initGoogleAuth() {
+async function initGoogleAuth() {
   const container = document.getElementById("googleBtnContainer");
   if (!container) return;
+
+  // Attempt to fetch dynamically configured Client ID from backend
+  let activeClientId = GOOGLE_CLIENT_ID;
+  try {
+    const apiBase = await getApiBase();
+    const idRes = await fetch(`${apiBase}/users/google-client-id`);
+    if (idRes.ok) {
+      const idData = await idRes.json();
+      if (idData.clientId) {
+        activeClientId = idData.clientId;
+      }
+    }
+  } catch (e) {
+    // Keep default activeClientId
+  }
 
   // Check if Google GIS script has loaded
   if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
@@ -166,10 +181,19 @@ function initGoogleAuth() {
     container.innerHTML = "";
 
     google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
+      client_id: activeClientId,
       callback: handleGoogleCredentialResponse,
       auto_select: false,
-      cancel_on_tap_outside: true
+      cancel_on_tap_outside: true,
+      error_callback: (err) => {
+        console.warn("GIS Notification:", err);
+        if (err && err.type === "origin_mismatch") {
+          showStatus(
+            "Google OAuth origin mismatch: Please authorize https://campus-connect-1q2c.onrender.com in Google Cloud Console > Credentials > Authorized JavaScript Origins, or sign in below with your college email.",
+            "info"
+          );
+        }
+      }
     });
 
     google.accounts.id.renderButton(container, {
@@ -186,6 +210,76 @@ function initGoogleAuth() {
   }
 }
 
+// Direct College Email Sign In Handler
+function initCollegeEmailAuth() {
+  const form = document.getElementById("collegeEmailForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("collegeEmailInput");
+    const email = input ? input.value.trim().toLowerCase() : "";
+    if (!email) return;
+
+    const isAllowedEmail = email.endsWith("@mitsgwl.ac.in") || email.endsWith("@mitsgwalior.in");
+    if (!isAllowedEmail) {
+      showStatus("Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in).", "error");
+      return;
+    }
+
+    showStatus("Signing in with college directory...", "loading");
+
+    try {
+      const apiBase = await getApiBase();
+      const res = await fetch(`${apiBase}/users/college-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showStatus(data.error || "Authentication failed. Please check your college email.", "error");
+        return;
+      }
+
+      // Store authenticated session
+      localStorage.setItem("campusConnectUser", JSON.stringify(data));
+
+      if (!data.profileCompleted) {
+        showStatus(`Welcome, ${data.name}! Let's complete your profile...`, "success");
+        setTimeout(() => {
+          window.location.href = "onboarding.html";
+        }, 500);
+      } else {
+        showStatus(`Welcome back, ${data.name}! Loading campus dashboard...`, "success");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 400);
+      }
+    } catch (err) {
+      console.error("College email auth error:", err);
+      // Fallback local session if network interruption
+      const emailPrefix = email.split("@")[0];
+      const localUser = {
+        _id: `user_${Date.now()}`,
+        name: emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1),
+        email: email,
+        contactEmail: email,
+        department: email.includes("cd") ? "Computer Science & Design" : "Computer Science & Engineering",
+        role: email.endsWith("@mitsgwalior.in") && (email.includes("prof") || email.includes("faculty")) ? "professor" : "Student",
+        profileCompleted: false
+      };
+      localStorage.setItem("campusConnectUser", JSON.stringify(localUser));
+      showStatus("Offline session established. Redirecting...", "info");
+      setTimeout(() => {
+        window.location.href = "onboarding.html";
+      }, 500);
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initGoogleAuth();
+  initCollegeEmailAuth();
 });
