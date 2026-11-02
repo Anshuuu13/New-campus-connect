@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const { OAuth2Client } = require("google-auth-library");
@@ -231,9 +232,25 @@ router.get("/", async (req, res) => {
 // GET a single user's public info (for profile page)
 router.get("/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select(
-      "name department role profilePicture bio branch year linkedin github contactEmail interests profileCompleted"
-    );
+    const targetId = req.params.id;
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(targetId)) {
+      user = await User.findById(targetId).select(
+        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted"
+      );
+    }
+    if (!user) {
+      user = await User.findOne({
+        $or: [
+          { googleId: targetId },
+          { email: targetId },
+          { contactEmail: targetId }
+        ]
+      }).select(
+        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted"
+      );
+    }
+
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
@@ -261,30 +278,55 @@ router.patch("/:id", async (req, res) => {
       profileCompleted
     } = req.body;
 
-    const updates = {};
-    if (profilePicture !== undefined) updates.profilePicture = profilePicture;
-    if (bio !== undefined) updates.bio = bio;
-    if (branch !== undefined) updates.branch = branch;
-    if (year !== undefined) updates.year = year;
-    if (linkedin !== undefined) updates.linkedin = linkedin;
-    if (github !== undefined) updates.github = github;
-    if (contactEmail !== undefined) updates.contactEmail = contactEmail;
-    if (interests !== undefined) updates.interests = Array.isArray(interests) ? interests : [];
-    if (department !== undefined) updates.department = department;
-    if (role !== undefined) updates.role = role;
-    if (profileCompleted !== undefined) updates.profileCompleted = Boolean(profileCompleted);
+    const targetId = req.params.id;
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(targetId)) {
+      user = await User.findById(targetId);
+    }
+    if (!user) {
+      user = await User.findOne({
+        $or: [
+          { googleId: targetId },
+          { email: targetId },
+          { contactEmail: targetId }
+        ]
+      });
+    }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true }
-    ).select("name department role profilePicture bio branch year linkedin github contactEmail interests profileCompleted");
-
-    if (!updatedUser) {
+    if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    res.json(updatedUser);
+    if (profilePicture !== undefined) user.profilePicture = profilePicture;
+    if (bio !== undefined) user.bio = bio;
+    if (branch !== undefined) user.branch = branch;
+    if (year !== undefined) user.year = year;
+    if (linkedin !== undefined) user.linkedin = linkedin;
+    if (github !== undefined) user.github = github;
+    if (contactEmail !== undefined) user.contactEmail = contactEmail;
+    if (interests !== undefined) user.interests = Array.isArray(interests) ? interests : [];
+    if (department !== undefined) user.department = department;
+    if (role !== undefined) user.role = role;
+    if (profileCompleted !== undefined) user.profileCompleted = Boolean(profileCompleted);
+
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      department: user.department,
+      role: user.role,
+      profilePicture: user.profilePicture || "",
+      bio: user.bio || "",
+      branch: user.branch || "",
+      year: user.year || "",
+      linkedin: user.linkedin || "",
+      github: user.github || "",
+      contactEmail: user.contactEmail || "",
+      clubRole: user.clubRole || "",
+      interests: user.interests || [],
+      profileCompleted: Boolean(user.profileCompleted)
+    });
   } catch (err) {
     console.error("PROFILE UPDATE ERROR:", err);
     res.status(500).json({ error: "Something went wrong updating the profile." });

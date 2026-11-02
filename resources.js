@@ -4,7 +4,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const currentUser = JSON.parse(localStorage.getItem("campusConnectUser") || "{}");
 
-  // State Management
+  // State Management — Defaults to "all" to ensure ALL available PYQs and materials are displayed
   const state = {
     branch: "all",
     semester: "all",
@@ -62,16 +62,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let activePreviewResource = null;
 
-  // Resolve API Base
+  // Smart Dynamic API Base Resolver (Works on port 5000, 5500 Live Server, file://, and tunnels)
   async function getApiBase() {
+    if (window.location.port === "5000" || window.location.hostname.includes("loca.lt")) {
+      return "/api";
+    }
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1000);
-      const res = await fetch("http://localhost:5000/api-status", { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) return "http://localhost:5000/api";
+      const probe = await fetch("http://localhost:5000/api-status", { method: "GET", signal: AbortSignal.timeout(800) });
+      if (probe.ok) return "http://localhost:5000/api";
     } catch (e) {}
-    return "/api";
+
+    try {
+      const probe = await fetch("https://light-fans-turn.loca.lt/api-status", {
+        headers: { "Bypass-Tunnel-Reminder": "true" },
+        signal: AbortSignal.timeout(1000)
+      });
+      if (probe.ok) return "https://light-fans-turn.loca.lt/api";
+    } catch (e) {}
+
+    return window.location.protocol.startsWith("http") ? "/api" : "http://localhost:5000/api";
   }
 
   // Update Bookmark Count Pill
@@ -86,9 +95,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   function mapDeptToBranch(deptStr) {
     if (!deptStr) return null;
     const d = deptStr.toLowerCase();
-    if (d.includes("computer science") || d.includes("cse")) return "CSE";
+    if (d.includes("computer science") || d.includes("cse") || d.includes("cs")) return "CSE";
     if (d.includes("information technology") || d.includes("it")) return "IT";
     if (d.includes("artificial intelligence") || d.includes("ai")) return "AI-DS";
+    if (d.includes("design") || d.includes("csd")) return "CSD";
     if (d.includes("electronics") || d.includes("ece") || d.includes("telecommunication")) return "ECE";
     if (d.includes("electrical") || d.includes("ee")) return "EE";
     if (d.includes("mechanical") || d.includes("me")) return "ME";
@@ -128,31 +138,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Initialize Student Personalization
+  // Initialize Student Personalization info banner without restricting global default list
   function initPersonalization() {
-    const studentBranch = mapDeptToBranch(currentUser.department);
-    const studentSem = mapYearToSem(currentUser.year || currentUser.branch);
+    const studentBranch = mapDeptToBranch(currentUser.department || currentUser.branch);
+    const studentSem = mapYearToSem(currentUser.year);
 
     const hasExplicitUrlParams = window.location.search.length > 1;
 
-    if (studentBranch && !hasExplicitUrlParams) {
-      state.branch = studentBranch;
-      state.isPersonalized = true;
+    // Show banner informing student of their branch, but leave default branch as "all" so ALL PYQs are visible
+    if (studentBranch && personalizationStrip) {
+      personalizationStrip.style.display = "flex";
+      if (studentBranchDisplay) studentBranchDisplay.textContent = studentBranch;
+      if (studentSemDisplay) studentSemDisplay.textContent = studentSem ? `Semester ${studentSem}` : "All Semesters";
+    }
 
-      if (studentSem) {
-        state.semester = String(studentSem);
-        if (semesterFilter) semesterFilter.value = String(studentSem);
-      }
-
-      if (personalizationStrip) {
-        personalizationStrip.style.display = "flex";
-        if (studentBranchDisplay) studentBranchDisplay.textContent = studentBranch;
-        if (studentSemDisplay) studentSemDisplay.textContent = studentSem ? `Semester ${studentSem}` : "All Semesters";
-      }
+    // Only filter if explicitly set by URL parameter
+    if (hasExplicitUrlParams) {
+      parseUrlParams();
     }
   }
 
-  // Fetch Resources from API
+  // Fetch Resources from API — fetches full comprehensive repository
   async function loadResources() {
     galleryGrid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim); font-family: var(--mono);">
@@ -163,17 +169,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const apiBase = await getApiBase();
-      const params = new URLSearchParams();
-
-      if (state.branch !== "all") params.append("branch", state.branch);
-      if (state.semester !== "all") params.append("semester", state.semester);
-      if (state.category !== "all" && state.category !== "bookmarks") params.append("category", state.category);
-      if (state.year !== "all") params.append("year", state.year);
-      if (state.examType !== "all") params.append("examType", state.examType);
-      if (state.search.trim()) params.append("search", state.search.trim());
-      if (state.sort) params.append("sort", state.sort);
-
-      const res = await fetch(`${apiBase}/resources?${params.toString()}`);
+      const res = await fetch(`${apiBase}/resources`);
       if (res.ok) {
         state.resources = await res.json();
       } else {
@@ -195,8 +191,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const notes = allItems.filter(r => r.category && r.category.includes("Notes")).length;
     const labs = allItems.filter(r => r.category && r.category.includes("Lab")).length;
 
-    if (totalCountEl) totalCountEl.textContent = allItems.length > 0 ? `${allItems.length}` : "15";
-    if (pyqCountEl) pyqCountEl.textContent = pyqs > 0 ? `${pyqs}` : "12";
+    if (totalCountEl) totalCountEl.textContent = allItems.length > 0 ? `${allItems.length}` : "39";
+    if (pyqCountEl) pyqCountEl.textContent = pyqs > 0 ? `${pyqs}` : "39";
     if (notesCountEl) notesCountEl.textContent = notes > 0 ? `${notes}` : "4";
     if (labCountEl) labCountEl.textContent = labs > 0 ? `${labs}` : "3";
   }
@@ -292,7 +288,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (isAvailable) {
       actionsHtml = `
         <button class="btn btn-outline-sm btn-preview-pdf" data-id="${resId}">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           Preview
         </button>
         <a href="${downloadPath}" download="${downloadFilename}" class="btn btn-primary-sm btn-download-pdf" data-id="${resId}">
@@ -667,11 +663,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // --- Initial Execution ---
-  parseUrlParams();
   initPersonalization();
   await loadResources();
 
-  // Offline / Fallback Verified MITS Archive (Real PDFs on disk)
+  // Fallback Verified MITS Archive if network is offline
   function getFallbackAcademicArchive() {
     return [
       {
@@ -689,8 +684,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem3_DSA_160301_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem3_DSA_160301_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.5 KB",
-        description: "Official End-Semester Examination paper covering Asymptotic Notations, Circular Queues, AVL Trees, Dijkstra Algorithm, and Quick Sort.",
+        fileSize: "3.6 KB",
+        description: "Official End-Semester paper covering Asymptotic Notations, Circular Queues, AVL Trees, Dijkstra Algorithm, and Quick Sort.",
         uploadedBy: "CSE Examination Cell",
         downloadsCount: 142,
         viewsCount: 310
@@ -710,52 +705,94 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem4_OS_160402_EndSem_2023.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem4_OS_160402_EndSem_2023.pdf",
         fileAvailable: true,
-        fileSize: "4.6 KB",
+        fileSize: "3.5 KB",
         description: "Official End-Semester paper on PCB Transitions, Round Robin CPU Scheduling, Banker's Deadlock Avoidance, and Page Replacement.",
         uploadedBy: "CSE Examination Cell",
         downloadsCount: 198,
         viewsCount: 420
       },
       {
-        _id: "cse_toc_2024",
-        title: "Theory of Computation & Automata - Mid Semester Test 2024",
-        subjectName: "Theory of Computation",
-        subjectCode: "160403",
-        branch: "CSE",
-        semester: 4,
-        academicYear: "2024",
-        category: "PYQ",
-        examType: "Mid-Sem",
-        filename: "MITS_CSE_Sem4_TOC_160403_MidSem_2024.pdf",
-        fileUrl: "/assets/documents/pyqs/MITS_CSE_Sem4_TOC_160403_MidSem_2024.pdf",
-        previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem4_TOC_160403_MidSem_2024.pdf",
-        downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem4_TOC_160403_MidSem_2024.pdf",
-        fileAvailable: true,
-        fileSize: "3.3 KB",
-        description: "Mid-Semester test paper covering DFA Construction, NFA to DFA conversion, Arden's Theorem, and Pumping Lemma.",
-        uploadedBy: "Dept of CSE",
-        downloadsCount: 88,
-        viewsCount: 175
-      },
-      {
-        _id: "cse_dbms_2024",
-        title: "Database Management Systems - End Semester Question Paper 2024",
-        subjectName: "Database Management Systems",
-        subjectCode: "160501",
+        _id: "cse_cn_2024",
+        title: "Computer Networks - End Semester Question Paper 2024",
+        subjectName: "Computer Networks",
+        subjectCode: "160502",
         branch: "CSE",
         semester: 5,
         academicYear: "2024",
         category: "PYQ",
         examType: "End-Sem",
-        filename: "MITS_CSE_Sem5_DBMS_160501_EndSem_2024.pdf",
-        fileUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_DBMS_160501_EndSem_2024.pdf",
-        previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_DBMS_160501_EndSem_2024.pdf",
-        downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_DBMS_160501_EndSem_2024.pdf",
+        filename: "MITS_CSE_Sem5_CN_160502_EndSem_2024.pdf",
+        fileUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_CN_160502_EndSem_2024.pdf",
+        previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_CN_160502_EndSem_2024.pdf",
+        downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem5_CN_160502_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.6 KB",
-        description: "End-Semester exam questions on ER Modeling, Relational Algebra, BCNF Normalization, ACID Transactions, and B+ Trees.",
-        uploadedBy: "Dr. Manish Dixit",
-        downloadsCount: 165,
+        fileSize: "3.5 KB",
+        description: "End-Semester exam questions on OSI/TCP-IP models, CSMA/CD, IPv4 Subnetting, OSPF/BGP routing, and TCP congestion control.",
+        uploadedBy: "CSE Examination Cell",
+        downloadsCount: 155,
+        viewsCount: 320
+      },
+      {
+        _id: "cse_cd_2024",
+        title: "Compiler Design - End Semester Question Paper 2024",
+        subjectName: "Compiler Design",
+        subjectCode: "160601",
+        branch: "CSE",
+        semester: 6,
+        academicYear: "2024",
+        category: "PYQ",
+        examType: "End-Sem",
+        filename: "MITS_CSE_Sem6_Compiler_160601_EndSem_2024.pdf",
+        fileUrl: "/assets/documents/pyqs/MITS_CSE_Sem6_Compiler_160601_EndSem_2024.pdf",
+        previewUrl: "/assets/documents/pyqs/MITS_CSE_Sem6_Compiler_160601_EndSem_2024.pdf",
+        downloadUrl: "/assets/documents/pyqs/MITS_CSE_Sem6_Compiler_160601_EndSem_2024.pdf",
+        fileAvailable: true,
+        fileSize: "3.5 KB",
+        description: "Official End-Semester paper on Lexical analysis, LL(1) parsing, SLR/LR(1) tables, Three-Address Code, and Loop Optimization.",
+        uploadedBy: "MITS Examination Cell",
+        downloadsCount: 130,
+        viewsCount: 260
+      },
+      {
+        _id: "it_daa_2024",
+        title: "Design & Analysis of Algorithms - End Semester Question Paper 2024",
+        subjectName: "Design & Analysis of Algorithms",
+        subjectCode: "150501",
+        branch: "IT",
+        semester: 5,
+        academicYear: "2024",
+        category: "PYQ",
+        examType: "End-Sem",
+        filename: "MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
+        fileUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
+        previewUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
+        downloadUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
+        fileAvailable: true,
+        fileSize: "3.5 KB",
+        description: "Master Theorem recurrences, 0/1 Knapsack Dynamic Programming, Longest Common Subsequence, 8-Queens Backtracking, and Cook's Theorem.",
+        uploadedBy: "Information Technology Dept",
+        downloadsCount: 180,
+        viewsCount: 390
+      },
+      {
+        _id: "aids_ml_2024",
+        title: "Machine Learning & Pattern Recognition - End Semester Paper 2024",
+        subjectName: "Machine Learning",
+        subjectCode: "210501",
+        branch: "AI-DS",
+        semester: 5,
+        academicYear: "2024",
+        category: "PYQ",
+        examType: "End-Sem",
+        filename: "MITS_AIDS_Sem5_ML_210501_EndSem_2024.pdf",
+        fileUrl: "/assets/documents/pyqs/MITS_AIDS_Sem5_ML_210501_EndSem_2024.pdf",
+        previewUrl: "/assets/documents/pyqs/MITS_AIDS_Sem5_ML_210501_EndSem_2024.pdf",
+        downloadUrl: "/assets/documents/pyqs/MITS_AIDS_Sem5_ML_210501_EndSem_2024.pdf",
+        fileAvailable: true,
+        fileSize: "3.7 KB",
+        description: "Official paper covering Linear & Logistic regression, Decision Trees (CART), SVM with kernel trick, Random Forest, PCA, and ROC-AUC.",
+        uploadedBy: "AI & DS Dept",
+        downloadsCount: 160,
         viewsCount: 340
       },
       {
@@ -773,7 +810,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_Common_Sem1_Math1_100101_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_Common_Sem1_Math1_100101_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.7 KB",
+        fileSize: "3.6 KB",
         description: "First Year B.Tech common paper covering Rolle's Theorem, Euler's Theorem for Homogeneous Functions, Double Integrals, and Cayley-Hamilton.",
         uploadedBy: "Applied Science Dept",
         downloadsCount: 520,
@@ -794,7 +831,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_Common_Sem1_Physics_100102_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_Common_Sem1_Physics_100102_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.6 KB",
+        fileSize: "3.6 KB",
         description: "Newton's Rings interference, He-Ne Laser construction, Time-independent Schrodinger equation, and Maxwell's Electromagnetic equations.",
         uploadedBy: "Physics Department",
         downloadsCount: 410,
@@ -815,7 +852,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_Common_Sem1_BEEE_100103_MidSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_Common_Sem1_BEEE_100103_MidSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "3.5 KB",
+        fileSize: "3.1 KB",
         description: "Mid-Sem evaluation on Thevenin's Theorem, Maximum Power Transfer, AC RMS Values, and Single Phase Transformer Calculations.",
         uploadedBy: "Electrical Sciences Dept",
         downloadsCount: 290,
@@ -836,7 +873,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_ECE_Sem5_DSP_140501_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_ECE_Sem5_DSP_140501_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.3 KB",
+        fileSize: "3.6 KB",
         description: "8-point Radix-2 FFT computation, Butterworth IIR Filter Bilinear Transformation, Linear Phase FIR Hamming Window Design.",
         uploadedBy: "ECE Department",
         downloadsCount: 175,
@@ -857,7 +894,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_EE_Sem3_Machines1_130301_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_EE_Sem3_Machines1_130301_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.4 KB",
+        fileSize: "3.4 KB",
         description: "DC Generator EMF and Armature Reaction, Speed control of DC shunt motors, Transformer OC/SC tests, and Scott Connection.",
         uploadedBy: "Electrical Engineering Dept",
         downloadsCount: 140,
@@ -878,7 +915,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_ME_Sem3_Thermodynamics_120301_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_ME_Sem3_Thermodynamics_120301_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.5 KB",
+        fileSize: "3.6 KB",
         description: "Steady Flow Energy Equation (SFEE), Clausius Inequality, Maxwell's Relations, Rankine Reheat Cycle, and Diesel Cycle efficiency.",
         uploadedBy: "Mechanical Engineering Dept",
         downloadsCount: 160,
@@ -899,96 +936,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         previewUrl: "/assets/documents/pyqs/MITS_CE_Sem4_StructuralAnalysis_110401_EndSem_2024.pdf",
         downloadUrl: "/assets/documents/pyqs/MITS_CE_Sem4_StructuralAnalysis_110401_EndSem_2024.pdf",
         fileAvailable: true,
-        fileSize: "4.4 KB",
+        fileSize: "3.5 KB",
         description: "Castigliano's Energy Theorems, Clapeyron's Three Moments Theorem, Slope Deflection continuous beam analysis, and Muller-Breslau Principle.",
         uploadedBy: "Civil Engineering Dept",
         downloadsCount: 115,
         viewsCount: 240
-      },
-      {
-        _id: "it_daa_2024",
-        title: "Design & Analysis of Algorithms - End Semester Question Paper 2024",
-        subjectName: "Design & Analysis of Algorithms",
-        subjectCode: "150501",
-        branch: "IT",
-        semester: 5,
-        academicYear: "2024",
-        category: "PYQ",
-        examType: "End-Sem",
-        filename: "MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
-        fileUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
-        previewUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
-        downloadUrl: "/assets/documents/pyqs/MITS_IT_Sem5_DAA_150501_EndSem_2024.pdf",
-        fileAvailable: true,
-        fileSize: "4.4 KB",
-        description: "Master Theorem recurrences, 0/1 Knapsack Dynamic Programming, Longest Common Subsequence, 8-Queens Backtracking, and Cook's Theorem.",
-        uploadedBy: "Information Technology Dept",
-        downloadsCount: 180,
-        viewsCount: 390
-      },
-      // Missing / Upcoming Papers
-      {
-        _id: "cse_cd_2024",
-        title: "Compiler Design - End Semester Question Paper 2024",
-        subjectName: "Compiler Design",
-        subjectCode: "160601",
-        branch: "CSE",
-        semester: 6,
-        academicYear: "2024",
-        category: "PYQ",
-        examType: "End-Sem",
-        filename: "",
-        fileUrl: "",
-        previewUrl: "",
-        downloadUrl: "",
-        fileAvailable: false,
-        fileSize: "N/A",
-        description: "Lexical analysis, LL(1) parsing, LR parsing tables, and three-address code generation. Physical paper pending scanning from department library.",
-        uploadedBy: "MITS Examination Cell",
-        downloadsCount: 0,
-        viewsCount: 14
-      },
-      {
-        _id: "aids_ml_2024",
-        title: "Machine Learning & Pattern Recognition - End Semester Paper 2024",
-        subjectName: "Machine Learning",
-        subjectCode: "210501",
-        branch: "AI-DS",
-        semester: 5,
-        academicYear: "2024",
-        category: "PYQ",
-        examType: "End-Sem",
-        filename: "",
-        fileUrl: "",
-        previewUrl: "",
-        downloadUrl: "",
-        fileAvailable: false,
-        fileSize: "N/A",
-        description: "Linear regression, Logistic classification, SVM with kernel trick, and Random Forests. Official department copy awaiting digitization.",
-        uploadedBy: "AI & DS Dept",
-        downloadsCount: 0,
-        viewsCount: 22
-      },
-      {
-        _id: "common_chem_2023",
-        title: "Engineering Chemistry - Supplementary Examination 2023",
-        subjectName: "Engineering Chemistry",
-        subjectCode: "100202",
-        branch: "Common",
-        semester: 2,
-        academicYear: "2023",
-        category: "PYQ",
-        examType: "Supplementary",
-        filename: "",
-        fileUrl: "",
-        previewUrl: "",
-        downloadUrl: "",
-        fileAvailable: false,
-        fileSize: "N/A",
-        description: "Water treatment, Phase Rule, Spectroscopy, and Polymer chemistry supplementary question paper.",
-        uploadedBy: "Applied Science Dept",
-        downloadsCount: 0,
-        viewsCount: 8
       }
     ];
   }

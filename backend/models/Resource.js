@@ -16,7 +16,7 @@ const resourceSchema = new mongoose.Schema({
   branch: {
     type: String,
     required: true,
-    enum: ["CSE", "IT", "ECE", "EE", "ME", "CE", "AI-DS", "Common", "Other"]
+    enum: ["CSE", "IT", "ECE", "EE", "ME", "CE", "AI-DS", "CSD", "Common", "Other"]
   },
   semester: {
     type: Number,
