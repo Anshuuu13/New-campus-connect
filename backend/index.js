@@ -37,7 +37,16 @@ app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
 // Connect to MongoDB
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+let mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || "";
+if (typeof mongoUri === "string") {
+  mongoUri = mongoUri.trim();
+  if (mongoUri.startsWith('"') && mongoUri.endsWith('"')) {
+    mongoUri = mongoUri.slice(1, -1).trim();
+  }
+  if (mongoUri.startsWith("'") && mongoUri.endsWith("'")) {
+    mongoUri = mongoUri.slice(1, -1).trim();
+  }
+}
 if (mongoUri) {
   mongoose.connect(mongoUri)
     .then(() => console.log("Connected to MongoDB Atlas"))
@@ -47,11 +56,32 @@ if (mongoUri) {
 }
 
 const path = require("path");
-// Serve static frontend files
+const fs = require("fs");
+
+// Serve static frontend files from parent directory (repo root)
 app.use(express.static(path.resolve(__dirname, "..")));
+// Also serve from current directory as fallback
+app.use(express.static(__dirname));
+
+// Health check and root route
+app.get("/", (req, res) => {
+  const rootIndex = path.resolve(__dirname, "..", "index.html");
+  if (fs.existsSync(rootIndex)) {
+    return res.sendFile(rootIndex);
+  }
+  res.send("CampusConnect backend is running.");
+});
 
 app.get("/api-status", (req, res) => {
   res.send("CampusConnect backend is running.");
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    database: mongoose.connection.readyState === 1 ? "connected" : "connecting/disconnected",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Route registration
@@ -74,6 +104,6 @@ app.use("/api/facultyposts", facultyPostsRouter);
 app.use("/api/clubhead", clubheadRouter);
 app.use("/api/dashboard", dashboardRouter);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });

@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const ClubHeadRequest = require("../models/ClubHeadRequest");
+let ClubHeadRequest;
+try {
+  ClubHeadRequest = require("../models/clubheadrequest");
+} catch (e) {
+  ClubHeadRequest = require("../models/ClubHeadRequest");
+}
 const User = require("../models/User");
 
 // Student submits a club head request

@@ -5,7 +5,18 @@ const bcrypt = require("bcrypt");
 const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "");
+let jwt;
+try {
+  jwt = require("jsonwebtoken");
+} catch (e) {
+  jwt = null;
+}
+const JWT_SECRET = process.env.JWT_SECRET || "campusconnect_jwt_secret_2026";
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID || "",
+  process.env.GOOGLE_CLIENT_SECRET || ""
+);
 
 // GET configured Google OAuth Client ID for frontend GIS initialization
 router.get("/google-client-id", (req, res) => {
@@ -132,6 +143,7 @@ router.post("/google-auth", async (req, res) => {
     }
 
     // Return session object matching localStorage.campusConnectUser
+    const token = jwt ? jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: "7d" }) : undefined;
     res.json({
       _id: user._id,
       name: user.name,
@@ -139,7 +151,8 @@ router.post("/google-auth", async (req, res) => {
       role: user.role,
       email: user.email || email,
       profilePicture: user.profilePicture || picture || "",
-      profileCompleted: Boolean(user.profileCompleted)
+      profileCompleted: Boolean(user.profileCompleted),
+      token
     });
   } catch (err) {
     console.error("GOOGLE AUTH ERROR:", err);
@@ -173,12 +186,14 @@ router.post("/", async (req, res) => {
 
     await newUser.save();
 
+    const token = jwt ? jwt.sign({ id: newUser._id, role: newUser.role, email: newUser.email }, JWT_SECRET, { expiresIn: "7d" }) : undefined;
     res.status(201).json({
       _id: newUser._id,
       name: newUser.name,
       department: newUser.department,
       role: newUser.role,
-      profileCompleted: true
+      profileCompleted: true,
+      token
     });
   } catch (err) {
     console.error("SIGNUP ERROR:", err);
@@ -205,12 +220,14 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Incorrect password." });
     }
 
+    const token = jwt ? jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: "7d" }) : undefined;
     res.json({
       _id: user._id,
       name: user.name,
       department: user.department,
       role: user.role,
-      profileCompleted: Boolean(user.profileCompleted)
+      profileCompleted: Boolean(user.profileCompleted),
+      token
     });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
