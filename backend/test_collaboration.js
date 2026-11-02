@@ -167,12 +167,13 @@ async function runTests() {
     const initialResearchPosts = await researchRes.json();
     assert(Array.isArray(initialResearchPosts) && initialResearchPosts.length > 0, `GET /api/faculty-posts returned ${initialResearchPosts.length} research opportunities`);
 
-    // B. Create research post
+    // B. Create research post (by Professor)
+    const profUser = users.find(u => u.role === "Professor" || u.role === "Faculty") || testUser;
     const createResearchRes = await fetch(`${BASE_URL}/faculty-posts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: testUser._id,
+        userId: profUser._id,
         category: "Research",
         title: "Test Quantum Machine Learning on NISQ Devices " + Date.now(),
         description: "Evaluating parameterized quantum circuits for classification benchmarks.",
@@ -185,11 +186,12 @@ async function runTests() {
     const createdResearchPost = await createResearchRes.json();
     assert(createResearchRes.status === 201 && createdResearchPost._id, `POST /api/faculty-posts created opportunity (ID: ${createdResearchPost._id})`);
 
-    // C. Update research post
+    // C. Update research post (by Professor)
     const updateResearchRes = await fetch(`${BASE_URL}/faculty-posts/${createdResearchPost._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        userId: profUser._id,
         title: "Updated Quantum Machine Learning on NISQ Devices",
         category: "Technical Work"
       })
@@ -206,8 +208,12 @@ async function runTests() {
     const appliedData = await applyRes.json();
     assert(applyRes.status === 200 && appliedData.applicantCount >= 1, `POST /api/faculty-posts/${createdResearchPost._id}/apply registered student application`);
 
-    // E. Delete research post
-    const deleteResearchRes = await fetch(`${BASE_URL}/faculty-posts/${createdResearchPost._id}`, { method: "DELETE" });
+    // E. Delete research post (by Professor)
+    const deleteResearchRes = await fetch(`${BASE_URL}/faculty-posts/${createdResearchPost._id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: profUser._id })
+    });
     assert(deleteResearchRes.status === 200, `DELETE /api/faculty-posts/${createdResearchPost._id} deleted opportunity`);
 
     // ==========================================

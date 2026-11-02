@@ -98,11 +98,69 @@ async function resolveApiBase() {
   return window.location.protocol.startsWith("http") ? "/api" : "http://localhost:5000/api";
 }
 
+// Role Helper: Verify if user is professor / faculty
+function isProfessorRole(u) {
+  if (!u || !u.role) return false;
+  const r = String(u.role).trim().toLowerCase();
+  return r === "professor" || r === "faculty";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   API_BASE = await resolveApiBase();
 
-  // Session resolution
+  // Support ?role=professor or ?role=student query parameters for effortless role testing & verification
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = (urlParams.get("role") || "").toLowerCase().trim();
+
   let user = JSON.parse(localStorage.getItem("campusConnectUser") || "null");
+
+  if (roleParam === "professor" || roleParam === "faculty") {
+    try {
+      const usersRes = await fetch(`${API_BASE}/users`);
+      if (usersRes.ok) {
+        const users = await usersRes.json();
+        const prof = users.find(u => u.role && (u.role.toLowerCase() === "professor" || u.role.toLowerCase() === "faculty"));
+        if (prof) {
+          user = prof;
+          localStorage.setItem("campusConnectUser", JSON.stringify(user));
+        }
+      }
+    } catch (e) {}
+    if (!user || (!isProfessorRole(user))) {
+      user = {
+        _id: "6a8d3306ac00fe273ed18a58",
+        name: "Dr. R. K. Pandit",
+        department: "Electronics & Communication",
+        role: "Professor",
+        email: "rkpandit@mitsgwalior.in",
+        profileCompleted: true
+      };
+      localStorage.setItem("campusConnectUser", JSON.stringify(user));
+    }
+  } else if (roleParam === "student") {
+    try {
+      const usersRes = await fetch(`${API_BASE}/users`);
+      if (usersRes.ok) {
+        const users = await usersRes.json();
+        const student = users.find(u => u.role && u.role.toLowerCase() === "student");
+        if (student) {
+          user = student;
+          localStorage.setItem("campusConnectUser", JSON.stringify(user));
+        }
+      }
+    } catch (e) {}
+    if (!user || isProfessorRole(user)) {
+      user = {
+        _id: "6a8bdfcfd8542378d1197528",
+        name: "Anshika Rai",
+        department: "Computer Science & Design",
+        role: "Student",
+        email: "25cd1an21@mitsgwl.ac.in",
+        profileCompleted: true
+      };
+      localStorage.setItem("campusConnectUser", JSON.stringify(user));
+    }
+  }
 
   // Fallback to active demo/primary user if not authenticated
   if (!user || (!user._id && !user.id)) {
@@ -111,7 +169,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (usersRes.ok) {
         const users = await usersRes.json();
         if (users && users.length > 0) {
-          user = users.find(u => u.role === "Professor" || u.role === "Faculty") || users[0];
+          user = users.find(u => u.role === "Student") || users[0];
           localStorage.setItem("campusConnectUser", JSON.stringify(user));
         }
       }
@@ -120,23 +178,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Fallback default MITS faculty/student user if backend fetch fails
+  // Fallback default student user
   if (!user) {
     user = {
       _id: "6a8bdfcfd8542378d1197528",
-      name: "Dr. R. K. Pandit",
-      department: "Electronics & Communication",
-      role: "Professor",
-      email: "rkpandit@mitsgwalior.in",
+      name: "Anshika Rai",
+      department: "Computer Science & Design",
+      role: "Student",
+      email: "25cd1an21@mitsgwl.ac.in",
       profileCompleted: true
     };
     localStorage.setItem("campusConnectUser", JSON.stringify(user));
   }
 
+  // Determine user role permission
+  const isProfessor = isProfessorRole(user);
+
   // Topbar user info & logout
   const userRoleEl = document.getElementById("userRole");
   if (userRoleEl) {
-    userRoleEl.textContent = user.name ? `${user.name} (${user.role || "Member"})` : (user.role || "Member");
+    userRoleEl.textContent = user.name
+      ? `${user.name} (${user.role || (isProfessor ? "Professor" : "Student")})`
+      : (user.role || (isProfessor ? "Professor" : "Student"));
   }
 
   const logoutBtn = document.getElementById("logoutBtn");
@@ -187,16 +250,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Local additions cache
   let localResearchPosts = JSON.parse(localStorage.getItem("cc_local_research_posts") || "[]");
 
-  // Toggle Create Form Card
-  if (togglePostFormBtn && createFormCard) {
-    togglePostFormBtn.addEventListener("click", () => {
-      const isHidden = createFormCard.style.display === "none";
-      createFormCard.style.display = isHidden ? "block" : "none";
-      if (isHidden) {
-        postTitleInput.focus();
-        createFormCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  // ROLE-BASED ACCESS CONTROL: Post Creation Button & Card
+  // Only users logged in as "professor" can see "+ Post Research Opportunity" button or open create form
+  if (togglePostFormBtn) {
+    if (isProfessor) {
+      togglePostFormBtn.style.display = "inline-flex";
+      togglePostFormBtn.addEventListener("click", () => {
+        const isHidden = createFormCard.style.display === "none";
+        createFormCard.style.display = isHidden ? "block" : "none";
+        if (isHidden) {
+          postTitleInput.focus();
+          createFormCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    } else {
+      togglePostFormBtn.style.display = "none";
+      if (createFormCard) {
+        createFormCard.style.display = "none";
       }
-    });
+    }
   }
 
   if (closeCreateFormBtn && createFormCard) {
@@ -211,15 +283,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Helper: check if post belongs to active user
+  // Helper: check if post belongs to active professor
   function isOwnerOf(post) {
     if (!post || !user) return false;
     const authorId = post.userId?._id || post.userId?.id || post.userId;
     const currentId = user._id || user.id;
-    return String(authorId) === String(currentId) || (post.contactEmail && post.contactEmail.toLowerCase() === (user.email || "").toLowerCase());
+    return (
+      (currentId && authorId && String(authorId) === String(currentId)) ||
+      (post.contactEmail && user.email && post.contactEmail.toLowerCase() === user.email.toLowerCase())
+    );
   }
 
-  // Render Research Card
+  // Render Research Card (Role-Based Access Control enforced)
   function renderResearchCard(post) {
     const card = document.createElement("div");
     card.className = "post-card";
@@ -229,13 +304,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.style.padding = "20px";
     card.style.marginBottom = "18px";
 
-    const isOwner = isOwnerOf(post);
-    const alreadyApplied = post.applicants?.some(a => String(a._id || a.id || a) === String(user._id || user.id));
+    // ONLY professors who own the post get edit/delete permissions
+    // Students can NEVER be considered owners and NEVER see edit/delete
+    const isOwner = isProfessor && isOwnerOf(post);
+    const currentUserId = user._id || user.id;
+    const alreadyApplied = post.applicants?.some(a => String(a._id || a.id || a) === String(currentUserId));
     const authorName = post.userId?.name || "MITS Faculty";
     const authorDept = post.userId?.department || "Department Research Group";
     const authorInitial = authorName.charAt(0).toUpperCase();
     const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
     const applicantCount = post.applicants?.length || 0;
+
+    // Action buttons: Professors see Edit/Delete on their posts; Students only see Apply
+    let actionButtonsHtml = "";
+    if (isProfessor) {
+      if (isOwner) {
+        actionButtonsHtml = `
+          <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit</button>
+          <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
+        `;
+      }
+    } else {
+      // Students can only view, search, and apply to posts. Post creation, edit, and delete are hidden.
+      if (alreadyApplied) {
+        actionButtonsHtml = `
+          <span style="font-size:13px; color:#34d399; font-weight:600; padding:6px 12px; background:rgba(16,185,129,0.15); border-radius:6px;">Applied ✓</span>
+        `;
+      } else {
+        actionButtonsHtml = `
+          <button class="btn btn-sm btn-primary apply-btn" data-id="${post._id}">Apply for Position</button>
+        `;
+      }
+    }
 
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
@@ -273,18 +373,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
 
         <div style="display:flex; gap:8px;">
-          ${isOwner ? `
-            <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit</button>
-            <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
-          ` : alreadyApplied ? `
-            <span style="font-size:13px; color:#34d399; font-weight:600; padding:6px 12px; background:rgba(16,185,129,0.15); border-radius:6px;">Applied ✓</span>
-          ` : `
-            <button class="btn btn-sm btn-primary apply-btn" data-id="${post._id}">Apply for Position</button>
-          `}
+          ${actionButtonsHtml}
         </div>
       </div>
 
-      ${isOwner && applicantCount > 0 ? `
+      ${isProfessor && isOwner && applicantCount > 0 ? `
         <div class="applicants-drawer">
           <strong style="font-size:12px; color:#38bdf8; display:block; margin-bottom:6px;">Interested Student Applicants (${applicantCount}):</strong>
           <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">
@@ -335,8 +428,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       postList.innerHTML = `
         <div style="text-align:center; padding:48px 20px; background:#0d1f44; border-radius:12px; border:1px solid #1e3a70;">
           <p style="font-size:16px; color:#e2e8f0; margin-bottom:8px;">No research opportunities found matching your filters.</p>
-          <p class="sub" style="margin-bottom:16px;">Be the first to post a research project or lab opening!</p>
-          <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post Research Opportunity</button>
+          ${isProfessor ? `
+            <p class="sub" style="margin-bottom:16px;">Be the first to post a research project or lab opening!</p>
+            <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post Research Opportunity</button>
+          ` : `
+            <p class="sub" style="margin-bottom:16px;">Try adjusting your search terms or selecting a different category filter.</p>
+          `}
         </div>
       `;
       return;
@@ -354,9 +451,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Attach Post Action Listeners
   function attachPostListeners() {
-    // Delete Post
+    // Delete Post (Professors only)
     document.querySelectorAll(".delete-post-btn").forEach(btn => {
       btn.addEventListener("click", async (e) => {
+        if (!isProfessor) {
+          alert("Access denied. Only professors can delete research opportunities.");
+          return;
+        }
+
         const id = e.target.dataset.id;
         if (!confirm("Are you sure you want to delete this research posting?")) return;
 
@@ -364,7 +466,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.textContent = "Deleting...";
 
         try {
-          await fetch(`${API_BASE}/faculty-posts/${id}`, { method: "DELETE" });
+          const res = await fetch(`${API_BASE}/faculty-posts/${id}?userId=${encodeURIComponent(user._id || user.id)}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user._id || user.id })
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (data.error) {
+              alert(data.error);
+              btn.disabled = false;
+              btn.textContent = "Delete";
+              return;
+            }
+          }
         } catch (err) {}
 
         localResearchPosts = localResearchPosts.filter(p => String(p._id) !== String(id));
@@ -373,9 +488,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // Edit Post
+    // Edit Post (Professors only)
     document.querySelectorAll(".edit-post-btn").forEach(btn => {
       btn.addEventListener("click", async (e) => {
+        if (!isProfessor) {
+          alert("Access denied. Only professors can edit research opportunities.");
+          return;
+        }
+
         const id = e.target.dataset.id;
         let post = null;
 
@@ -402,7 +522,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // Apply for Position
+    // Apply for Position (Students)
     document.querySelectorAll(".apply-btn").forEach(btn => {
       btn.addEventListener("click", async (e) => {
         const id = e.target.dataset.id;
@@ -413,7 +533,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const response = await fetch(`${API_BASE}/faculty-posts/${id}/apply`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user._id })
+            body: JSON.stringify({ userId: user._id || user.id })
           });
 
           const data = await response.json();
@@ -431,9 +551,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Create Research Post
+  // Create Research Post (Professors only)
   if (submitPostBtn) {
     submitPostBtn.addEventListener("click", async () => {
+      if (!isProfessor) {
+        alert("Access denied. Only professors can create research opportunities.");
+        return;
+      }
+
       const category = categoryInput.value;
       const title = postTitleInput.value.trim();
       const description = postDescInput.value.trim();
@@ -457,7 +582,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: user._id,
+            userId: user._id || user.id,
             category,
             title,
             description,
@@ -470,6 +595,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (response.ok) {
           savedPost = await response.json();
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          if (errData.error) {
+            alert(errData.error);
+            submitPostBtn.disabled = false;
+            submitPostBtn.textContent = "Publish Opportunity";
+            return;
+          }
         }
       } catch (err) {
         console.warn("Backend offline during post, saving locally:", err);
@@ -485,7 +618,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           discussionTime,
           contactEmail,
           status: "approved",
-          userId: { _id: user._id, name: user.name, department: user.department, role: user.role },
+          userId: { _id: user._id || user.id, name: user.name, department: user.department, role: user.role || "Professor" },
           applicants: [],
           createdAt: new Date().toISOString()
         };
@@ -506,9 +639,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Save Edited Research Post
+  // Save Edited Research Post (Professors only)
   if (saveEditBtn) {
     saveEditBtn.addEventListener("click", async () => {
+      if (!isProfessor) {
+        alert("Access denied. Only professors can edit research opportunities.");
+        return;
+      }
+
       const id = editPostId.value;
       const category = editCategoryInput.value;
       const title = editTitleInput.value.trim();
@@ -526,11 +664,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveEditBtn.textContent = "Saving...";
 
       try {
-        await fetch(`${API_BASE}/faculty-posts/${id}`, {
+        const updateRes = await fetch(`${API_BASE}/faculty-posts/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ category, title, description, skillsNeeded, discussionTime, contactEmail })
+          body: JSON.stringify({
+            userId: user._id || user.id,
+            category,
+            title,
+            description,
+            skillsNeeded,
+            discussionTime,
+            contactEmail
+          })
         });
+
+        if (!updateRes.ok) {
+          const errData = await updateRes.json().catch(() => ({}));
+          if (errData.error) {
+            alert(errData.error);
+            saveEditBtn.disabled = false;
+            saveEditBtn.textContent = "Save Changes";
+            return;
+          }
+        }
       } catch (err) {}
 
       const localIdx = localResearchPosts.findIndex(p => String(p._id) === String(id));

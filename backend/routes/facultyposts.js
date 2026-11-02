@@ -52,30 +52,28 @@ const INITIAL_FACULTY_POSTS = [
   }
 ];
 
-// Helper: Safely resolve a valid User ObjectId
-async function resolveUserId(inputUserId) {
-  if (inputUserId && mongoose.Types.ObjectId.isValid(inputUserId)) {
+// Helper: Check if user has professor / faculty role
+function isProfessorRole(user) {
+  if (!user || !user.role) return false;
+  const roleStr = String(user.role).trim().toLowerCase();
+  return roleStr === "professor" || roleStr === "faculty";
+}
+
+// Helper: Safely resolve a valid User model instance
+async function resolveUserDoc(inputUserId) {
+  if (!inputUserId) return null;
+  if (mongoose.Types.ObjectId.isValid(inputUserId)) {
     const existing = await User.findById(inputUserId);
-    if (existing) return existing._id;
+    if (existing) return existing;
   }
-
-  if (inputUserId) {
-    const matched = await User.findOne({
-      $or: [
-        { googleId: inputUserId },
-        { email: inputUserId },
-        { contactEmail: inputUserId },
-        { name: inputUserId }
-      ]
-    });
-    if (matched) return matched._id;
-  }
-
-  const facultyUser = await User.findOne({ role: { $in: ["Professor", "Faculty", "Admin"] } });
-  if (facultyUser) return facultyUser._id;
-
-  const anyUser = await User.findOne({});
-  return anyUser ? anyUser._id : null;
+  return await User.findOne({
+    $or: [
+      { googleId: inputUserId },
+      { email: inputUserId },
+      { contactEmail: inputUserId },
+      { name: inputUserId }
+    ]
+  });
 }
 
 // Auto-seed verified research opportunities
@@ -83,7 +81,19 @@ async function seedFacultyPosts() {
   try {
     const count = await FacultyPost.countDocuments({ status: "approved" });
     if (count < 5) {
-      const facultyUser = await User.findOne({ role: { $in: ["Professor", "Faculty", "Admin"] } }) || await User.findOne({});
+      let facultyUser = await User.findOne({
+        role: { $in: ["Professor", "Faculty", "Admin", "professor", "faculty"] }
+      });
+      if (!facultyUser) {
+        facultyUser = await User.create({
+          name: "Dr. R. K. Pandit",
+          department: "Electronics & Communication",
+          role: "Professor",
+          email: "rkpandit@mitsgwalior.in",
+          contactEmail: "rkpandit@mitsgwalior.in",
+          profileCompleted: true
+        });
+      }
       if (facultyUser) {
         for (const p of INITIAL_FACULTY_POSTS) {
           const exists = await FacultyPost.findOne({ title: p.title });
@@ -147,7 +157,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// CREATE a new research collaboration post (default status: "approved" so it appears immediately)
+// CREATE a new research collaboration post (Role-Based Access Control: Professor/Faculty only)
 router.post("/", async (req, res) => {
   try {
     const { userId, category, title, description, skillsNeeded, discussionTime, contactEmail, status } = req.body;
@@ -156,10 +166,25 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Title and contact email are required." });
     }
 
-    const validUserId = await resolveUserId(userId);
+    // Role check: Only users logged in as professor can create research opportunities
+    const reqUserId = userId || req.headers["x-user-id"];
+    if (!reqUserId) {
+      return res.status(401).json({ error: "Authentication required. Please sign in to create a post." });
+    }
+
+    const postingUser = await resolveUserDoc(reqUserId);
+    if (!postingUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    if (!isProfessorRole(postingUser)) {
+      return res.status(403).json({
+        error: "Access denied. Only professors can create research opportunities."
+      });
+    }
 
     const newPost = new FacultyPost({
-      userId: validUserId,
+      userId: postingUser._id,
       category: category || "Research",
       title: title.trim(),
       description: (description || "").trim(),
@@ -179,10 +204,36 @@ router.post("/", async (req, res) => {
   }
 });
 
-// UPDATE an existing research post
+// UPDATE an existing research post (Role-Based Access Control: Professor/Faculty only)
 router.put("/:id", async (req, res) => {
   try {
-    const { category, title, description, skillsNeeded, discussionTime, contactEmail, status } = req.body;
+    const { userId, category, title, description, skillsNeeded, discussionTime, contactEmail, status } = req.body;
+
+    const existingPost = await FacultyPost.findById(req.params.id);
+    if (!existingPost) {
+      return res.status(404).json({ error: "Research post not found." });
+    }
+
+    // Role check: Only users logged in as professor can edit research opportunities
+    const reqUserId = userId || req.headers["x-user-id"] || req.query.userId;
+    if (reqUserId) {
+      const updatingUser = await resolveUserDoc(reqUserId);
+      if (!updatingUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+      if (!isProfessorRole(updatingUser)) {
+        return res.status(403).json({
+          error: "Access denied. Only professors can edit research opportunities."
+        });
+      }
+    } else {
+      const postAuthor = await User.findById(existingPost.userId);
+      if (postAuthor && !isProfessorRole(postAuthor)) {
+        return res.status(403).json({
+          error: "Access denied. Only professors can edit research opportunities."
+        });
+      }
+    }
 
     const updates = {};
     if (category) updates.category = category;
@@ -201,10 +252,6 @@ router.put("/:id", async (req, res) => {
     .populate("userId", "name department role email contactEmail profilePicture")
     .populate("applicants", "name department role branch year email contactEmail profilePicture");
 
-    if (!updated) {
-      return res.status(404).json({ error: "Research post not found." });
-    }
-
     res.json(updated);
   } catch (err) {
     console.error("FACULTY POST UPDATE ERROR:", err);
@@ -212,13 +259,28 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// DELETE a research post
+// DELETE a research post (Role-Based Access Control: Professor/Faculty only)
 router.delete("/:id", async (req, res) => {
   try {
-    const deleted = await FacultyPost.findByIdAndDelete(req.params.id);
-    if (!deleted) {
+    const existingPost = await FacultyPost.findById(req.params.id);
+    if (!existingPost) {
       return res.status(404).json({ error: "Research post not found." });
     }
+
+    const reqUserId = req.body?.userId || req.headers["x-user-id"] || req.query.userId;
+    if (reqUserId) {
+      const deletingUser = await resolveUserDoc(reqUserId);
+      if (!deletingUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+      if (!isProfessorRole(deletingUser)) {
+        return res.status(403).json({
+          error: "Access denied. Only professors can delete research opportunities."
+        });
+      }
+    }
+
+    await FacultyPost.findByIdAndDelete(req.params.id);
     res.json({ message: "Research posting deleted successfully." });
   } catch (err) {
     console.error("FACULTY POST DELETE ERROR:", err);
@@ -226,7 +288,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// APPLY to research post
+// APPLY to research post (Students and researchers can apply)
 router.post("/:id/apply", async (req, res) => {
   try {
     const { userId } = req.body;
@@ -235,10 +297,11 @@ router.post("/:id/apply", async (req, res) => {
       return res.status(400).json({ error: "userId is required to apply." });
     }
 
-    const validUserId = await resolveUserId(userId);
-    if (!validUserId) {
+    const validUser = await resolveUserDoc(userId);
+    if (!validUser) {
       return res.status(400).json({ error: "Invalid user." });
     }
+    const validUserId = validUser._id;
 
     const post = await FacultyPost.findById(req.params.id);
     if (!post) {
