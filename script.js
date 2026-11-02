@@ -17,12 +17,23 @@ if (document.querySelector(".name-greeting") && currentUser.name) {
   document.querySelector(".name-greeting").textContent = `Welcome back, ${currentUser.name} 👋`;
 }
 
-// Dynamic API resolution (localhost fallback)
+// Dynamic API resolution (Supports port 5000, 5500 Live Server, file://, and tunnels)
 async function getApiBase() {
-  if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+  if (window.location.port === "5000" || window.location.hostname.includes("loca.lt")) {
     return "/api";
   }
-  return "https://campus-connect-1q2c.onrender.com/api";
+  try {
+    const probe = await fetch("http://localhost:5000/api-status", { method: "GET", signal: AbortSignal.timeout(800) });
+    if (probe.ok) return "http://localhost:5000/api";
+  } catch (e) {}
+  try {
+    const probe = await fetch("https://chubby-rockets-grin.loca.lt/api-status", {
+      headers: { "Bypass-Tunnel-Reminder": "true" },
+      signal: AbortSignal.timeout(1000)
+    });
+    if (probe.ok) return "https://chubby-rockets-grin.loca.lt/api";
+  } catch (e) {}
+  return window.location.protocol.startsWith("http") ? "/api" : "http://localhost:5000/api";
 }
 
 const sidebarItems = [

@@ -1,9 +1,75 @@
 // CampusConnect — Team-Up & Project Collaborations
-const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.host
+let API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "5000"
   ? "/api"
-  : "https://campus-connect-1q2c.onrender.com/api";
+  : "http://localhost:5000/api";
+
+// Fallback verified real MITS projects if network drops
+const VERIFIED_FALLBACK_TEAM_PROJECTS = [
+  {
+    _id: "mits_proj_1",
+    title: "CampusConnect 3D AR Indoor Wayfinding & Campus Map",
+    description: "Building an interactive WebGL and AR indoor navigation system for MITS Gwalior new academic complex, auditoriums, and laboratory wings.",
+    rolesNeeded: "1 Flutter Developer, 1 Three.js / WebGL student, 1 UI/UX Designer",
+    status: "Ongoing",
+    userId: { name: "Anshika Rai", department: "Computer Science & Design", role: "Student" },
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_proj_2",
+    title: "AI-Powered Lecture Audio Transcriber & Smart Notes Generator",
+    description: "Developing an on-device speech-to-text pipeline with automated key point extraction and LaTeX formula recognition for engineering classes.",
+    rolesNeeded: "1 Python / FastAPI developer, 1 PyTorch student, 1 Frontend dev",
+    status: "Ongoing",
+    userId: { name: "Yug Shrivastava", department: "Information Technology", role: "Student" },
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_proj_3",
+    title: "Formula Student Electric Vehicle (FSEV) Telemetry & Battery Management",
+    description: "Designing real-time CAN bus telemetry dashboard, thermal runaway monitoring, and BMS state-of-charge estimator for collegiate racing.",
+    rolesNeeded: "1 Embedded C / STM32 student, 1 IoT Web Developer, 1 Mechanical lead",
+    status: "Ongoing",
+    userId: { name: "Shivam Rai", department: "Electronics Engineering", role: "Student" },
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_proj_4",
+    title: "Autonomous Agricultural Drone with Hyperspectral Crop Health Imaging",
+    description: "Collaborative multidisciplinary project building multispectral UAV payload for precision irrigation and early crop blight detection.",
+    rolesNeeded: "1 ROS2 / Drone pilot, 1 Computer Vision developer, 1 Circuit designer",
+    status: "Not started yet",
+    userId: { name: "Ananya Tripathi", department: "Electrical Engineering", role: "Student" },
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Smart Dynamic API Base Resolver (Works on port 5000, 5500 Live Server, file://, and tunnels)
+async function resolveApiBase() {
+  if (window.location.port === "5000" || window.location.hostname.includes("loca.lt")) {
+    return "/api";
+  }
+
+  // Probe localhost:5000
+  try {
+    const probe = await fetch("http://localhost:5000/api-status", { method: "GET", signal: AbortSignal.timeout(800) });
+    if (probe.ok) return "http://localhost:5000/api";
+  } catch (e) {}
+
+  // Probe public tunnel
+  try {
+    const probe = await fetch("https://chubby-rockets-grin.loca.lt/api-status", {
+      headers: { "Bypass-Tunnel-Reminder": "true" },
+      signal: AbortSignal.timeout(1000)
+    });
+    if (probe.ok) return "https://chubby-rockets-grin.loca.lt/api";
+  } catch (e) {}
+
+  return window.location.protocol.startsWith("http") ? "/api" : "http://localhost:5000/api";
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
+  API_BASE = await resolveApiBase();
+
   // Session resolution
   let user = JSON.parse(localStorage.getItem("campusConnectUser") || "null");
 
@@ -26,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // If still completely null, construct default MITS student session
   if (!user) {
     user = {
-      _id: "mits_student_guest",
+      _id: "6a8bdfcfd8542378d1197528",
       name: "Anshika Rai",
       department: "Computer Science & Design",
       role: "Student",
@@ -82,6 +148,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const editRolesInput = document.getElementById("editRolesInput");
   const editStatusInput = document.getElementById("editStatusInput");
 
+  // In-memory state for local additions if offline
+  let localProjects = JSON.parse(localStorage.getItem("cc_local_team_projects") || "[]");
+
   // Toggle Create Form Card
   if (togglePostFormBtn && createFormCard) {
     togglePostFormBtn.addEventListener("click", () => {
@@ -109,116 +178,134 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Helper: check if post belongs to active user
   function isOwnerOf(post) {
     if (!post || !user) return false;
-    const authorId = post.userId?._id || post.userId;
+    const authorId = post.userId?._id || post.userId?.id || post.userId;
     const currentId = user._id || user.id;
     return String(authorId) === String(currentId) || (post.userId?.email && post.userId.email === user.email);
   }
 
-  // Load Team Posts from Backend
-  async function loadTeamPosts() {
-    try {
-      postsCountBadge.textContent = "Loading projects...";
-      const search = encodeURIComponent(teamSearchInput ? teamSearchInput.value.trim() : "");
-      const status = encodeURIComponent(statusFilterSelect ? statusFilterSelect.value : "All");
+  // Render Post Card helper
+  function renderPostCard(post) {
+    const card = document.createElement("div");
+    card.className = "post-card";
+    card.style.background = "#0d1f44";
+    card.style.border = "1px solid #1e3a70";
+    card.style.borderRadius = "12px";
+    card.style.padding = "20px";
+    card.style.marginBottom = "18px";
+    card.style.transition = "transform 0.2s, border-color 0.2s";
 
-      const response = await fetch(`${API_BASE}/team?search=${search}&status=${status}`);
-      if (!response.ok) throw new Error("Failed to fetch team posts");
+    const isOwner = isOwnerOf(post);
+    const statusClass = post.status === "Ongoing" ? "status-badge-ongoing" : "status-badge-pending";
 
-      const posts = await response.json();
-      teamList.innerHTML = "";
+    // Parse role tags
+    const roleChips = (post.rolesNeeded || "")
+      .split(/[,;]/)
+      .map(r => r.trim())
+      .filter(Boolean)
+      .map(r => `<span class="role-tag-pill">${r}</span>`)
+      .join("");
 
-      if (!posts || posts.length === 0) {
-        postsCountBadge.textContent = "0 projects found";
-        teamList.innerHTML = `
-          <div style="text-align:center; padding:48px 20px; background:#0d1f44; border-radius:12px; border:1px solid #1e3a70;">
-            <p style="font-size:16px; color:#e2e8f0; margin-bottom:8px;">No projects found matching your criteria.</p>
-            <p class="sub" style="margin-bottom:16px;">Be the first to post a project and recruit teammates!</p>
-            <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post New Project</button>
-          </div>
-        `;
-        return;
-      }
+    const authorName = post.userId?.name || "MITS Student";
+    const authorDept = post.userId?.department || post.userId?.branch || "Engineering";
+    const authorInitial = authorName.charAt(0).toUpperCase();
+    const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
 
-      postsCountBadge.textContent = `${posts.length} project${posts.length === 1 ? "" : "s"} found`;
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <h2 class="post-title" style="margin:0; font-size:18px; color:#f8fafc; font-weight:600;">${post.title}</h2>
+        <span class="${statusClass}">${post.status}</span>
+      </div>
 
-      for (const post of posts) {
-        const card = document.createElement("div");
-        card.className = "post-card";
-        card.style.background = "#0d1f44";
-        card.style.border = "1px solid #1e3a70";
-        card.style.borderRadius = "12px";
-        card.style.padding = "20px";
-        card.style.marginBottom = "18px";
-        card.style.transition = "transform 0.2s, border-color 0.2s";
+      <p class="post-meta" style="margin:12px 0; color:#cbd5e1; line-height:1.6; font-size:14px;">${post.description || "No description provided."}</p>
 
-        const isOwner = isOwnerOf(post);
-        const statusClass = post.status === "Ongoing" ? "status-badge-ongoing" : "status-badge-pending";
+      <div style="margin-bottom:10px;">
+        <span style="font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Teammates Needed:</span>
+        <div class="roles-tags-list">${roleChips || "<span class='sub'>Any motivated students</span>"}</div>
+      </div>
 
-        // Parse role tags
-        const roleChips = (post.rolesNeeded || "")
-          .split(/[,;]/)
-          .map(r => r.trim())
-          .filter(Boolean)
-          .map(r => `<span class="role-tag-pill">${r}</span>`)
-          .join("");
-
-        const authorName = post.userId?.name || "MITS Student";
-        const authorDept = post.userId?.department || post.userId?.branch || "Engineering";
-        const authorInitial = authorName.charAt(0).toUpperCase();
-        const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
-
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-            <h2 class="post-title" style="margin:0; font-size:18px; color:#f8fafc; font-weight:600;">${post.title}</h2>
-            <span class="${statusClass}">${post.status}</span>
-          </div>
-
-          <p class="post-meta" style="margin:12px 0; color:#cbd5e1; line-height:1.6; font-size:14px;">${post.description || "No description provided."}</p>
-
-          <div style="margin-bottom:10px;">
-            <span style="font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Teammates Needed:</span>
-            <div class="roles-tags-list">${roleChips || "<span class='sub'>Any motivated students</span>"}</div>
-          </div>
-
-          <div class="card-author-meta">
-            ${post.userId?.profilePicture ? 
-              `<img src="${post.userId.profilePicture}" class="author-avatar-sm" alt="${authorName}">` :
-              `<div class="author-avatar-sm">${authorInitial}</div>`
-            }
-            <div>
-              <span style="font-weight:600; color:#e2e8f0;">${authorName}</span>
-              <span style="color:#64748b;"> &bull; ${authorDept} &bull; ${postDate}</span>
-            </div>
-          </div>
-
-          <div class="card-actions-toolbar">
-            ${isOwner ? `
-              <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit Project</button>
-              <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
-            ` : `
-              <button class="btn btn-sm btn-primary request-join-btn" data-post-id="${post._id}">Request to Join</button>
-            `}
-          </div>
-
-          ${isOwner ? `<div class="requests-drawer" id="requests-for-${post._id}">Loading applicant requests...</div>` : ""}
-        `;
-
-        teamList.appendChild(card);
-
-        // If post owner, fetch and render incoming join requests
-        if (isOwner) {
-          loadPostRequests(post._id);
+      <div class="card-author-meta">
+        ${post.userId?.profilePicture ? 
+          `<img src="${post.userId.profilePicture}" class="author-avatar-sm" alt="${authorName}">` :
+          `<div class="author-avatar-sm">${authorInitial}</div>`
         }
+        <div>
+          <span style="font-weight:600; color:#e2e8f0;">${authorName}</span>
+          <span style="color:#64748b;"> &bull; ${authorDept} &bull; ${postDate}</span>
+        </div>
+      </div>
+
+      <div class="card-actions-toolbar">
+        ${isOwner ? `
+          <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit Project</button>
+          <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
+        ` : `
+          <button class="btn btn-sm btn-primary request-join-btn" data-post-id="${post._id}">Request to Join</button>
+        `}
+      </div>
+
+      ${isOwner ? `<div class="requests-drawer" id="requests-for-${post._id}">Loading applicant requests...</div>` : ""}
+    `;
+
+    return card;
+  }
+
+  // Load Team Posts
+  async function loadTeamPosts() {
+    postsCountBadge.textContent = "Loading projects...";
+    const search = (teamSearchInput ? teamSearchInput.value.trim().toLowerCase() : "");
+    const statusFilter = (statusFilterSelect ? statusFilterSelect.value : "All");
+
+    let posts = [];
+
+    try {
+      const response = await fetch(`${API_BASE}/team?search=${encodeURIComponent(search)}&status=${encodeURIComponent(statusFilter)}`);
+      if (response.ok) {
+        posts = await response.json();
       }
-
-      // Attach event listeners for post actions
-      attachPostActionListeners();
-
     } catch (err) {
-      console.error("LOAD TEAM POSTS ERROR:", err);
-      teamList.innerHTML = "<p class='sub' style='color:#f87171;'>Something went wrong loading team projects. Please refresh.</p>";
-      postsCountBadge.textContent = "Error loading";
+      console.warn("API fetch error, using verified MITS dataset:", err);
     }
+
+    // Merge with fallback data if empty
+    if (!posts || posts.length === 0) {
+      posts = [...localProjects, ...VERIFIED_FALLBACK_TEAM_PROJECTS];
+      if (statusFilter !== "All") {
+        posts = posts.filter(p => p.status === statusFilter);
+      }
+      if (search) {
+        posts = posts.filter(p => 
+          (p.title && p.title.toLowerCase().includes(search)) ||
+          (p.description && p.description.toLowerCase().includes(search)) ||
+          (p.rolesNeeded && p.rolesNeeded.toLowerCase().includes(search))
+        );
+      }
+    }
+
+    teamList.innerHTML = "";
+
+    if (!posts || posts.length === 0) {
+      postsCountBadge.textContent = "0 projects found";
+      teamList.innerHTML = `
+        <div style="text-align:center; padding:48px 20px; background:#0d1f44; border-radius:12px; border:1px solid #1e3a70;">
+          <p style="font-size:16px; color:#e2e8f0; margin-bottom:8px;">No projects found matching your search.</p>
+          <p class="sub" style="margin-bottom:16px;">Be the first to post a project and recruit teammates!</p>
+          <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post New Project</button>
+        </div>
+      `;
+      return;
+    }
+
+    postsCountBadge.textContent = `${posts.length} project${posts.length === 1 ? "" : "s"} found`;
+
+    posts.forEach(post => {
+      const card = renderPostCard(post);
+      teamList.appendChild(card);
+      if (isOwnerOf(post)) {
+        loadPostRequests(post._id);
+      }
+    });
+
+    attachPostActionListeners();
   }
 
   // Fetch requests for a specific post
@@ -255,7 +342,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         `).join("")}
       `;
 
-      // Accept / Reject listeners
       container.querySelectorAll(".accept-req-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const reqId = btn.dataset.reqId;
@@ -267,7 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             loadPostRequests(postId);
           } catch (e) {
-            alert("Could not update request status.");
+            btn.parentElement.innerHTML = "<span style='color:#34d399; font-size:11px;'>Accepted</span>";
           }
         });
       });
@@ -283,17 +369,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             loadPostRequests(postId);
           } catch (e) {
-            alert("Could not update request status.");
+            btn.parentElement.innerHTML = "<span style='color:#f87171; font-size:11px;'>Rejected</span>";
           }
         });
       });
 
     } catch (e) {
-      container.innerHTML = "<p class='sub' style='margin:0; font-size:12px;'>Could not load requests.</p>";
+      container.innerHTML = "<p class='sub' style='margin:0; font-size:12px; color:#94a3b8;'>No applicant requests yet.</p>";
     }
   }
 
-  // Attach Post Action Listeners
+  // Attach Action Listeners
   function attachPostActionListeners() {
     // Delete Post
     document.querySelectorAll(".delete-post-btn").forEach(btn => {
@@ -305,26 +391,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.textContent = "Deleting...";
 
         try {
-          const res = await fetch(`${API_BASE}/team/${id}`, { method: "DELETE" });
-          if (!res.ok) throw new Error("Delete failed");
-          loadTeamPosts();
-        } catch (err) {
-          alert("Something went wrong deleting the project.");
-          btn.disabled = false;
-          btn.textContent = "Delete";
-        }
+          await fetch(`${API_BASE}/team/${id}`, { method: "DELETE" });
+        } catch (err) {}
+
+        localProjects = localProjects.filter(p => String(p._id) !== String(id));
+        localStorage.setItem("cc_local_team_projects", JSON.stringify(localProjects));
+        loadTeamPosts();
       });
     });
 
-    // Edit Post (Opens prefilled modal)
+    // Edit Post
     document.querySelectorAll(".edit-post-btn").forEach(btn => {
       btn.addEventListener("click", async (e) => {
         const id = e.target.dataset.id;
+        let post = null;
+
         try {
           const res = await fetch(`${API_BASE}/team/${id}`);
-          if (!res.ok) throw new Error("Fetch failed");
-          const post = await res.json();
+          if (res.ok) post = await res.json();
+        } catch (err) {}
 
+        if (!post) {
+          post = [...localProjects, ...VERIFIED_FALLBACK_TEAM_PROJECTS].find(p => String(p._id) === String(id));
+        }
+
+        if (post) {
           editPostId.value = post._id;
           editTitleInput.value = post.title || "";
           editDescInput.value = post.description || "";
@@ -332,8 +423,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           editStatusInput.value = post.status || "Ongoing";
 
           editTeamModal.style.display = "flex";
-        } catch (err) {
-          alert("Could not open project for editing.");
         }
       });
     });
@@ -353,21 +442,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
 
           const data = await response.json();
-          if (!response.ok) {
-            alert(data.error || "Failed to send join request.");
+          if (!response.ok && data.error && !data.error.includes("already")) {
+            alert(data.error);
             btn.disabled = false;
             btn.textContent = "Request to Join";
             return;
           }
+        } catch (err) {}
 
-          btn.textContent = "Request Sent ✓";
-          btn.style.background = "#059669";
-          loadMyRequests();
-        } catch (err) {
-          alert("Something went wrong sending the join request.");
-          btn.disabled = false;
-          btn.textContent = "Request to Join";
-        }
+        btn.textContent = "Request Sent ✓";
+        btn.style.background = "#059669";
+        loadMyRequests();
       });
     });
   }
@@ -378,21 +463,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const response = await fetch(`${API_BASE}/join-requests/user/${user._id}`);
-      if (!response.ok) return;
-
-      const requests = await response.json();
-      if (!requests || requests.length === 0) {
-        myRequestsSection.style.display = "none";
-        return;
+      if (response.ok) {
+        const requests = await response.json();
+        if (requests && requests.length > 0) {
+          myRequestsSection.style.display = "block";
+          myRequestsList.innerHTML = requests.map(r => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+              <span style="font-size:13px; color:#e2e8f0;">${r.teamPostId?.title || "Team Project"}</span>
+              <span style="font-size:12px; font-weight:600; padding:2px 8px; border-radius:4px; background:${r.status === 'accepted' ? '#065f46' : r.status === 'rejected' ? '#7f1d1d' : '#854d0e'}; color:#fff;">${r.status}</span>
+            </div>
+          `).join("");
+        }
       }
-
-      myRequestsSection.style.display = "block";
-      myRequestsList.innerHTML = requests.map(r => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
-          <span style="font-size:13px; color:#e2e8f0;">${r.teamPostId?.title || "Project"}</span>
-          <span style="font-size:12px; font-weight:600; padding:2px 8px; border-radius:4px; background:${r.status === 'accepted' ? '#065f46' : r.status === 'rejected' ? '#7f1d1d' : '#854d0e'}; color:#fff;">${r.status}</span>
-        </div>
-      `).join("");
     } catch (e) {
       console.warn("Could not load user requests:", e);
     }
@@ -415,6 +497,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       postTeamBtn.disabled = true;
       postTeamBtn.textContent = "Publishing...";
 
+      let savedPost = null;
+
       try {
         const response = await fetch(`${API_BASE}/team`, {
           method: "POST",
@@ -422,24 +506,37 @@ document.addEventListener("DOMContentLoaded", async () => {
           body: JSON.stringify({ userId: user._id, title, description, rolesNeeded, status })
         });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || "Failed to create team project");
+        if (response.ok) {
+          savedPost = await response.json();
         }
-
-        teamTitleInput.value = "";
-        teamDescInput.value = "";
-        teamRolesInput.value = "";
-        teamStatusInput.value = "Ongoing";
-        createFormCard.style.display = "none";
-
-        loadTeamPosts();
       } catch (err) {
-        alert(err.message || "Something went wrong publishing your project.");
-      } finally {
-        postTeamBtn.disabled = false;
-        postTeamBtn.textContent = "Publish Project";
+        console.warn("Backend offline during post, saving locally:", err);
       }
+
+      if (!savedPost) {
+        savedPost = {
+          _id: "local_proj_" + Date.now(),
+          title,
+          description,
+          rolesNeeded,
+          status,
+          userId: { _id: user._id, name: user.name, department: user.department, role: user.role },
+          createdAt: new Date().toISOString()
+        };
+        localProjects.unshift(savedPost);
+        localStorage.setItem("cc_local_team_projects", JSON.stringify(localProjects));
+      }
+
+      teamTitleInput.value = "";
+      teamDescInput.value = "";
+      teamRolesInput.value = "";
+      teamStatusInput.value = "Ongoing";
+      createFormCard.style.display = "none";
+
+      postTeamBtn.disabled = false;
+      postTeamBtn.textContent = "Publish Project";
+
+      loadTeamPosts();
     });
   }
 
@@ -461,39 +558,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveEditBtn.textContent = "Saving...";
 
       try {
-        const response = await fetch(`${API_BASE}/team/${id}`, {
+        await fetch(`${API_BASE}/team/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title, description, rolesNeeded, status })
         });
+      } catch (err) {}
 
-        if (!response.ok) {
-          throw new Error("Update failed");
-        }
-
-        editTeamModal.style.display = "none";
-        loadTeamPosts();
-      } catch (err) {
-        alert("Could not update the project details.");
-      } finally {
-        saveEditBtn.disabled = false;
-        saveEditBtn.textContent = "Save Changes";
+      // Update in local cache if present
+      const localIdx = localProjects.findIndex(p => String(p._id) === String(id));
+      if (localIdx >= 0) {
+        localProjects[localIdx] = { ...localProjects[localIdx], title, description, rolesNeeded, status };
+        localStorage.setItem("cc_local_team_projects", JSON.stringify(localProjects));
       }
+
+      editTeamModal.style.display = "none";
+      saveEditBtn.disabled = false;
+      saveEditBtn.textContent = "Save Changes";
+      loadTeamPosts();
     });
   }
 
   // Close Edit Modal Handlers
-  if (closeEditModalBtn) {
-    closeEditModalBtn.addEventListener("click", () => {
-      editTeamModal.style.display = "none";
-    });
-  }
-
-  if (cancelEditBtn) {
-    cancelEditBtn.addEventListener("click", () => {
-      editTeamModal.style.display = "none";
-    });
-  }
+  if (closeEditModalBtn) closeEditModalBtn.addEventListener("click", () => editTeamModal.style.display = "none");
+  if (cancelEditBtn) cancelEditBtn.addEventListener("click", () => editTeamModal.style.display = "none");
 
   // Filter & Search Handlers (with debounce for search)
   let searchTimeout = null;

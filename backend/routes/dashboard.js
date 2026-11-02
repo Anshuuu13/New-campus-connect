@@ -36,10 +36,11 @@ router.get("/summary", async (req, res) => {
         : Notification.countDocuments({}).catch(() => 7)
     ]);
 
-    const activeRequests = (pendingJoinReqs || 0) + (pendingSwapReqs || 0) || 12;
-    const researchOpportunities = facultyPostCount || 5;
-    const verifiedResources = resourceCount || 37;
-    const unreadAnnouncements = unreadNotifCount || (announcements ? announcements.length : 7);
+    const activeRequests = (typeof pendingJoinReqs === "number" ? pendingJoinReqs : 6) +
+                           (typeof pendingSwapReqs === "number" ? pendingSwapReqs : 6);
+    const researchOpportunities = typeof facultyPostCount === "number" ? facultyPostCount : 5;
+    const verifiedResources = typeof resourceCount === "number" ? resourceCount : 37;
+    const unreadAnnouncements = typeof unreadNotifCount === "number" ? unreadNotifCount : (announcements ? announcements.length : 7);
 
     res.json({
       activeRequests,

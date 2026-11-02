@@ -23,6 +23,16 @@ const dashboardRouter = require("./routes/dashboard");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Universal CORS & Preflight Handler (Supports file://, localhost:5500, localhost:5000, and cloud tunnels)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Bypass-Tunnel-Reminder");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 

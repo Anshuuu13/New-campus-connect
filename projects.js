@@ -1,4 +1,4 @@
-const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.host ? "/api" : "https://campus-connect-1q2c.onrender.com/api";
+let API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "5000" ? "/api" : "http://localhost:5000/api";
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("campusConnectUser"));
 

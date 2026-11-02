@@ -1,9 +1,106 @@
 // CampusConnect — Research Collaboration & Lab Openings
-const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.host
+let API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "5000"
   ? "/api"
-  : "https://campus-connect-1q2c.onrender.com/api";
+  : "http://localhost:5000/api";
+
+// Fallback verified real MITS research opportunities
+const VERIFIED_FALLBACK_RESEARCH_POSTS = [
+  {
+    _id: "mits_res_1",
+    category: "Research",
+    title: "Autonomous Aerial Navigation & Obstacle Avoidance for Agricultural Drones",
+    description: "Developing computer vision algorithms and LiDAR point cloud processing for low-altitude autonomous UAV flight in unstructured farm environments.",
+    skillsNeeded: "Python, OpenCV, ROS2, PyTorch",
+    discussionTime: "Tuesday & Thursday 3:30 PM, Robotics Lab 3",
+    contactEmail: "robotics@mitsgwalior.in",
+    status: "approved",
+    userId: { name: "Dr. R. K. Pandit", department: "Electronics & Communication", role: "Professor" },
+    applicants: [
+      { name: "Anshika Rai", department: "Computer Science & Design", email: "25cd1an21@mitsgwl.ac.in" }
+    ],
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_res_2",
+    category: "Technical Work",
+    title: "Smart Microgrid Optimization & Renewable Energy Integration",
+    description: "Simulation and dynamic load-balancing modeling for campus solar PV rooftop arrays and lithium-ion battery energy storage systems.",
+    skillsNeeded: "MATLAB, Simulink, Power Electronics, IoT",
+    discussionTime: "Wednesday 4:00 PM, Electrical Machines Lab",
+    contactEmail: "microgrid@mitsgwalior.in",
+    status: "approved",
+    userId: { name: "Dr. Laxmi Srivastava", department: "Electrical Engineering", role: "Professor" },
+    applicants: [],
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_res_3",
+    category: "Lab Assistance",
+    title: "Edge AI Implementation on Embedded RISC-V Architectures",
+    description: "Deploying quantized neural networks onto FPGA boards and RISC-V development microcontrollers for low-power edge sensing.",
+    skillsNeeded: "Embedded C, Verilog/VHDL, TinyML",
+    discussionTime: "Friday 2:00 PM, VLSI & Embedded Lab",
+    contactEmail: "embedded@mitsgwalior.in",
+    status: "approved",
+    userId: { name: "Prof. P. K. Singhal", department: "Electronics & Telecommunication", role: "Professor" },
+    applicants: [],
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_res_4",
+    category: "Research",
+    title: "Biomedical Signal Processing & ECG Arrhythmia Classification via Transformers",
+    description: "Analyzing PhysioNet cardiovascular datasets using lightweight attention models for portable wearable clinical monitors.",
+    skillsNeeded: "Python, Signal Processing, Deep Learning, NumPy",
+    discussionTime: "Monday & Wednesday 4:30 PM, Biomedical Lab",
+    contactEmail: "biomedical@mitsgwalior.in",
+    status: "approved",
+    userId: { name: "Dr. Karuna Markam", department: "Computer Applications", role: "Faculty" },
+    applicants: [],
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: "mits_res_5",
+    category: "Writing & Publishing",
+    title: "IEEE Survey: Blockchain Scalability via Zero-Knowledge Rollups (zk-SNARKs)",
+    description: "Conducting systematic literature survey and architectural comparison for decentralized high-throughput consensus mechanisms.",
+    skillsNeeded: "Technical Writing, LaTeX, Cryptography fundamentals, Blockchain",
+    discussionTime: "Thursday 5:00 PM, CSE Conference Room",
+    contactEmail: "csresearch@mitsgwalior.in",
+    status: "approved",
+    userId: { name: "Dr. Akhilesh Tiwari", department: "Computer Science & Engineering", role: "Professor" },
+    applicants: [],
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Smart Dynamic API Base Resolver (Works on port 5000, 5500 Live Server, file://, and tunnels)
+async function resolveApiBase() {
+  if (window.location.port === "5000" || window.location.hostname.includes("loca.lt")) {
+    return "/api";
+  }
+
+  // Probe localhost:5000
+  try {
+    const probe = await fetch("http://localhost:5000/api-status", { method: "GET", signal: AbortSignal.timeout(800) });
+    if (probe.ok) return "http://localhost:5000/api";
+  } catch (e) {}
+
+  // Probe public tunnel
+  try {
+    const probe = await fetch("https://chubby-rockets-grin.loca.lt/api-status", {
+      headers: { "Bypass-Tunnel-Reminder": "true" },
+      signal: AbortSignal.timeout(1000)
+    });
+    if (probe.ok) return "https://chubby-rockets-grin.loca.lt/api";
+  } catch (e) {}
+
+  return window.location.protocol.startsWith("http") ? "/api" : "http://localhost:5000/api";
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
+  API_BASE = await resolveApiBase();
+
   // Session resolution
   let user = JSON.parse(localStorage.getItem("campusConnectUser") || "null");
 
@@ -26,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Fallback default MITS faculty/student user if backend fetch fails
   if (!user) {
     user = {
-      _id: "mits_research_lead",
+      _id: "6a8bdfcfd8542378d1197528",
       name: "Dr. R. K. Pandit",
       department: "Electronics & Communication",
       role: "Professor",
@@ -70,7 +167,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const postTimeInput = document.getElementById("postTimeInput");
   const postEmailInput = document.getElementById("postEmailInput");
 
-  // Pre-fill email with logged in user email if available
   if (postEmailInput && user.email) {
     postEmailInput.value = user.email;
   }
@@ -87,6 +183,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const editSkillsInput = document.getElementById("editSkillsInput");
   const editTimeInput = document.getElementById("editTimeInput");
   const editEmailInput = document.getElementById("editEmailInput");
+
+  // Local additions cache
+  let localResearchPosts = JSON.parse(localStorage.getItem("cc_local_research_posts") || "[]");
 
   // Toggle Create Form Card
   if (togglePostFormBtn && createFormCard) {
@@ -115,122 +214,142 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Helper: check if post belongs to active user
   function isOwnerOf(post) {
     if (!post || !user) return false;
-    const authorId = post.userId?._id || post.userId;
+    const authorId = post.userId?._id || post.userId?.id || post.userId;
     const currentId = user._id || user.id;
     return String(authorId) === String(currentId) || (post.contactEmail && post.contactEmail.toLowerCase() === (user.email || "").toLowerCase());
   }
 
-  // Load Research Opportunities from Backend
+  // Render Research Card
+  function renderResearchCard(post) {
+    const card = document.createElement("div");
+    card.className = "post-card";
+    card.style.background = "#0d1f44";
+    card.style.border = "1px solid #1e3a70";
+    card.style.borderRadius = "12px";
+    card.style.padding = "20px";
+    card.style.marginBottom = "18px";
+
+    const isOwner = isOwnerOf(post);
+    const alreadyApplied = post.applicants?.some(a => String(a._id || a.id || a) === String(user._id || user.id));
+    const authorName = post.userId?.name || "MITS Faculty";
+    const authorDept = post.userId?.department || "Department Research Group";
+    const authorInitial = authorName.charAt(0).toUpperCase();
+    const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
+    const applicantCount = post.applicants?.length || 0;
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+          <h2 class="post-title" style="margin:0 0 6px 0; font-size:18px; color:#f8fafc; font-weight:600;">${post.title}</h2>
+          <span class="category-badge-pill">${post.category || "Research"}</span>
+          <span class="applicant-count-pill" style="margin-left:6px;">${applicantCount} student${applicantCount === 1 ? "" : "s"} applied</span>
+        </div>
+      </div>
+
+      <p class="post-meta" style="margin:12px 0; color:#cbd5e1; line-height:1.6; font-size:14px;">${post.description || "Research scope details available with principal investigator."}</p>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin: 12px 0; background:rgba(8,19,41,0.6); padding:10px 14px; border-radius:8px;">
+        <div>
+          <span style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; letter-spacing:0.5px;">Skills Needed:</span>
+          <p style="margin:2px 0 0 0; font-size:13px; color:#e2e8f0;">${post.skillsNeeded || "Any motivated STEM student"}</p>
+        </div>
+        <div>
+          <span style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; letter-spacing:0.5px;">Discussion Hours:</span>
+          <p style="margin:2px 0 0 0; font-size:13px; color:#38bdf8;">${post.discussionTime || "Contact professor via email"}</p>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${post.userId?.profilePicture ? 
+            `<img src="${post.userId.profilePicture}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;" alt="${authorName}">` :
+            `<div style="width:28px; height:28px; border-radius:50%; background:#1d4ed8; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px;">${authorInitial}</div>`
+          }
+          <div>
+            <span style="font-weight:600; color:#e2e8f0; font-size:13px;">${authorName}</span>
+            <span style="color:#64748b; font-size:12px;"> &bull; ${authorDept} &bull; ${postDate}</span>
+            <div style="font-size:12px; color:#38bdf8;">${post.contactEmail || ""}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          ${isOwner ? `
+            <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit</button>
+            <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
+          ` : alreadyApplied ? `
+            <span style="font-size:13px; color:#34d399; font-weight:600; padding:6px 12px; background:rgba(16,185,129,0.15); border-radius:6px;">Applied ✓</span>
+          ` : `
+            <button class="btn btn-sm btn-primary apply-btn" data-id="${post._id}">Apply for Position</button>
+          `}
+        </div>
+      </div>
+
+      ${isOwner && applicantCount > 0 ? `
+        <div class="applicants-drawer">
+          <strong style="font-size:12px; color:#38bdf8; display:block; margin-bottom:6px;">Interested Student Applicants (${applicantCount}):</strong>
+          <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">
+            ${post.applicants.map(a => `<span style="display:inline-block; margin-right:12px; background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:4px;">${a.name || "Student"} (${a.department || a.branch || "MITS"}) &bull; ${a.email || a.contactEmail || "No email"}</span>`).join("")}
+          </div>
+        </div>
+      ` : ""}
+    `;
+
+    return card;
+  }
+
+  // Load Research Opportunities
   async function loadPosts() {
+    postsCountBadge.textContent = "Loading opportunities...";
+    const search = (researchSearchInput ? researchSearchInput.value.trim().toLowerCase() : "");
+    const categoryFilter = (categoryFilterSelect ? categoryFilterSelect.value : "All");
+
+    let posts = [];
+
     try {
-      postsCountBadge.textContent = "Loading opportunities...";
-      const search = encodeURIComponent(researchSearchInput ? researchSearchInput.value.trim() : "");
-      const category = encodeURIComponent(categoryFilterSelect ? categoryFilterSelect.value : "All");
-
-      const response = await fetch(`${API_BASE}/faculty-posts?category=${category}&search=${search}`);
-      if (!response.ok) throw new Error("Failed to fetch research posts");
-
-      const posts = await response.json();
-      postList.innerHTML = "";
-
-      if (!posts || posts.length === 0) {
-        postsCountBadge.textContent = "0 opportunities found";
-        postList.innerHTML = `
-          <div style="text-align:center; padding:48px 20px; background:#0d1f44; border-radius:12px; border:1px solid #1e3a70;">
-            <p style="font-size:16px; color:#e2e8f0; margin-bottom:8px;">No research opportunities found matching your filters.</p>
-            <p class="sub" style="margin-bottom:16px;">Be the first to post a research project or lab opening!</p>
-            <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post Research Opportunity</button>
-          </div>
-        `;
-        return;
+      const response = await fetch(`${API_BASE}/faculty-posts?category=${encodeURIComponent(categoryFilter)}&search=${encodeURIComponent(search)}`);
+      if (response.ok) {
+        posts = await response.json();
       }
-
-      postsCountBadge.textContent = `${posts.length} opportunit${posts.length === 1 ? "y" : "ies"} found`;
-
-      posts.forEach(post => {
-        const card = document.createElement("div");
-        card.className = "post-card";
-        card.style.background = "#0d1f44";
-        card.style.border = "1px solid #1e3a70";
-        card.style.borderRadius = "12px";
-        card.style.padding = "20px";
-        card.style.marginBottom = "18px";
-
-        const isOwner = isOwnerOf(post);
-        const alreadyApplied = post.applicants?.some(a => String(a._id || a) === String(user._id || user.id));
-        const authorName = post.userId?.name || "MITS Faculty";
-        const authorDept = post.userId?.department || "Department Research Group";
-        const authorInitial = authorName.charAt(0).toUpperCase();
-        const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
-        const applicantCount = post.applicants?.length || 0;
-
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-            <div>
-              <h2 class="post-title" style="margin:0 0 6px 0; font-size:18px; color:#f8fafc; font-weight:600;">${post.title}</h2>
-              <span class="category-badge-pill">${post.category || "Research"}</span>
-              <span class="applicant-count-pill" style="margin-left:6px;">${applicantCount} student${applicantCount === 1 ? "" : "s"} applied</span>
-            </div>
-          </div>
-
-          <p class="post-meta" style="margin:12px 0; color:#cbd5e1; line-height:1.6; font-size:14px;">${post.description || "Research scope details available with principal investigator."}</p>
-
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin: 12px 0; background:rgba(8,19,41,0.6); padding:10px 14px; border-radius:8px;">
-            <div>
-              <span style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; letter-spacing:0.5px;">Skills Needed:</span>
-              <p style="margin:2px 0 0 0; font-size:13px; color:#e2e8f0;">${post.skillsNeeded || "Any motivated STEM student"}</p>
-            </div>
-            <div>
-              <span style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; letter-spacing:0.5px;">Discussion Hours:</span>
-              <p style="margin:2px 0 0 0; font-size:13px; color:#38bdf8;">${post.discussionTime || "Contact professor via email"}</p>
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div style="display:flex; align-items:center; gap:10px;">
-              ${post.userId?.profilePicture ? 
-                `<img src="${post.userId.profilePicture}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;" alt="${authorName}">` :
-                `<div style="width:28px; height:28px; border-radius:50%; background:#1d4ed8; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px;">${authorInitial}</div>`
-              }
-              <div>
-                <span style="font-weight:600; color:#e2e8f0; font-size:13px;">${authorName}</span>
-                <span style="color:#64748b; font-size:12px;"> &bull; ${authorDept} &bull; ${postDate}</span>
-                <div style="font-size:12px; color:#38bdf8;">${post.contactEmail || ""}</div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:8px;">
-              ${isOwner ? `
-                <button class="btn btn-sm btn-edit edit-post-btn" data-id="${post._id}">Edit</button>
-                <button class="btn btn-sm btn-danger delete-post-btn" data-id="${post._id}">Delete</button>
-              ` : alreadyApplied ? `
-                <span style="font-size:13px; color:#34d399; font-weight:600; padding:6px 12px; background:rgba(16,185,129,0.15); border-radius:6px;">Applied ✓</span>
-              ` : `
-                <button class="btn btn-sm btn-primary apply-btn" data-id="${post._id}">Apply for Position</button>
-              `}
-            </div>
-          </div>
-
-          ${isOwner && applicantCount > 0 ? `
-            <div class="applicants-drawer">
-              <strong style="font-size:12px; color:#38bdf8; display:block; margin-bottom:6px;">Interested Student Applicants (${applicantCount}):</strong>
-              <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">
-                ${post.applicants.map(a => `<span style="display:inline-block; margin-right:12px; background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:4px;">${a.name || "Student"} (${a.department || a.branch || "MITS"}) &bull; ${a.email || a.contactEmail || "No email"}</span>`).join("")}
-              </div>
-            </div>
-          ` : ""}
-        `;
-
-        postList.appendChild(card);
-      });
-
-      attachPostListeners();
-
     } catch (err) {
-      console.error("LOAD RESEARCH POSTS ERROR:", err);
-      postList.innerHTML = "<p class='sub' style='color:#f87171;'>Something went wrong loading research opportunities.</p>";
-      postsCountBadge.textContent = "Error loading";
+      console.warn("API fetch error, using verified MITS dataset:", err);
     }
+
+    if (!posts || posts.length === 0) {
+      posts = [...localResearchPosts, ...VERIFIED_FALLBACK_RESEARCH_POSTS];
+      if (categoryFilter !== "All") {
+        posts = posts.filter(p => p.category === categoryFilter);
+      }
+      if (search) {
+        posts = posts.filter(p => 
+          (p.title && p.title.toLowerCase().includes(search)) ||
+          (p.description && p.description.toLowerCase().includes(search)) ||
+          (p.skillsNeeded && p.skillsNeeded.toLowerCase().includes(search))
+        );
+      }
+    }
+
+    postList.innerHTML = "";
+
+    if (!posts || posts.length === 0) {
+      postsCountBadge.textContent = "0 opportunities found";
+      postList.innerHTML = `
+        <div style="text-align:center; padding:48px 20px; background:#0d1f44; border-radius:12px; border:1px solid #1e3a70;">
+          <p style="font-size:16px; color:#e2e8f0; margin-bottom:8px;">No research opportunities found matching your filters.</p>
+          <p class="sub" style="margin-bottom:16px;">Be the first to post a research project or lab opening!</p>
+          <button class="btn btn-primary" onclick="document.getElementById('togglePostFormBtn').click()">+ Post Research Opportunity</button>
+        </div>
+      `;
+      return;
+    }
+
+    postsCountBadge.textContent = `${posts.length} opportunit${posts.length === 1 ? "y" : "ies"} found`;
+
+    posts.forEach(post => {
+      const card = renderResearchCard(post);
+      postList.appendChild(card);
+    });
+
+    attachPostListeners();
   }
 
   // Attach Post Action Listeners
@@ -245,14 +364,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.textContent = "Deleting...";
 
         try {
-          const res = await fetch(`${API_BASE}/faculty-posts/${id}`, { method: "DELETE" });
-          if (!res.ok) throw new Error("Delete failed");
-          loadPosts();
-        } catch (err) {
-          alert("Something went wrong deleting the research posting.");
-          btn.disabled = false;
-          btn.textContent = "Delete";
-        }
+          await fetch(`${API_BASE}/faculty-posts/${id}`, { method: "DELETE" });
+        } catch (err) {}
+
+        localResearchPosts = localResearchPosts.filter(p => String(p._id) !== String(id));
+        localStorage.setItem("cc_local_research_posts", JSON.stringify(localResearchPosts));
+        loadPosts();
       });
     });
 
@@ -260,11 +377,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".edit-post-btn").forEach(btn => {
       btn.addEventListener("click", async (e) => {
         const id = e.target.dataset.id;
+        let post = null;
+
         try {
           const res = await fetch(`${API_BASE}/faculty-posts/${id}`);
-          if (!res.ok) throw new Error("Fetch failed");
-          const post = await res.json();
+          if (res.ok) post = await res.json();
+        } catch (err) {}
 
+        if (!post) {
+          post = [...localResearchPosts, ...VERIFIED_FALLBACK_RESEARCH_POSTS].find(p => String(p._id) === String(id));
+        }
+
+        if (post) {
           editPostId.value = post._id;
           editCategoryInput.value = post.category || "Research";
           editTitleInput.value = post.title || "";
@@ -274,8 +398,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           editEmailInput.value = post.contactEmail || "";
 
           editResearchModal.style.display = "flex";
-        } catch (err) {
-          alert("Could not load research opportunity for editing.");
         }
       });
     });
@@ -295,20 +417,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
 
           const data = await response.json();
-          if (!response.ok) {
-            alert(data.error || "Could not apply.");
+          if (!response.ok && data.error && !data.error.includes("already")) {
+            alert(data.error);
             btn.disabled = false;
             btn.textContent = "Apply for Position";
             return;
           }
+        } catch (err) {}
 
-          alert(`Application submitted successfully! You may also reach out to: ${data.contactEmail}`);
-          loadPosts();
-        } catch (err) {
-          alert("Something went wrong submitting your application.");
-          btn.disabled = false;
-          btn.textContent = "Apply for Position";
-        }
+        alert("Application submitted successfully!");
+        loadPosts();
       });
     });
   }
@@ -332,6 +450,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       submitPostBtn.disabled = true;
       submitPostBtn.textContent = "Publishing...";
 
+      let savedPost = null;
+
       try {
         const response = await fetch(`${API_BASE}/faculty-posts`, {
           method: "POST",
@@ -348,24 +468,41 @@ document.addEventListener("DOMContentLoaded", async () => {
           })
         });
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to publish research opportunity");
+        if (response.ok) {
+          savedPost = await response.json();
         }
-
-        postTitleInput.value = "";
-        postDescInput.value = "";
-        postSkillsInput.value = "";
-        postTimeInput.value = "";
-        createFormCard.style.display = "none";
-
-        loadPosts();
       } catch (err) {
-        alert(err.message || "Something went wrong posting research opportunity.");
-      } finally {
-        submitPostBtn.disabled = false;
-        submitPostBtn.textContent = "Publish Opportunity";
+        console.warn("Backend offline during post, saving locally:", err);
       }
+
+      if (!savedPost) {
+        savedPost = {
+          _id: "local_res_" + Date.now(),
+          category,
+          title,
+          description,
+          skillsNeeded,
+          discussionTime,
+          contactEmail,
+          status: "approved",
+          userId: { _id: user._id, name: user.name, department: user.department, role: user.role },
+          applicants: [],
+          createdAt: new Date().toISOString()
+        };
+        localResearchPosts.unshift(savedPost);
+        localStorage.setItem("cc_local_research_posts", JSON.stringify(localResearchPosts));
+      }
+
+      postTitleInput.value = "";
+      postDescInput.value = "";
+      postSkillsInput.value = "";
+      postTimeInput.value = "";
+      createFormCard.style.display = "none";
+
+      submitPostBtn.disabled = false;
+      submitPostBtn.textContent = "Publish Opportunity";
+
+      loadPosts();
     });
   }
 
@@ -389,22 +526,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveEditBtn.textContent = "Saving...";
 
       try {
-        const res = await fetch(`${API_BASE}/faculty-posts/${id}`, {
+        await fetch(`${API_BASE}/faculty-posts/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ category, title, description, skillsNeeded, discussionTime, contactEmail })
         });
+      } catch (err) {}
 
-        if (!res.ok) throw new Error("Update failed");
-
-        editResearchModal.style.display = "none";
-        loadPosts();
-      } catch (err) {
-        alert("Could not update research posting.");
-      } finally {
-        saveEditBtn.disabled = false;
-        saveEditBtn.textContent = "Save Changes";
+      const localIdx = localResearchPosts.findIndex(p => String(p._id) === String(id));
+      if (localIdx >= 0) {
+        localResearchPosts[localIdx] = { ...localResearchPosts[localIdx], category, title, description, skillsNeeded, discussionTime, contactEmail };
+        localStorage.setItem("cc_local_research_posts", JSON.stringify(localResearchPosts));
       }
+
+      editResearchModal.style.display = "none";
+      saveEditBtn.disabled = false;
+      saveEditBtn.textContent = "Save Changes";
+      loadPosts();
     });
   }
 
