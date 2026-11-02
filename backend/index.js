@@ -37,12 +37,13 @@ app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
 // Connect to MongoDB
-if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI)
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+if (mongoUri) {
+  mongoose.connect(mongoUri)
     .then(() => console.log("Connected to MongoDB Atlas"))
     .catch((err) => console.error("MongoDB connection error:", err));
 } else {
-  console.warn("Warning: MONGODB_URI not configured in .env");
+  console.warn("Warning: Neither MONGODB_URI nor MONGO_URI configured in environment");
 }
 
 const path = require("path");
