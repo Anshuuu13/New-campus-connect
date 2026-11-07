@@ -62,6 +62,18 @@ async function runTests() {
     });
     assert("Reject non-institutional Google accounts (@gmail.com) with 403", rejectGmail.status === 403);
 
+    // 2b. Reject invalid accessToken
+    const rejectInvalidToken = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      accessToken: "invalid_fake_token_456"
+    });
+    assert("Reject invalid Google access token with 401", rejectInvalidToken.status === 401);
+
     // 3. Google Auth Student Domain: Allow @mitsgwl.ac.in and assign Student
     const studentAuth = await request({
       hostname: "localhost",

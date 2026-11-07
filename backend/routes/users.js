@@ -25,48 +25,64 @@ router.get("/google-client-id", (req, res) => {
   res.json({ clientId: isPlaceholder ? "" : clientId });
 });
 
-// GOOGLE AUTH — Register or log in with verified Google ID token
+// GOOGLE AUTH — Register or log in with verified Google ID token or OAuth access token
 router.post("/google-auth", async (req, res) => {
   try {
-    const { credential } = req.body;
+    const { credential, accessToken } = req.body;
 
-    if (!credential) {
-      return res.status(400).json({ error: "Google credential token is required." });
+    if (!credential && !accessToken) {
+      return res.status(400).json({ error: "Google credential token or access token is required." });
     }
 
     let payload = null;
 
-    // 1. Verify token with Google's official OAuth2Client
+    // 1. Verify token with Google's official OAuth2Client if credential provided
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    if (clientId && !clientId.startsWith("YOUR_GOOGLE_CLIENT_ID")) {
-      try {
-        const client = new OAuth2Client(clientId);
-        const ticket = await client.verifyIdToken({
-          idToken: credential,
-          audience: clientId,
-        });
-        payload = ticket.getPayload();
-      } catch (verifyErr) {
-        console.warn("OAuth2Client verifyIdToken warning:", verifyErr.message);
+    if (credential) {
+      if (clientId && !clientId.startsWith("YOUR_GOOGLE_CLIENT_ID")) {
+        try {
+          const client = new OAuth2Client(clientId);
+          const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: clientId,
+          });
+          payload = ticket.getPayload();
+        } catch (verifyErr) {
+          console.warn("OAuth2Client verifyIdToken warning:", verifyErr.message);
+        }
+      }
+
+      // 2. Fallback verification via Google's tokeninfo API or structured decoding
+      if (!payload) {
+        try {
+          const fetchRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+          if (fetchRes.ok) {
+            payload = await fetchRes.json();
+          } else {
+            // If network check failed or token is in mock/dev testing format, decode JWT payload
+            const tokenParts = credential.split(".");
+            if (tokenParts.length === 3) {
+              const decodedJson = Buffer.from(tokenParts[1], "base64").toString("utf8");
+              payload = JSON.parse(decodedJson);
+            }
+          }
+        } catch (fallbackErr) {
+          console.warn("Token fallback verification warning:", fallbackErr.message);
+        }
       }
     }
 
-    // 2. Fallback verification via Google's tokeninfo API or structured decoding
-    if (!payload) {
+    // 3. Fallback verification via Google's OAuth2 userinfo API if accessToken provided
+    if (!payload && accessToken) {
       try {
-        const fetchRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
-        if (fetchRes.ok) {
-          payload = await fetchRes.json();
-        } else {
-          // If network check failed or token is in mock/dev testing format, decode JWT payload
-          const tokenParts = credential.split(".");
-          if (tokenParts.length === 3) {
-            const decodedJson = Buffer.from(tokenParts[1], "base64").toString("utf8");
-            payload = JSON.parse(decodedJson);
-          }
+        const userinfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (userinfoRes.ok) {
+          payload = await userinfoRes.json();
         }
-      } catch (fallbackErr) {
-        console.warn("Token fallback verification warning:", fallbackErr.message);
+      } catch (tokenErr) {
+        console.warn("AccessToken userinfo verification warning:", tokenErr.message);
       }
     }
 

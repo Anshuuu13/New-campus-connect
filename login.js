@@ -3,6 +3,8 @@
 
 const GOOGLE_CLIENT_ID = window.CAMPUS_CONNECT_GOOGLE_CLIENT_ID || "1045933126405-v406lvthncnld96fpcm1l38pndlr5adi.apps.googleusercontent.com";
 
+let tokenClient = null;
+
 // Resolve API base URL: tests localhost:5000 first, falls back to deployed Render API
 async function getApiBase() {
   if (window.location.protocol === "http:" || window.location.protocol === "https:") {
@@ -39,63 +41,52 @@ function parseJwt(token) {
   }
 }
 
-// Handle Google ID Token response from GIS SDK
-async function handleGoogleCredentialResponse(response) {
-  if (!response || !response.credential) {
-    showStatus("Google authentication failed: no credential received.", "error");
-    return;
-  }
-
-  showStatus("Verifying college credentials...", "loading");
-
-  // 1. Decode Google ID Token immediately on the client
-  const payload = parseJwt(response.credential);
-  if (!payload) {
-    showStatus("Could not decode Google account profile. Please try again.", "error");
-    return;
-  }
-
-  const googleId = payload.sub || payload.id || `google_${Date.now()}`;
-  const email = (payload.email || "").toLowerCase().trim();
-  const name = payload.name || payload.given_name || "MITS Member";
-  const picture = payload.picture || "";
+// Process authenticated Google profile and enforce institutional domain restrictions
+async function processGoogleUser(profile, credential = null, accessToken = null) {
+  const email = (profile.email || "").toLowerCase().trim();
+  const name = profile.name || profile.given_name || "MITS Member";
+  const picture = profile.picture || "";
+  const googleId = profile.sub || profile.id || `google_${Date.now()}`;
 
   // ==============================================================
   // MITS College Email Restriction (@mitsgwl.ac.in for students, @mitsgwalior.in for faculty/staff)
   // ==============================================================
-  const isAllowedEmail = email.endsWith("@mitsgwl.ac.in") || email.endsWith("@mitsgwalior.in");
-  if (!isAllowedEmail) {
-    // Remove any previously stored session
+  const isStudent = email.endsWith("@mitsgwl.ac.in");
+  const isFaculty = email.endsWith("@mitsgwalior.in");
+
+  if (!isStudent && !isFaculty) {
     localStorage.removeItem("campusConnectUser");
     showStatus("Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in).", "error");
     return;
   }
 
-  // Prepared user session object for valid institutional user
-  const isFacultyDomain = email.endsWith("@mitsgwalior.in");
+  showStatus("Verifying MITS institutional account...", "loading");
+
   let userSession = {
     _id: googleId,
     id: googleId,
     name: name,
     email: email,
     contactEmail: email,
-    department: isFacultyDomain ? "Academic Faculty" : "",
-    role: isFacultyDomain ? "Professor" : "Student",
+    department: isFaculty ? "Academic Faculty" : "",
+    role: isFaculty ? "Professor" : "Student",
     profilePicture: picture,
     profileCompleted: false,
     authProvider: "google"
   };
 
-  // 2. Attempt to synchronize with backend (local or cloud)
+  // Sync with backend API
   try {
     const apiBase = await getApiBase();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    const bodyPayload = credential ? { credential } : { accessToken };
 
     const res = await fetch(`${apiBase}/users/google-auth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ credential: response.credential }),
+      body: JSON.stringify(bodyPayload),
       signal: controller.signal
     });
     clearTimeout(timeoutId);
@@ -119,10 +110,10 @@ async function handleGoogleCredentialResponse(response) {
       }
     }
   } catch (syncErr) {
-    console.log("Backend offline or sync skipped. Running in client-first mode.");
+    console.warn("Backend sync notice:", syncErr.message);
   }
 
-  // Check if profile was previously marked completed in local storage for this same email
+  // Check if profile was previously marked completed in local storage
   const existingLocal = JSON.parse(localStorage.getItem("campusConnectUser") || "{}");
   if (existingLocal.email === email && existingLocal.profileCompleted) {
     userSession.profileCompleted = true;
@@ -133,29 +124,62 @@ async function handleGoogleCredentialResponse(response) {
     userSession.interests = userSession.interests || existingLocal.interests;
   }
 
-  // Save student session in localStorage
+  // Save session to localStorage
   localStorage.setItem("campusConnectUser", JSON.stringify(userSession));
 
-  // ==============================================================
-  // REQUIREMENT 3: Profile Onboarding vs Returning User Redirect
-  // ==============================================================
+  // Redirect based on onboarding status
   if (!userSession.profileCompleted) {
-    showStatus(`Welcome, ${userSession.name}! Let's complete your profile...`, "success");
+    showStatus(`Welcome, ${userSession.name}! Redirecting to profile setup...`, "success");
     setTimeout(() => {
       window.location.href = "onboarding.html";
-    }, 500);
+    }, 400);
   } else {
-    showStatus(`Welcome back, ${userSession.name}! Loading campus feed...`, "success");
+    showStatus(`Welcome back, ${userSession.name}! Loading campus portal...`, "success");
     setTimeout(() => {
       window.location.href = "index.html";
     }, 400);
   }
 }
 
+// Global callback for GIS Credential Response (ID Token)
+async function handleGoogleCredentialResponse(response) {
+  if (!response || !response.credential) {
+    showStatus("Google authentication failed: no credential received.", "error");
+    return;
+  }
+
+  const payload = parseJwt(response.credential);
+  if (!payload) {
+    showStatus("Could not decode Google account profile. Please try again.", "error");
+    return;
+  }
+
+  await processGoogleUser(payload, response.credential, null);
+}
+
+// Global assignment so GIS HTML declarative attributes can invoke it
+window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
+
+// Handle OAuth2 Token Response (Access Token popup flow)
+async function handleGoogleAccessToken(accessToken) {
+  showStatus("Fetching Google account profile...", "loading");
+  try {
+    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch userinfo");
+    const profile = await res.json();
+    await processGoogleUser(profile, null, accessToken);
+  } catch (err) {
+    console.error("Token userinfo error:", err);
+    showStatus("Could not verify Google account. Please try again.", "error");
+  }
+}
+
 // Initialize Google Identity Services (GIS)
 async function initGoogleAuth() {
   const container = document.getElementById("googleBtnContainer");
-  if (!container) return;
+  const fallbackBtn = document.getElementById("continueWithGoogleBtn");
 
   // Attempt to fetch dynamically configured Client ID from backend
   let activeClientId = GOOGLE_CLIENT_ID;
@@ -172,40 +196,99 @@ async function initGoogleAuth() {
     // Keep default activeClientId
   }
 
-  // Check if Google GIS script has loaded
-  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
-    setTimeout(initGoogleAuth, 200);
+  // Setup click handler for visible "Continue with Google" button
+  if (fallbackBtn) {
+    fallbackBtn.addEventListener("click", () => {
+      if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: "select_account" });
+      } else if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+        google.accounts.id.prompt();
+      } else {
+        showStatus("Connecting to Google Sign-In...", "loading");
+        setTimeout(() => {
+          if (tokenClient) {
+            tokenClient.requestAccessToken({ prompt: "select_account" });
+          } else if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+            google.accounts.id.prompt();
+          } else {
+            showStatus("Google services could not be reached. Please check your network or adblocker.", "error");
+          }
+        }, 1200);
+      }
+    });
+  }
+
+  // Wait for Google GIS library to be available
+  if (typeof google === "undefined" || !google.accounts) {
+    setTimeout(initGoogleAuth, 250);
     return;
   }
 
   try {
-    container.innerHTML = "";
-
-    google.accounts.id.initialize({
-      client_id: activeClientId,
-      callback: handleGoogleCredentialResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-      error_callback: (err) => {
-        console.warn("GIS Notification:", err);
-        if (err && err.type === "origin_mismatch") {
-          showStatus(
-            "Google OAuth origin mismatch: Please authorize https://campus-connect-1q2c.onrender.com in Google Cloud Console > Credentials > Authorized JavaScript Origins, or sign in below with your college email.",
-            "info"
-          );
+    // 1. Initialize Google ID Token Client
+    if (google.accounts.id) {
+      google.accounts.id.initialize({
+        client_id: activeClientId,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        itp_support: true,
+        error_callback: (err) => {
+          console.warn("GIS Notification:", err);
+          if (err && err.type === "origin_mismatch") {
+            showStatus(
+              "Google OAuth origin mismatch: Please authorize current origin in Google Cloud Console Credentials.",
+              "info"
+            );
+          }
         }
-      }
-    });
+      });
 
-    google.accounts.id.renderButton(container, {
-      type: "standard",
-      theme: "outline",
-      size: "large",
-      text: "continue_with",
-      shape: "rectangular",
-      logo_alignment: "left",
-      width: Math.min(328, container.clientWidth || 328)
-    });
+      // Render Google's official branded button inside container
+      if (container) {
+        let renderTarget = document.getElementById("g_rendered_btn");
+        if (!renderTarget) {
+          renderTarget = document.createElement("div");
+          renderTarget.id = "g_rendered_btn";
+          renderTarget.style.display = "flex";
+          renderTarget.style.justifyContent = "center";
+          renderTarget.style.width = "100%";
+          container.appendChild(renderTarget);
+        }
+
+        google.accounts.id.renderButton(renderTarget, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "left",
+          width: 320
+        });
+
+        // Hide fallback button only when Google's iframe has successfully loaded
+        setTimeout(() => {
+          if (renderTarget && renderTarget.querySelector("iframe")) {
+            if (fallbackBtn) fallbackBtn.style.display = "none";
+          }
+        }, 350);
+      }
+    }
+
+    // 2. Initialize OAuth2 Token Client as popup fallback
+    if (google.accounts.oauth2) {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: activeClientId,
+        scope: "email profile openid",
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            await handleGoogleAccessToken(tokenResponse.access_token);
+          } else if (tokenResponse && tokenResponse.error) {
+            console.warn("OAuth2 token response error:", tokenResponse);
+          }
+        }
+      });
+    }
   } catch (err) {
     console.error("GIS render error:", err);
   }
@@ -213,5 +296,4 @@ async function initGoogleAuth() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initGoogleAuth();
-});
 });
