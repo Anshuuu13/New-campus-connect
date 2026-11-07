@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusConnect — Campus Complaints & Grievances | MITS Gwalior</title>
+  <title>CampusConnect — Smart Grievance & Complaint Redressal | MITS Gwalior</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -40,7 +40,7 @@
         <div class="navbar-title-crumb">
           <span class="crumb-root">MITS Gwalior</span>
           <span class="crumb-separator">/</span>
-          <span class="crumb-current">Campus Complaints &amp; Grievances</span>
+          <span class="crumb-current">Smart Grievance &amp; Complaint Redressal</span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
@@ -68,99 +68,748 @@
       <div class="page-header-banner">
         <div class="banner-content">
           <div class="mits-header-badge">
-            <span>🛡️ MITS Student Support &amp; Grievance Cell</span>
+            <span>🛡️ MITS Autonomous Student Support &amp; Grievance Cell</span>
           </div>
-          <h1 class="page-title">Campus Complaints &amp; Support</h1>
+          <h1 class="page-title">Smart Complaint Management System</h1>
           <p class="sub page-subtitle">
-            Submit anonymous or verified feedback regarding academic facilities, hostels, labs, or campus infrastructure. Monitored directly by the administration.
+            Autonomous grievance redressal with automated department routing, faculty remarking, confidential options, and transparent lifecycle tracking.
           </p>
         </div>
       </div>
 
-      <!-- Complaints Container -->
-      <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
-        
-        <!-- Submit Form -->
-        <div class="section-card" style="padding: 24px;">
-          <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Submit a Concern or Grievance</h3>
-          <p class="sub" style="font-size: 13px; margin-bottom: 20px;">All submissions are treated with strict confidentiality and routed to the corresponding department head.</p>
+      <!-- Live Grievance Analytics Ribbon -->
+      <div class="complaints-stats-grid">
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statTotal" style="color: #38bdf8;">--</div>
+          <div class="complaint-stat-label">Total Submissions</div>
+        </div>
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statReview" style="color: #fbbf24;">--</div>
+          <div class="complaint-stat-label">Under Review</div>
+        </div>
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statProgress" style="color: #818cf8;">--</div>
+          <div class="complaint-stat-label">In Progress</div>
+        </div>
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statResolved" style="color: #34d399;">--</div>
+          <div class="complaint-stat-label">Resolved</div>
+        </div>
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statEscalated" style="color: #f87171;">--</div>
+          <div class="complaint-stat-label">Escalated</div>
+        </div>
+        <div class="complaint-stat-card">
+          <div class="complaint-stat-num" id="statRate" style="color: #a78bfa;">96%</div>
+          <div class="complaint-stat-label">Resolution Rate</div>
+        </div>
+      </div>
 
-          <form id="complaintForm" onsubmit="event.preventDefault(); document.getElementById('complaintSuccess').style.display='block'; this.reset();">
-            <div style="margin-bottom: 14px;">
-              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">CATEGORY</label>
-              <select class="custom-select" required style="width: 100%;">
-                <option value="">Select Category...</option>
-                <option value="academic">Academic &amp; Faculty</option>
-                <option value="hostel">Hostel &amp; Mess</option>
-                <option value="infrastructure">Classrooms &amp; Labs</option>
-                <option value="library">Central Library</option>
-                <option value="wifi">Campus Wi-Fi &amp; IT</option>
-                <option value="anti-ragging">Anti-Ragging / Student Welfare</option>
-              </select>
-            </div>
+      <!-- Role Status Bar & Perspective Switcher -->
+      <div class="complaints-role-banner">
+        <div class="complaints-role-info">
+          <span>Active Identity:</span>
+          <strong id="activeUserName">Loading...</strong>
+          <span class="role-badge-pill role-pill-student" id="activeUserRoleBadge">STUDENT</span>
+          <span style="color: var(--text-dim);">&bull;</span>
+          <span id="activeUserDept">Department: Loading...</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 11px; color: var(--text-dim); font-family: var(--mono);">ROLE VIEW:</span>
+          <div class="role-switcher-group" id="roleSwitcherGroup">
+            <button class="role-switch-btn active" data-role="Student" id="switchStudentBtn">Student</button>
+            <button class="role-switch-btn" data-role="Faculty" id="switchFacultyBtn">Faculty</button>
+            <button class="role-switch-btn" data-role="Admin" id="switchAdminBtn">Admin</button>
+          </div>
+        </div>
+      </div>
 
-            <div style="margin-bottom: 14px;">
-              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">SUBJECT / TITLE</label>
-              <input type="text" class="field-input" placeholder="Brief summary of the issue..." required style="width:100%;">
-            </div>
+      <!-- Navigation Tabs -->
+      <div class="complaints-nav-tabs" id="complaintsNavTabs">
+        <!-- Student Tabs -->
+        <button class="complaint-tab-btn active" data-tab="tab-my-complaints" id="btnTabMyComplaints">
+          <span>📂 My Grievances</span>
+          <span class="complaint-tab-badge" id="badgeMyCount">0</span>
+        </button>
+        <button class="complaint-tab-btn" data-tab="tab-submit" id="btnTabSubmit">
+          <span>✍️ Submit Grievance</span>
+        </button>
 
-            <div style="margin-bottom: 14px;">
-              <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">DETAILS &amp; LOCATION</label>
-              <textarea class="field-input" rows="4" placeholder="Specific block, room number, or detailed description..." required style="width:100%;"></textarea>
-            </div>
+        <!-- Faculty Tab -->
+        <button class="complaint-tab-btn" data-tab="tab-faculty-assigned" id="btnTabFacultyAssigned" style="display:none;">
+          <span>📋 Assigned to Me</span>
+          <span class="complaint-tab-badge" id="badgeFacultyCount" style="background: rgba(168, 85, 247, 0.25); color: #c084fc;">0</span>
+        </button>
 
-            <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
-              <input type="checkbox" id="anonCheck" style="accent-color: var(--teal);">
-              <label for="anonCheck" style="font-size: 13px; color: var(--text-dim); cursor: pointer;">Submit anonymously (hide your student ID &amp; name)</label>
-            </div>
+        <!-- Admin Tabs -->
+        <button class="complaint-tab-btn" data-tab="tab-admin-all" id="btnTabAdminAll" style="display:none;">
+          <span>🏛️ College Registry</span>
+          <span class="complaint-tab-badge" id="badgeAdminCount" style="background: rgba(239, 68, 68, 0.25); color: #f87171;">0</span>
+        </button>
+        <button class="complaint-tab-btn" data-tab="tab-admin-routing" id="btnTabAdminRouting" style="display:none;">
+          <span>⚙️ Faculty Routing Rules</span>
+        </button>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Grievance</button>
-            <div id="complaintSuccess" style="display:none; margin-top:14px; padding:12px; border-radius:8px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; font-size:13px;">
-              ✓ Grievance submitted successfully! Reference ID: MITS-GRV-2026-894. The grievance committee will review it within 48 hours.
-            </div>
-          </form>
+        <!-- Common Tabs -->
+        <button class="complaint-tab-btn" data-tab="tab-track" id="btnTabTrack">
+          <span>🔍 Track by ID</span>
+        </button>
+        <button class="complaint-tab-btn" data-tab="tab-helpline" id="btnTabHelpline">
+          <span>☎️ Helplines &amp; DSW</span>
+        </button>
+      </div>
+
+      <!-- ========================================================
+           TAB 1: MY GRIEVANCES (STUDENT LIST)
+           ======================================================== -->
+      <div class="tab-pane active" id="paneMyComplaints">
+        <!-- Filter Toolbar -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
+            <input type="text" id="mySearchInput" class="field-input" placeholder="Search my grievances by title, ID or keyword..." style="max-width: 300px;">
+            <select class="custom-select" id="myStatusFilter" style="max-width: 170px;">
+              <option value="all">All Statuses</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Under Review">Under Review</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <select class="custom-select" id="myCategoryFilter" style="max-width: 190px;">
+              <option value="all">All Categories</option>
+              <option value="Academic &amp; Faculty">Academic &amp; Faculty</option>
+              <option value="Hostel &amp; Mess">Hostel &amp; Mess</option>
+              <option value="Classrooms &amp; Labs">Classrooms &amp; Labs</option>
+              <option value="Central Library">Central Library</option>
+              <option value="Campus Wi-Fi &amp; IT">Campus Wi-Fi &amp; IT</option>
+              <option value="Anti-Ragging / Student Welfare">Anti-Ragging / Student Welfare</option>
+              <option value="Administrative &amp; Accounts">Administrative &amp; Accounts</option>
+              <option value="Campus Facilities &amp; Cleanliness">Facilities &amp; Cleanliness</option>
+              <option value="Examination &amp; Grading">Examination &amp; Grading</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="quickNewGrievanceBtn">
+            <span>+ Submit New Grievance</span>
+          </button>
         </div>
 
-        <!-- Track / FAQ -->
-        <div>
-          <div class="section-card" style="padding: 24px; margin-bottom: 20px;">
-            <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Direct Contacts &amp; Helpline</h3>
-            <ul style="list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-              <li style="padding-bottom: 8px; border-bottom: 1px solid var(--line);">
-                <strong style="color: var(--teal);">Dean of Student Welfare:</strong><br>
-                <span style="color: var(--text-dim);">Email: dsw@mitsgwalior.in | Ph: 0751-2409300</span>
-              </li>
-              <li style="padding-bottom: 8px; border-bottom: 1px solid var(--line);">
-                <strong style="color: var(--gold);">Anti-Ragging Squad (24x7):</strong><br>
-                <span style="color: var(--text-dim);">Toll-Free: 1800-180-5522 | antiragging@mitsgwalior.in</span>
-              </li>
-              <li>
-                <strong style="color: #a78bfa;">IT &amp; Portal Helpdesk:</strong><br>
-                <span style="color: var(--text-dim);">CCF Room 104, Administrative Block | helpdesk@mitsgwl.ac.in</span>
-              </li>
-            </ul>
+        <div class="complaints-list-grid" id="myComplaintsList">
+          <div class="empty-highlight-placeholder">
+            <span class="eh-icon">⏳</span>
+            <p>Loading your grievances...</p>
           </div>
+        </div>
+      </div>
 
+      <!-- ========================================================
+           TAB 2: SUBMIT GRIEVANCE FORM
+           ======================================================== -->
+      <div class="tab-pane" id="paneSubmit" style="display:none;">
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start;">
+          
           <div class="section-card" style="padding: 24px;">
-            <h3 style="margin-top: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Active Support Status</h3>
-            <div style="display: flex; gap: 12px; margin-top: 14px;">
-              <div style="flex:1; padding: 14px; border-radius: 8px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); text-align: center;">
-                <div style="font-size: 22px; font-weight: 700; color: #60a5fa; font-family: var(--mono);">96.4%</div>
-                <div style="font-size: 12px; color: var(--text-dim);">Resolution Rate</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <h3 style="margin: 0; font-family: var(--display); font-size: 19px; color: var(--text);">Submit a Formal Grievance</h3>
+              <span class="complaint-id-chip" id="previewComplaintId">REF: MITS-GRV-2026-AUTO</span>
+            </div>
+            <p class="sub" style="font-size: 13px; margin-bottom: 20px;">
+              Your grievance will be automatically assigned to the designated faculty coordinator based on the department and category mapping.
+            </p>
+
+            <form id="newComplaintForm">
+              <!-- Complainant Auto-detected Department Info -->
+              <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.15); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <span style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); display: block;">STUDENT DEPARTMENT (AUTO-FETCHED):</span>
+                  <strong style="color: #38bdf8; font-size: 13px;" id="formAutoDeptName">Loading Department...</strong>
+                </div>
+                <div>
+                  <span style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); display: block;">SUBMITTED AS:</span>
+                  <strong style="color: #f1f5f9; font-size: 13px;" id="formAutoStudentName">Loading Student...</strong>
+                </div>
               </div>
-              <div style="flex:1; padding: 14px; border-radius: 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); text-align: center;">
-                <div style="font-size: 22px; font-weight: 700; color: #86efac; font-family: var(--mono);">&lt; 48h</div>
-                <div style="font-size: 12px; color: var(--text-dim);">Avg. Response Time</div>
+
+              <!-- Category -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">GRIEVANCE CATEGORY *</label>
+                <select class="custom-select" id="formCategory" required style="width: 100%;">
+                  <option value="">Select Category...</option>
+                  <option value="Academic &amp; Faculty">Academic &amp; Faculty (Curriculum, Lectures, Assessments)</option>
+                  <option value="Hostel &amp; Mess">Hostel &amp; Mess (Rooms, Food Quality, Hygiene, Curfew)</option>
+                  <option value="Classrooms &amp; Labs">Classrooms &amp; Labs (Projectors, AC, Hardware, Lab Kits)</option>
+                  <option value="Central Library">Central Library (Book Availability, Reading Room, E-Resources)</option>
+                  <option value="Campus Wi-Fi &amp; IT">Campus Wi-Fi &amp; IT (IMS Login, Wi-Fi Coverage, CCF)</option>
+                  <option value="Anti-Ragging / Student Welfare">Anti-Ragging / Student Welfare (Harassment, Counseling)</option>
+                  <option value="Administrative &amp; Accounts">Administrative &amp; Accounts (Scholarships, Fee Receipts)</option>
+                  <option value="Campus Facilities &amp; Cleanliness">Campus Facilities &amp; Cleanliness (Washrooms, Water, Canteen)</option>
+                  <option value="Examination &amp; Grading">Examination &amp; Grading (Timetables, Admit Cards, Copies)</option>
+                  <option value="Other">Other Miscellaneous Concerns</option>
+                </select>
+              </div>
+
+              <!-- Target Department -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">AFFECTED CAMPUS DEPARTMENT *</label>
+                <select class="custom-select" id="formDepartment" required style="width: 100%;">
+                  <option value="Computer Science &amp; Engineering">Computer Science &amp; Engineering</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Artificial Intelligence &amp; Data Science">Artificial Intelligence &amp; Data Science</option>
+                  <option value="Electronics &amp; Communication">Electronics &amp; Communication</option>
+                  <option value="Electrical Engineering">Electrical Engineering</option>
+                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                  <option value="Civil Engineering">Civil Engineering</option>
+                  <option value="Hostel Administration">Hostel Administration &amp; Mess</option>
+                  <option value="Central Library">Central Library</option>
+                  <option value="IT &amp; Network Infrastructure">IT &amp; Network Infrastructure (CCF)</option>
+                  <option value="Student Welfare">Student Welfare / Anti-Ragging Cell</option>
+                  <option value="Examination Cell">Office of Controller of Examination</option>
+                  <option value="Classrooms &amp; Infrastructure">Estate &amp; Campus Infrastructure</option>
+                  <option value="Accounts &amp; Finance">Accounts &amp; Finance Section</option>
+                </select>
+              </div>
+
+              <!-- Title -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">SUBJECT / TITLE *</label>
+                <input type="text" id="formTitle" class="field-input" placeholder="Concise summary (e.g. Projector in Room 204 not powering on)" required style="width: 100%;">
+              </div>
+
+              <!-- Location / Block -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">SPECIFIC LOCATION / BLOCK (OPTIONAL)</label>
+                <input type="text" id="formLocation" class="field-input" placeholder="e.g. Academic Block B, 2nd Floor, Room 204" style="width: 100%;">
+              </div>
+
+              <!-- Description -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">DETAILED DESCRIPTION &amp; TIMELINE *</label>
+                <textarea id="formDescription" class="field-input" rows="4" placeholder="Describe the grievance thoroughly, including dates, individuals involved (if applicable), and steps already taken..." required style="width: 100%;"></textarea>
+              </div>
+
+              <!-- Priority -->
+              <div style="margin-bottom: 14px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">PRIORITY LEVEL</label>
+                <select class="custom-select" id="formPriority" style="width: 100%;">
+                  <option value="Medium">Medium Priority (Standard 48-72h review)</option>
+                  <option value="High">High Priority (Urgent departmental attention needed)</option>
+                  <option value="Urgent">Urgent / Safety Critical (Immediate escalation to DSW)</option>
+                  <option value="Low">Low Priority (General feedback &amp; suggestion)</option>
+                </select>
+              </div>
+
+              <!-- Evidence URL or File Upload -->
+              <div style="margin-bottom: 16px;">
+                <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono); color:var(--text-dim);">OPTIONAL EVIDENCE / ATTACHMENT</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="formEvidenceUrl" class="field-input" placeholder="Paste image link, document URL, or choose file below..." style="flex: 1;">
+                </div>
+                <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
+                  <input type="file" id="formEvidenceFile" accept="image/*,.pdf,.doc,.docx" style="font-size: 12px; color: var(--text-dim);">
+                  <span id="evidenceUploadStatus" style="font-size: 11px; color: #38bdf8;"></span>
+                </div>
+              </div>
+
+              <!-- Privacy Toggles -->
+              <div style="background: rgba(15, 23, 42, 0.4); padding: 12px 14px; border-radius: 8px; border: 1px dashed rgba(148, 163, 184, 0.2); margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <input type="checkbox" id="formIsAnonymous" style="accent-color: #38bdf8; margin-top: 3px;">
+                  <div>
+                    <label for="formIsAnonymous" style="font-size: 13px; color: var(--text); font-weight: 600; cursor: pointer;">
+                      Submit Anonymously
+                    </label>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-dim);">
+                      Your name and roll number will be masked as "Anonymous Student" on faculty dashboards. (Stored confidentially for security audit).
+                    </p>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <input type="checkbox" id="formIsConfidential" style="accent-color: #d946ef; margin-top: 3px;">
+                  <div>
+                    <label for="formIsConfidential" style="font-size: 13px; color: #f472b6; font-weight: 600; cursor: pointer;">
+                      Mark as Strictly Confidential
+                    </label>
+                    <p style="margin: 2px 0 0; font-size: 11px; color: var(--text-dim);">
+                      Accessible exclusively to authorized Grievance Officers &amp; DSW. Regular departmental faculty will not have access.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="btnSubmitGrievance" style="width: 100%; justify-content: center;">
+                <span>🚀 Register &amp; Auto-Route Grievance</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Helper Sidecard -->
+          <div>
+            <div class="section-card" style="padding: 20px; margin-bottom: 16px;">
+              <h4 style="margin: 0 0 10px 0; color: #38bdf8; font-size: 15px;">⚡ How Smart Auto-Routing Works</h4>
+              <ul style="padding-left: 18px; margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.6; display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>Automatic Department Resolution:</strong> Your student department is automatically logged from your profile.</li>
+                <li><strong>Dynamic Faculty Mapping:</strong> The system matches your category and department to find the designated faculty coordinator.</li>
+                <li><strong>Fail-Safe Admin Queue:</strong> If no exact rule exists, the grievance is routed to the Central Administration dashboard for manual allocation.</li>
+                <li><strong>Status Notifications:</strong> You receive in-app alerts whenever faculty add remarks or change status.</li>
+                <li><strong>Escalation Rights:</strong> If unresolved within 72 hours, you or faculty can escalate directly to Dean Student Welfare.</li>
+              </ul>
+            </div>
+
+            <div class="section-card" style="padding: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #f59e0b; font-size: 15px;">🛡️ Anti-Ragging &amp; Zero Tolerance</h4>
+              <p style="font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px;">
+                MITS maintains strict zero tolerance for ragging and harassment. Complaints marked under Anti-Ragging are escalated directly to the 24x7 Proctorial Board.
+              </p>
+              <div style="font-size: 12px; color: #fbbf24; font-family: var(--mono); background: rgba(245, 158, 11, 0.1); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                24x7 Squad Helpline: 1800-180-5522
               </div>
             </div>
           </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 3: FACULTY ASSIGNED QUEUE
+           ======================================================== -->
+      <div class="tab-pane" id="paneFacultyAssigned" style="display:none;">
+        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <strong style="color: #c084fc; font-size: 14px;">Faculty Grievance Redressal Desk</strong>
+            <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-dim);">
+              You are viewing grievances assigned directly to your department and responsibility portfolio.
+            </p>
+          </div>
+          <span class="role-badge-pill role-pill-faculty">FACULTY ACCESS ONLY</span>
         </div>
 
-      </section>
+        <!-- Filter Toolbar -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="facultySearchInput" class="field-input" placeholder="Search assigned grievances..." style="max-width: 280px;">
+          <select class="custom-select" id="facultyStatusFilter" style="max-width: 170px;">
+            <option value="all">All Statuses</option>
+            <option value="Submitted">Submitted (New)</option>
+            <option value="Under Review">Under Review</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <select class="custom-select" id="facultyPriorityFilter" style="max-width: 160px;">
+            <option value="all">All Priorities</option>
+            <option value="Urgent">Urgent</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        <div class="complaints-list-grid" id="facultyComplaintsList">
+          <div class="empty-highlight-placeholder">
+            <span class="eh-icon">⏳</span>
+            <p>Loading assigned grievances...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 4: ADMINISTRATIVE MASTER REGISTRY (ADMIN ALL)
+           ======================================================== -->
+      <div class="tab-pane" id="paneAdminAll" style="display:none;">
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <strong style="color: #f87171; font-size: 14px;">Central Administration &amp; Grievance Registry</strong>
+            <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-dim);">
+              Full administrative oversight across all MITS departments, unassigned cases, and escalations.
+            </p>
+          </div>
+          <span class="role-badge-pill role-pill-admin">ADMINISTRATIVE ACCESS</span>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="adminSearchInput" class="field-input" placeholder="Search all complaints, ID, student name..." style="max-width: 260px;">
+          <select class="custom-select" id="adminDeptFilter" style="max-width: 180px;">
+            <option value="all">All Departments</option>
+            <option value="Computer Science &amp; Engineering">CSE</option>
+            <option value="Information Technology">IT</option>
+            <option value="Hostel Administration">Hostel Admin</option>
+            <option value="Central Library">Central Library</option>
+            <option value="IT &amp; Network Infrastructure">IT / CCF</option>
+            <option value="Student Welfare">Student Welfare</option>
+            <option value="Examination Cell">Exam Cell</option>
+            <option value="Classrooms &amp; Infrastructure">Estate &amp; Infra</option>
+          </select>
+          <select class="custom-select" id="adminStatusFilter" style="max-width: 150px;">
+            <option value="all">All Statuses</option>
+            <option value="Submitted">Submitted (Unassigned)</option>
+            <option value="Under Review">Under Review</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <button class="btn btn-outline btn-sm" id="adminFilterEscalatedBtn">
+            <span>🚨 Escalated Only</span>
+          </button>
+        </div>
+
+        <div class="complaints-list-grid" id="adminComplaintsList">
+          <div class="empty-highlight-placeholder">
+            <span class="eh-icon">⏳</span>
+            <p>Loading master grievance registry...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 5: FACULTY RESPONSIBILITIES & AUTO-ROUTING (ADMIN ONLY)
+           ======================================================== -->
+      <div class="tab-pane" id="paneAdminRouting" style="display:none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin: 0; font-family: var(--display); font-size: 18px; color: var(--text);">Configured Department &amp; Faculty Mappings</h3>
+            <p class="sub" style="font-size: 13px; margin: 2px 0 0;">
+              Complaints matching these department and category combinations are automatically assigned to the designated faculty member upon submission.
+            </p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btnOpenNewRoutingRuleModal">
+            <span>+ Add Routing Rule</span>
+          </button>
+        </div>
+
+        <div class="routing-rules-container">
+          <table class="routing-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Category</th>
+                <th>Responsible Faculty</th>
+                <th>Designation / Portfolio</th>
+                <th>Confidential Handling</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="routingRulesTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Loading active routing policies...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 6: TRACK BY ID
+           ======================================================== -->
+      <div class="tab-pane" id="paneTrack" style="display:none;">
+        <div class="section-card" style="padding: 24px; max-width: 650px; margin: 0 auto;">
+          <h3 style="margin-top: 0; font-family: var(--display); font-size: 19px; color: var(--text);">Track Grievance Status by Reference ID</h3>
+          <p class="sub" style="font-size: 13px; margin-bottom: 18px;">
+            Enter your unique MITS grievance reference ID (e.g. <code>MITS-GRV-2026-0001</code>) to view the real-time review progress and action history.
+          </p>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+            <input type="text" id="trackInput" class="field-input" placeholder="Enter Reference ID (e.g. MITS-GRV-2026-0001)" style="flex: 1; font-family: var(--mono); text-transform: uppercase;">
+            <button class="btn btn-primary" id="btnExecuteTrack">
+              <span>🔍 Track Status</span>
+            </button>
+          </div>
+
+          <div id="trackResultContainer" style="display: none;">
+            <!-- Dynamically populated card -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 7: HELPLINE & ANTI-RAGGING CELL
+           ======================================================== -->
+      <div class="tab-pane" id="paneHelpline" style="display:none;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+          
+          <div class="section-card" style="padding: 22px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🎓</div>
+            <h4 style="margin: 0 0 6px 0; color: #38bdf8; font-size: 16px;">Dean of Student Welfare (DSW)</h4>
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">Dr. Sanjeev Khanna</p>
+            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+              <div>📍 Academic Block A, Room 102</div>
+              <div>✉️ <a href="mailto:dsw@mitsgwalior.in" style="color: #38bdf8;">dsw@mitsgwalior.in</a></div>
+              <div>📞 0751-2409300 (Office)</div>
+            </div>
+          </div>
+
+          <div class="section-card" style="padding: 22px; border-color: rgba(245, 158, 11, 0.4);">
+            <div style="font-size: 24px; margin-bottom: 8px;">🛡️</div>
+            <h4 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 16px;">Anti-Ragging Squad (24x7 Helpline)</h4>
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">National Ragging Prevention Cell</p>
+            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+              <div>📞 Toll-Free: <strong>1800-180-5522</strong></div>
+              <div>✉️ <a href="mailto:antiragging@mitsgwalior.in" style="color: #fbbf24;">antiragging@mitsgwalior.in</a></div>
+              <div>🚨 MITS Security Control: 0751-2409399</div>
+            </div>
+          </div>
+
+          <div class="section-card" style="padding: 22px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
+            <h4 style="margin: 0 0 6px 0; color: #a78bfa; font-size: 16px;">Chief Hostel Warden</h4>
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">Prof. C. S. Sharma</p>
+            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+              <div>📍 Hostel Office, Hostel Block 2</div>
+              <div>✉️ <a href="mailto:warden@mitsgwalior.in" style="color: #a78bfa;">warden@mitsgwalior.in</a></div>
+              <div>📞 0751-2409340</div>
+            </div>
+          </div>
+
+          <div class="section-card" style="padding: 22px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💻</div>
+            <h4 style="margin: 0 0 6px 0; color: #34d399; font-size: 16px;">Central Computing Facility (CCF)</h4>
+            <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">Er. Dinesh Agrawal (IT &amp; Portal Head)</p>
+            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+              <div>📍 CCF Ground Floor, Server Suite 1</div>
+              <div>✉️ <a href="mailto:ccf@mitsgwalior.in" style="color: #34d399;">ccf@mitsgwalior.in</a></div>
+              <div>📞 0751-2409355</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
 
     </main>
   </div>
 
+  <!-- ========================================================
+       MODAL 1: COMPLAINT DETAILS & COMPLETE ACTION HISTORY
+       ======================================================== -->
+  <div class="event-details-backdrop" id="complaintDetailsModal" style="display:none;">
+    <div class="event-details-modal" style="max-width: 760px; max-height: 90vh; overflow-y: auto;">
+      <div class="edm-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <span class="complaint-id-chip" id="modalComplaintId">ID: MITS-GRV-2026-0001</span>
+          <span class="status-badge status-submitted" id="modalStatusBadge">Submitted</span>
+          <span class="priority-pill priority-medium" id="modalPriorityBadge">Medium</span>
+          <span class="complaint-escalated-badge" id="modalEscalatedBadge" style="display:none;">🚨 Escalated</span>
+          <span class="complaint-confidential-badge" id="modalConfidentialBadge" style="display:none;">🔒 Confidential</span>
+        </div>
+        <button class="edm-close-btn" id="closeComplaintDetailsBtn">&times;</button>
+      </div>
+
+      <div class="edm-body" style="padding: 20px 24px;">
+        <h2 style="font-family: var(--display); font-size: 20px; color: var(--text); margin: 0 0 10px 0;" id="modalTitle">Grievance Title</h2>
+        
+        <div class="complaint-meta-grid" style="margin-bottom: 18px;">
+          <div><strong>Department:</strong> <span id="modalDepartment">--</span></div>
+          <div><strong>Category:</strong> <span id="modalCategory">--</span></div>
+          <div><strong>Complainant:</strong> <span id="modalStudentName">--</span> (<span id="modalStudentDept">--</span>)</div>
+          <div><strong>Assigned Faculty:</strong> <span id="modalAssignedTo">--</span></div>
+          <div><strong>Location:</strong> <span id="modalLocation">--</span></div>
+          <div><strong>Submitted Date:</strong> <span id="modalSubmittedDate">--</span></div>
+        </div>
+
+        <!-- Real-time Status Tracker -->
+        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--text-dim); font-family: var(--mono); text-transform: uppercase;">Redressal Progress Flow:</h4>
+        <div class="status-step-tracker" id="modalStepTracker">
+          <!-- Dynamically populated steps -->
+        </div>
+
+        <!-- Description -->
+        <div style="margin-bottom: 18px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--text); font-weight: 600;">Full Description:</h4>
+          <p style="font-size: 13px; color: var(--text-dim); line-height: 1.6; background: rgba(15, 23, 42, 0.4); padding: 12px; border-radius: 8px;" id="modalDescription">--</p>
+        </div>
+
+        <!-- Evidence Attachment (if any) -->
+        <div id="modalEvidenceWrap" style="margin-bottom: 18px; display:none;">
+          <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--text); font-weight: 600;">Attached Evidence / Document:</h4>
+          <div id="modalEvidenceContent"></div>
+        </div>
+
+        <!-- Faculty Remarks List -->
+        <div id="modalFacultyRemarksSection" style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #c084fc; font-weight: 600;">Official Faculty &amp; Administrative Remarks:</h4>
+          <div id="modalFacultyRemarksList" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Action History Timeline -->
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #38bdf8; font-weight: 600;">Complete Action History Log:</h4>
+          <div class="action-timeline" id="modalActionTimeline">
+            <!-- Timeline nodes -->
+          </div>
+        </div>
+
+        <!-- Action Toolbar depending on Role -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--line, rgba(148, 163, 184, 0.15));" id="modalActionButtonsBar">
+          <button class="btn btn-outline btn-sm" id="btnModalAddRemark">
+            <span>💬 Add Remark</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnModalUpdateStatus" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); display: none;">
+            <span>✍️ Update Status</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnModalAssignFaculty" style="color: #c084fc; border-color: rgba(168, 85, 247, 0.4); display: none;">
+            <span>👤 Assign Faculty</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnModalEscalate" style="color: #f87171; border-color: rgba(248, 113, 113, 0.4);">
+            <span>🚨 Escalate</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: UPDATE STATUS & REMARKS
+       ======================================================== -->
+  <div class="event-details-backdrop" id="updateStatusModal" style="display:none;">
+    <div class="event-details-modal" style="max-width: 500px;">
+      <div class="edm-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; font-family:var(--display); font-size:17px; color:var(--text);">Update Grievance Status</h3>
+        <button class="edm-close-btn" id="closeUpdateStatusBtn">&times;</button>
+      </div>
+      <div class="edm-body" style="padding: 20px;">
+        <form id="updateStatusForm">
+          <input type="hidden" id="statusComplaintId">
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">SELECT NEW STATUS *</label>
+            <select class="custom-select" id="newStatusSelect" required style="width: 100%;">
+              <option value="Under Review">Under Review (Acknowledged &amp; Investigating)</option>
+              <option value="In Progress">In Progress (Action is being taken)</option>
+              <option value="Resolved">Resolved (Issue has been resolved)</option>
+              <option value="Rejected">Rejected (Out of scope / Invalid)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">OFFICIAL REMARKS &amp; RESOLUTION NOTES *</label>
+            <textarea id="statusRemarksText" class="field-input" rows="4" placeholder="Detail the steps taken, resolution summary, or rejection justification..." required style="width: 100%;"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" id="cancelUpdateStatusBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="saveStatusBtn">Save &amp; Notify Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: ASSIGN / REASSIGN FACULTY (ADMIN ONLY)
+       ======================================================== -->
+  <div class="event-details-backdrop" id="assignFacultyModal" style="display:none;">
+    <div class="event-details-modal" style="max-width: 520px;">
+      <div class="edm-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; font-family:var(--display); font-size:17px; color:var(--text);">Assign Faculty Coordinator</h3>
+        <button class="edm-close-btn" id="closeAssignModalBtn">&times;</button>
+      </div>
+      <div class="edm-body" style="padding: 20px;">
+        <form id="assignFacultyForm">
+          <input type="hidden" id="assignComplaintId">
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">CHOOSE RESPONSIBLE FACULTY *</label>
+            <select class="custom-select" id="assignFacultySelect" required style="width: 100%;">
+              <option value="">Loading faculty directory...</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">ADMINISTRATIVE INSTRUCTIONS &amp; DIRECTIVE</label>
+            <textarea id="assignInstructionsText" class="field-input" rows="3" placeholder="Specific guidelines or priority timeline for the assigned faculty..." style="width: 100%;"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" id="cancelAssignBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="confirmAssignBtn">Confirm Assignment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 4: ADD ROUTING RULE (ADMIN ONLY)
+       ======================================================== -->
+  <div class="event-details-backdrop" id="routingRuleModal" style="display:none;">
+    <div class="event-details-modal" style="max-width: 540px;">
+      <div class="edm-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; font-family:var(--display); font-size:17px; color:var(--text);" id="routingModalTitle">Add Faculty Routing Policy</h3>
+        <button class="edm-close-btn" id="closeRoutingModalBtn">&times;</button>
+      </div>
+      <div class="edm-body" style="padding: 20px;">
+        <form id="routingRuleForm">
+          <input type="hidden" id="routingRuleEditId">
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">CAMPUS DEPARTMENT *</label>
+            <select class="custom-select" id="routingDeptSelect" required style="width: 100%;">
+              <option value="Computer Science &amp; Engineering">Computer Science &amp; Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Artificial Intelligence &amp; Data Science">Artificial Intelligence &amp; Data Science</option>
+              <option value="Electronics &amp; Communication">Electronics &amp; Communication</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Hostel Administration">Hostel Administration &amp; Mess</option>
+              <option value="Central Library">Central Library</option>
+              <option value="IT &amp; Network Infrastructure">IT &amp; Network Infrastructure (CCF)</option>
+              <option value="Student Welfare">Student Welfare / Anti-Ragging Cell</option>
+              <option value="Examination Cell">Office of Controller of Examination</option>
+              <option value="Classrooms &amp; Infrastructure">Estate &amp; Campus Infrastructure</option>
+              <option value="Accounts &amp; Finance">Accounts &amp; Finance Section</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">CATEGORY MAPPING *</label>
+            <select class="custom-select" id="routingCategorySelect" required style="width: 100%;">
+              <option value="Academic &amp; Faculty">Academic &amp; Faculty</option>
+              <option value="Hostel &amp; Mess">Hostel &amp; Mess</option>
+              <option value="Classrooms &amp; Labs">Classrooms &amp; Labs</option>
+              <option value="Central Library">Central Library</option>
+              <option value="Campus Wi-Fi &amp; IT">Campus Wi-Fi &amp; IT</option>
+              <option value="Anti-Ragging / Student Welfare">Anti-Ragging / Student Welfare</option>
+              <option value="Administrative &amp; Accounts">Administrative &amp; Accounts</option>
+              <option value="Campus Facilities &amp; Cleanliness">Campus Facilities &amp; Cleanliness</option>
+              <option value="Examination &amp; Grading">Examination &amp; Grading</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">ASSIGNED RESPONSIBLE FACULTY *</label>
+            <select class="custom-select" id="routingFacultySelect" required style="width: 100%;">
+              <option value="">Loading faculty directory...</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label class="field-label" style="display:block; margin-bottom:6px; font-size:12px; font-family:var(--mono);">DESIGNATION / GRIEVANCE PORTFOLIO</label>
+            <input type="text" id="routingDesignationInput" class="field-input" placeholder="e.g. HOD CSE / Departmental Grievance Coordinator" style="width: 100%;">
+          </div>
+
+          <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="routingIsGrievanceOfficer" style="accent-color: #d946ef;">
+            <label for="routingIsGrievanceOfficer" style="font-size: 13px; color: var(--text); cursor: pointer;">
+              Designate as Authorized Grievance Officer (Can access confidential grievances)
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" id="cancelRoutingModalBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="saveRoutingRuleBtn">Save Routing Policy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <script src="script.js"></script>
+  <script src="complaints.js"></script>
 </body>
 </html>

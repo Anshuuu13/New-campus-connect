@@ -20,6 +20,7 @@ const notificationSchema = new mongoose.Schema({
       "Club Recruitment",
       "Placements",
       "Academic Deadlines",
+      "Complaints",
       "System",
       "General"
     ],

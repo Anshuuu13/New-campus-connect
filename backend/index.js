@@ -18,6 +18,7 @@ const announcementsRouter = require("./routes/announcements");
 const notificationsRouter = require("./routes/notifications");
 const eventsRouter = require("./routes/events");
 const resourcesRouter = require("./routes/resources");
+const complaintsRouter = require("./routes/complaints");
 const dashboardRouter = require("./routes/dashboard");
 
 const app = express();
@@ -98,6 +99,7 @@ app.use("/api/skillposts", skillpostsRouter);
 app.use("/api/events", eventsRouter);
 app.use("/api/announcements", announcementsRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/complaints", complaintsRouter);
 app.use("/api/resources", resourcesRouter);
 app.use("/api/faculty-posts", facultyPostsRouter);
 app.use("/api/facultyposts", facultyPostsRouter);
