@@ -9,18 +9,20 @@ const eventSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: [
-      "Examination",
-      "Holiday",
-      "Lab & Practical",
-      "Club Activity",
-      "Workshop & Seminar",
-      "Placement & Career",
-      "Deadline",
-      "Cultural & Sports",
-      "General"
-    ],
     default: "College Event"
+  },
+  subCategory: {
+    type: String,
+    default: ""
+  },
+  examType: {
+    type: String,
+    enum: ["None", "Minor 1", "Minor 2", "Major", "Practical", "Viva"],
+    default: "None"
+  },
+  emoji: {
+    type: String,
+    default: ""
   },
   description: {
     type: String,
@@ -78,7 +80,7 @@ const eventSchema = new mongoose.Schema({
   },
   verifiedDate: {
     type: String,
-    default: "Verified Oct 2024"
+    default: "Verified Oct 2026"
   },
   contactPerson: {
     type: String,
@@ -108,6 +110,18 @@ const eventSchema = new mongoose.Schema({
   isOfficial: {
     type: Boolean,
     default: true
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+  createdByName: {
+    type: String,
+    default: ""
+  },
+  createdByRole: {
+    type: String,
+    default: "Admin"
   },
   createdAt: {
     type: Date,

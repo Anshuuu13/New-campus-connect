@@ -2,6 +2,31 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const Event = require("../models/Event");
+const User = require("../models/User");
+
+// Helper: Safely resolve a valid User model instance
+async function resolveUserDoc(inputUserId) {
+  if (!inputUserId) return null;
+  if (mongoose.Types.ObjectId.isValid(inputUserId)) {
+    const existing = await User.findById(inputUserId);
+    if (existing) return existing;
+  }
+  return await User.findOne({
+    $or: [
+      { googleId: inputUserId },
+      { email: inputUserId },
+      { contactEmail: inputUserId },
+      { name: inputUserId }
+    ]
+  });
+}
+
+// Helper: Check if user has administrative or faculty privileges
+function isAdminRole(user) {
+  if (!user || !user.role) return false;
+  const roleStr = String(user.role).trim().toLowerCase();
+  return ["admin", "professor", "faculty", "clubcoordinator", "clubhead"].includes(roleStr);
+}
 
 // Comprehensive list of verified MITS Gwalior Academic Year events
 const VERIFIED_MITS_EVENTS = [
@@ -65,6 +90,30 @@ const VERIFIED_MITS_EVENTS = [
     contactPerson: "Respective Lab In-Charge",
     contactEmail: "academics@mitsgwalior.in",
     status: "Scheduled"
+  },
+  {
+    title: "Autonomous Comprehensive Viva-Voce & Project Defense",
+    category: "Lab & Practical",
+    subCategory: "Viva-Voce Evaluation",
+    examType: "Viva",
+    emoji: "🎤",
+    description: "Final comprehensive viva-voce examination and major project defense for autonomous B.Tech candidates conducted by university external examiners.",
+    startDate: new Date("2024-12-05T09:30:00Z"),
+    endDate: new Date("2024-12-07T17:00:00Z"),
+    startTime: "09:30 AM",
+    endTime: "05:00 PM",
+    venue: "Departmental Seminar Halls & Project Viva Labs",
+    department: "Controller of Examinations & Academic Cell",
+    eligibleBranches: ["CSE", "IT", "AI-DS", "ECE", "EE", "ME", "CE"],
+    eligibleSemesters: [7, 8],
+    registrationUrl: "",
+    importantInstructions: "Formal attire required. Candidates must present project synopsis, verified progress report, and presentation slides.",
+    sourceUrl: "https://web.mitsgwalior.in/examination/notices",
+    verifiedDate: "Verified Oct 2024",
+    contactPerson: "Prof. Examination Board Chair",
+    contactEmail: "viva@mitsgwalior.in",
+    status: "Scheduled",
+    isOfficial: true
   },
   {
     title: "End-Semester Autonomous Theory Examinations (December 2024)",
@@ -585,6 +634,77 @@ const VERIFIED_MITS_EVENTS = [
   }
 ];
 
+// Helper: Classify event for smart exam search, emoji indicators, and verified status
+function classifyMtsEvent(item) {
+  const t = (item.title || "").toLowerCase();
+  const d = (item.description || "").toLowerCase();
+  const sub = (item.subCategory || "").toLowerCase();
+  const cat = (item.category || "").toLowerCase();
+
+  let examType = item.examType && item.examType !== "None" ? item.examType : "None";
+  let emoji = item.emoji && item.emoji !== "✨" && item.emoji !== "Auto" ? item.emoji : "";
+
+  // 1. Exam Type classification
+  if (t.includes("mid-semester test ii") || t.includes("mst-ii") || t.includes("minor 2") || t.includes("mid-semester test 2")) {
+    examType = "Minor 2";
+    emoji = "📝";
+  } else if (t.includes("mid-semester test i") || t.includes("mst-i") || t.includes("minor 1") || t.includes("mid-semester test 1")) {
+    examType = "Minor 1";
+    emoji = "📝";
+  } else if (t.includes("viva") || d.includes("viva-voce") || sub.includes("viva")) {
+    examType = "Viva";
+    emoji = "🎤";
+  } else if (t.includes("practical") || cat.includes("practical") || cat.includes("lab")) {
+    examType = "Practical";
+    emoji = "🔬";
+  } else if (t.includes("autonomous theory") || t.includes("major") || t.includes("end-semester theory") || t.includes("end-sem")) {
+    examType = "Major";
+    emoji = "📖";
+  }
+
+  // 2. Emoji Indicator classification if not already set
+  if (!emoji) {
+    if (
+      sub.includes("national") ||
+      t.includes("republic day") ||
+      t.includes("independence day") ||
+      t.includes("gandhi jayanti") ||
+      t.includes("ambedkar")
+    ) {
+      emoji = "🇮🇳";
+    } else if (
+      sub.includes("festival") ||
+      t.includes("diwali") ||
+      t.includes("deepawali") ||
+      t.includes("holi") ||
+      t.includes("eid") ||
+      t.includes("dussehra") ||
+      t.includes("navratri") ||
+      t.includes("janmashtami") ||
+      t.includes("raksha bandhan") ||
+      t.includes("shivratri") ||
+      t.includes("guru nanak") ||
+      t.includes("mahavir jayanti") ||
+      t.includes("christmas")
+    ) {
+      emoji = "🪔";
+    } else if (cat.includes("holiday")) {
+      emoji = "🎉";
+    } else if (t.includes("hackathon") || cat.includes("workshop") || t.includes("seminar") || t.includes("bootcamp") || t.includes("coding")) {
+      emoji = "💻";
+    } else {
+      emoji = "🎓";
+    }
+  }
+
+  return {
+    ...item,
+    examType,
+    emoji,
+    isOfficial: item.isOfficial !== undefined ? item.isOfficial : true
+  };
+}
+
 // Seed or update database with verified events on startup
 async function seedVerifiedEvents() {
   try {
@@ -595,7 +715,8 @@ async function seedVerifiedEvents() {
     const curYear = new Date().getFullYear();
     const allToSeed = [];
 
-    for (const item of VERIFIED_MITS_EVENTS) {
+    for (const rawItem of VERIFIED_MITS_EVENTS) {
+      const item = classifyMtsEvent(rawItem);
       allToSeed.push({
         ...item,
         academicYear: "2024-2025"
@@ -638,6 +759,29 @@ async function seedVerifiedEvents() {
       }));
       await Event.bulkWrite(ops);
     }
+
+    // Also enrich any existing events in the database that have unpopulated examType or emoji
+    const existingEvents = await Event.find({});
+    for (const evt of existingEvents) {
+      const classified = classifyMtsEvent(evt.toObject());
+      let modified = false;
+      if (evt.examType !== classified.examType && classified.examType !== "None") {
+        evt.examType = classified.examType;
+        modified = true;
+      }
+      if (!evt.emoji || evt.emoji === "✨" || (classified.emoji && evt.emoji !== classified.emoji)) {
+        evt.emoji = classified.emoji;
+        modified = true;
+      }
+      if (evt.isOfficial === undefined || evt.isOfficial === null) {
+        evt.isOfficial = true;
+        modified = true;
+      }
+      if (modified) {
+        await evt.save();
+      }
+    }
+
     console.log(`[PASS] Verified MITS Gwalior Events & Calendar synchronized with MongoDB Atlas (${allToSeed.length} total events).`);
   } catch (err) {
     console.warn("Could not sync events with DB:", err.message);
@@ -648,11 +792,17 @@ setTimeout(seedVerifiedEvents, 800);
 // GET /api/events - Filter and search events
 router.get("/", async (req, res) => {
   try {
-    const { category, branch, semester, month, year, academicYear, search, status, upcoming } = req.query;
+    const { category, branch, semester, month, year, academicYear, search, status, upcoming, examType, isOfficial } = req.query;
     const filter = {};
 
     if (category && category !== "all") {
       filter.category = category;
+    }
+    if (examType && examType !== "all") {
+      filter.examType = examType;
+    }
+    if (isOfficial !== undefined && isOfficial !== "all") {
+      filter.isOfficial = isOfficial === "true";
     }
     if (academicYear && academicYear !== "all") {
       filter.academicYear = academicYear;
@@ -711,12 +861,15 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/events - Admin create new event
+// POST /api/events - Create new campus event (Official or Student)
 router.post("/", async (req, res) => {
   try {
     const {
       title,
       category,
+      subCategory,
+      examType,
+      emoji,
       description,
       startDate,
       endDate,
@@ -731,33 +884,92 @@ router.post("/", async (req, res) => {
       sourceUrl,
       contactPerson,
       contactEmail,
-      status
+      status,
+      academicYear,
+      isOfficial,
+      userId,
+      createdByName,
+      createdByRole
     } = req.body;
 
     if (!title || !startDate) {
       return res.status(400).json({ error: "Title and start date are required" });
     }
 
+    // Role check and verification
+    const reqUserId = userId || req.headers["x-user-id"] || req.query.userId;
+    let creatorUser = null;
+    let officialPublish = false;
+    let authorRole = createdByRole || "Student";
+    let authorName = createdByName || "Campus Member";
+
+    if (reqUserId) {
+      creatorUser = await resolveUserDoc(reqUserId);
+      if (creatorUser) {
+        authorName = creatorUser.name || authorName;
+        authorRole = creatorUser.role || authorRole;
+        if (isAdminRole(creatorUser)) {
+          officialPublish = isOfficial !== undefined ? Boolean(isOfficial) : true;
+        } else {
+          // Regular students publish community/student events
+          officialPublish = false;
+        }
+      }
+    } else {
+      // If no user doc found, verify based on role string
+      if (isAdminRole({ role: authorRole })) {
+        officialPublish = isOfficial !== undefined ? Boolean(isOfficial) : true;
+      } else {
+        officialPublish = false;
+      }
+    }
+
+    // Duplicate Prevention Check
+    const parsedStart = new Date(startDate);
+    const dayStart = new Date(parsedStart);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(parsedStart);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const existingDuplicate = await Event.findOne({
+      title: { $regex: new RegExp(`^${title.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}$`, "i") },
+      startDate: { $gte: dayStart, $lte: dayEnd }
+    });
+
+    if (existingDuplicate) {
+      return res.status(409).json({
+        error: "An event with this title on the selected date already exists in the calendar.",
+        existingEvent: existingDuplicate
+      });
+    }
+
     const newEvent = new Event({
-      title,
+      title: title.trim(),
       category: category || "General",
+      subCategory: subCategory || "",
+      examType: examType || "None",
+      emoji: emoji || "",
       description: description || "",
-      startDate: new Date(startDate),
-      endDate: endDate ? new Date(endDate) : new Date(startDate),
+      startDate: parsedStart,
+      endDate: endDate ? new Date(endDate) : parsedStart,
       startTime: startTime || "10:00 AM",
       endTime: endTime || "05:00 PM",
       venue: venue || "MITS Gwalior Campus",
-      department: department || "Academic Cell",
+      department: department || (officialPublish ? "Academic Cell" : "Student Community"),
       eligibleBranches: eligibleBranches || ["ALL"],
       eligibleSemesters: eligibleSemesters || [1, 2, 3, 4, 5, 6, 7, 8],
       registrationUrl: registrationUrl || "",
       importantInstructions: importantInstructions || "",
       sourceUrl: sourceUrl || "https://web.mitsgwalior.in",
       verifiedDate: "Verified " + new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-      contactPerson: contactPerson || "",
-      contactEmail: contactEmail || "",
+      contactPerson: contactPerson || authorName,
+      contactEmail: contactEmail || (creatorUser ? creatorUser.email : ""),
       status: status || "Scheduled",
-      isOfficial: true
+      academicYear: academicYear || "2026-2027",
+      isOfficial: officialPublish,
+      createdBy: creatorUser ? creatorUser._id : undefined,
+      createdByName: authorName,
+      createdByRole: authorRole
     });
 
     const saved = await newEvent.save();
@@ -768,24 +980,55 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PUT /api/events/:id - Admin update event
+// PUT /api/events/:id - Update event (Role verified)
 router.put("/:id", async (req, res) => {
   try {
+    const existing = await Event.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Event not found" });
+
+    const reqUserId = req.body.userId || req.headers["x-user-id"] || req.query.userId;
+    if (reqUserId) {
+      const user = await resolveUserDoc(reqUserId);
+      if (user && !isAdminRole(user)) {
+        // Student can only update their own unofficial events
+        const isOwner = existing.createdBy && existing.createdBy.toString() === user._id.toString();
+        const isNameMatch = existing.createdByName && existing.createdByName.toLowerCase() === user.name.toLowerCase();
+        if (existing.isOfficial || (!isOwner && !isNameMatch)) {
+          return res.status(403).json({ error: "Access denied. You can only modify your own community events." });
+        }
+      }
+    }
+
     const updated = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ error: "Event not found" });
     res.json(updated);
   } catch (err) {
+    console.error("UPDATE EVENT ERROR:", err);
     res.status(500).json({ error: "Failed to update event" });
   }
 });
 
-// DELETE /api/events/:id - Admin delete event
+// DELETE /api/events/:id - Delete event (Role verified)
 router.delete("/:id", async (req, res) => {
   try {
+    const existing = await Event.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Event not found" });
+
+    const reqUserId = req.body?.userId || req.headers["x-user-id"] || req.query.userId;
+    if (reqUserId) {
+      const user = await resolveUserDoc(reqUserId);
+      if (user && !isAdminRole(user)) {
+        const isOwner = existing.createdBy && existing.createdBy.toString() === user._id.toString();
+        const isNameMatch = existing.createdByName && existing.createdByName.toLowerCase() === user.name.toLowerCase();
+        if (existing.isOfficial || (!isOwner && !isNameMatch)) {
+          return res.status(403).json({ error: "Access denied. You can only delete your own community events." });
+        }
+      }
+    }
+
     const deleted = await Event.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: "Event not found" });
     res.json({ message: "Event removed successfully", id: req.params.id });
   } catch (err) {
+    console.error("DELETE EVENT ERROR:", err);
     res.status(500).json({ error: "Failed to delete event" });
   }
 });

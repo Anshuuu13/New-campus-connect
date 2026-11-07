@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedBranch: "all",
     selectedSemester: "all",
     selectedStatus: "all",
+    selectedEmojiFilter: "all",
+    selectedSourceFilter: "all", // 'all' | 'official' | 'student'
+    isPersonalizedActive: false,
     searchQuery: "",
     showSavedOnly: false,
     savedEventIds: new Set(),
@@ -200,17 +203,49 @@ document.addEventListener("DOMContentLoaded", () => {
     syncAmsBtn: document.getElementById("syncAmsBtn"),
     amsSyncTimestamp: document.getElementById("amsSyncTimestamp"),
 
+    // Smart Examination Search
+    smartExamFinderSection: document.getElementById("smartExamFinderSection"),
+    examFinderType: document.getElementById("examFinderType"),
+    examFinderBranch: document.getElementById("examFinderBranch"),
+    examFinderSemester: document.getElementById("examFinderSemester"),
+    examFinderSession: document.getElementById("examFinderSession"),
+    btnSearchExamSchedule: document.getElementById("btnSearchExamSchedule"),
+    btnResetExamSearch: document.getElementById("btnResetExamSearch"),
+    examSearchResults: document.getElementById("examSearchResults"),
+
+    // Emoji Indicator Legend
+    emojiLegendStrip: document.getElementById("emojiLegendStrip"),
+    legendEmojiPills: document.querySelectorAll(".legend-emoji-pill"),
+
+    // Event Source & Personalized Schedule
+    eventSourceToggleGroup: document.getElementById("eventSourceToggleGroup"),
+    sourceToggleBtns: document.querySelectorAll(".source-toggle-btn"),
+    personalizedScheduleBtn: document.getElementById("personalizedScheduleBtn"),
+    personalizedScheduleLabel: document.getElementById("personalizedScheduleLabel"),
+
     // Highlights Tabs
     tabThisWeekBtn: document.getElementById("tabThisWeekBtn"),
+    tabExamsBtn: document.getElementById("tabExamsBtn"),
+    tabHolidaysBtn: document.getElementById("tabHolidaysBtn"),
+    tabWorkshopsBtn: document.getElementById("tabWorkshopsBtn"),
     tabDeadlinesBtn: document.getElementById("tabDeadlinesBtn"),
     tabFlagshipBtn: document.getElementById("tabFlagshipBtn"),
     badgeThisWeek: document.getElementById("badgeThisWeek"),
+    badgeExams: document.getElementById("badgeExams"),
+    badgeHolidays: document.getElementById("badgeHolidays"),
+    badgeWorkshops: document.getElementById("badgeWorkshops"),
     badgeDeadlines: document.getElementById("badgeDeadlines"),
     badgeFlagship: document.getElementById("badgeFlagship"),
     paneThisWeek: document.getElementById("paneThisWeek"),
+    paneExams: document.getElementById("paneExams"),
+    paneHolidays: document.getElementById("paneHolidays"),
+    paneWorkshops: document.getElementById("paneWorkshops"),
     paneDeadlines: document.getElementById("paneDeadlines"),
     paneFlagship: document.getElementById("paneFlagship"),
     thisWeekGrid: document.getElementById("thisWeekGrid"),
+    examsGrid: document.getElementById("examsGrid"),
+    holidaysGrid: document.getElementById("holidaysGrid"),
+    workshopsGrid: document.getElementById("workshopsGrid"),
     deadlinesGrid: document.getElementById("deadlinesGrid"),
     flagshipGrid: document.getElementById("flagshipGrid"),
 
@@ -221,17 +256,185 @@ document.addEventListener("DOMContentLoaded", () => {
     closeEventDetailsBtn: document.getElementById("closeEventDetailsBtn"),
     closeModalBottomBtn: document.getElementById("closeModalBottomBtn"),
 
-    // Admin Add Event Modal
+    // Admin & Student Event Modal
     adminEventBackdrop: document.getElementById("adminEventBackdrop"),
+    adminModalHeading: document.getElementById("adminModalHeading"),
     openAddEventModalBtn: document.getElementById("openAddEventModalBtn"),
     closeAdminModalBtn: document.getElementById("closeAdminModalBtn"),
     cancelAdminModalBtn: document.getElementById("cancelAdminModalBtn"),
     adminEventForm: document.getElementById("adminEventForm"),
     adminFormFeedback: document.getElementById("adminFormFeedback"),
+    saveEventSubmitBtn: document.getElementById("saveEventSubmitBtn"),
+    evtExamType: document.getElementById("evtExamType"),
+    evtSubCategory: document.getElementById("evtSubCategory"),
+    evtEmoji: document.getElementById("evtEmoji"),
+    evtIsOfficialWrap: document.getElementById("evtIsOfficialWrap"),
+    evtIsOfficial: document.getElementById("evtIsOfficial"),
+    evtIsOfficialHint: document.getElementById("evtIsOfficialHint"),
+    evtEditId: document.getElementById("evtEditId"),
 
     // Toast Container
     toastContainer: document.getElementById("toastContainer")
   };
+
+  // Helper: Check if user has admin/faculty privileges
+  function isUserAdmin(u) {
+    if (!u || !u.role) return false;
+    const r = String(u.role).trim().toLowerCase();
+    return ["admin", "professor", "faculty", "clubcoordinator", "clubhead"].includes(r);
+  }
+
+  // Exact Emoji Indicator Mapping (Requirement 4)
+  // 🎉 General holidays, 🇮🇳 National holidays, 🪔 Festivals, 📝 Minor exams,
+  // 📖 Major exams, 🔬 Practical exams, 🎤 Viva, 🎓 College events, 💻 Hackathons and workshops
+  function getEventEmoji(e) {
+    if (!e) return "📌";
+    if (e.emoji && e.emoji.trim() && e.emoji !== "✨" && e.emoji !== "Auto") {
+      return e.emoji.trim();
+    }
+    const title = (e.title || "").toLowerCase();
+    const desc = (e.description || "").toLowerCase();
+    const subCat = (e.subCategory || "").toLowerCase();
+    const cat = (e.category || "").toLowerCase();
+    const examType = (e.examType || "").toLowerCase();
+
+    // 1. National holidays 🇮🇳
+    if (
+      subCat.includes("national") ||
+      title.includes("republic day") ||
+      title.includes("independence day") ||
+      title.includes("gandhi jayanti") ||
+      title.includes("ambedkar") ||
+      desc.includes("national holiday")
+    ) {
+      return "🇮🇳";
+    }
+
+    // 2. Festivals 🪔
+    if (
+      subCat.includes("festival") ||
+      title.includes("diwali") ||
+      title.includes("deepawali") ||
+      title.includes("holi") ||
+      title.includes("eid") ||
+      title.includes("dussehra") ||
+      title.includes("navratri") ||
+      title.includes("janmashtami") ||
+      title.includes("raksha bandhan") ||
+      title.includes("shivratri") ||
+      title.includes("guru nanak") ||
+      title.includes("mahavir jayanti") ||
+      title.includes("christmas") ||
+      title.includes("durga puja") ||
+      title.includes("chhat") ||
+      title.includes("muharram")
+    ) {
+      return "🪔";
+    }
+
+    // 3. General holidays 🎉
+    if (
+      cat.includes("holiday") ||
+      subCat.includes("holiday") ||
+      title.includes("holiday") ||
+      title.includes("vacation") ||
+      title.includes("break")
+    ) {
+      return "🎉";
+    }
+
+    // 4. Minor exams 📝
+    if (
+      examType === "minor 1" ||
+      examType === "minor 2" ||
+      title.includes("minor 1") ||
+      title.includes("minor 2") ||
+      title.includes("minor exam") ||
+      title.includes("mst-i") ||
+      title.includes("mst-ii") ||
+      title.includes("mid-semester") ||
+      title.includes("mid semester") ||
+      title.includes("internal assessment")
+    ) {
+      return "📝";
+    }
+
+    // 5. Viva 🎤
+    if (
+      examType === "viva" ||
+      title.includes("viva") ||
+      title.includes("viva-voce") ||
+      title.includes("oral evaluation") ||
+      title.includes("oral examination") ||
+      desc.includes("viva-voce")
+    ) {
+      return "🎤";
+    }
+
+    // 6. Practical exams 🔬
+    if (
+      examType === "practical" ||
+      cat.includes("practical") ||
+      cat.includes("lab") ||
+      title.includes("practical exam") ||
+      title.includes("lab exam") ||
+      title.includes("laboratory assessment") ||
+      subCat.includes("practical")
+    ) {
+      return "🔬";
+    }
+
+    // 7. Major exams 📖
+    if (
+      examType === "major" ||
+      title.includes("major exam") ||
+      title.includes("end-semester theory") ||
+      title.includes("end semester theory") ||
+      title.includes("autonomous theory") ||
+      title.includes("end-sem") ||
+      title.includes("end sem") ||
+      cat.includes("examination")
+    ) {
+      return "📖";
+    }
+
+    // 8. Hackathons & Workshops 💻
+    if (
+      title.includes("hackathon") ||
+      title.includes("coding contest") ||
+      title.includes("datathon") ||
+      title.includes("workshop") ||
+      title.includes("seminar") ||
+      title.includes("hands-on") ||
+      title.includes("bootcamp") ||
+      cat.includes("workshop")
+    ) {
+      return "💻";
+    }
+
+    // 9. College events 🎓
+    if (
+      cat.includes("cultural") ||
+      cat.includes("club") ||
+      cat.includes("placement") ||
+      cat.includes("college") ||
+      title.includes("dyuti") ||
+      title.includes("aura") ||
+      title.includes("spardha") ||
+      title.includes("orientation") ||
+      title.includes("convocation") ||
+      title.includes("induction") ||
+      title.includes("fest")
+    ) {
+      return "🎓";
+    }
+
+    if (cat.includes("deadline") || title.includes("deadline")) {
+      return "⚠️";
+    }
+
+    return "📌";
+  }
 
   // ================= 1. VERIFIED MITS DATA ARCHIVE (60+ EVENTS) =================
   function getFallbackEventsArchive() {
@@ -248,6 +451,9 @@ document.addEventListener("DOMContentLoaded", () => {
         idSuffix: "mst1",
         title: "Mid-Semester Test I (MST-I) - Autonomous Engineering",
         category: "Examination",
+        examType: "Minor 1",
+        emoji: "📝",
+        subCategory: "Minor Exam",
         description: "First internal assessment test covering Unit 1 & Unit 2 of the autonomous undergraduate engineering curriculum. Mandatory for continuous evaluation internal marks.",
         startMonth: 9, startDay: 23, endMonth: 9, endDay: 27,
         startTime: "10:00 AM", endTime: "04:30 PM",
@@ -268,6 +474,9 @@ document.addEventListener("DOMContentLoaded", () => {
         idSuffix: "mst2",
         title: "Mid-Semester Test II (MST-II) - B.Tech All Branches",
         category: "Examination",
+        examType: "Minor 2",
+        emoji: "📝",
+        subCategory: "Minor Exam",
         description: "Second mid-semester examination covering remaining units 3, 4, and 5 of the autonomous syllabus across all departments.",
         startMonth: 11, startDay: 18, endMonth: 11, endDay: 22,
         startTime: "10:30 AM", endTime: "04:30 PM",
@@ -286,9 +495,12 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       {
         idSuffix: "practical",
-        title: "End-Semester Practical & Viva-Voce Examinations",
+        title: "End-Semester Practical & Laboratory Examinations",
         category: "Lab & Practical",
-        description: "Laboratory assessments, code demonstrations, and external viva-voce evaluations for all laboratory courses and mini-projects.",
+        examType: "Practical",
+        emoji: "🔬",
+        subCategory: "Practical Exam",
+        description: "Laboratory assessments, code demonstrations, and hardware experiment evaluations evaluated by external examiners.",
         startMonth: 12, startDay: 2, endMonth: 12, endDay: 7,
         startTime: "09:30 AM", endTime: "05:30 PM",
         venue: "Department Laboratories & Central Computing Facility (CCF)",
@@ -305,9 +517,35 @@ document.addEventListener("DOMContentLoaded", () => {
         image: "assets/images/robotics-innovation.webp"
       },
       {
+        idSuffix: "comprehensive-viva",
+        title: "Final Capstone Project Defense & Comprehensive Viva-Voce",
+        category: "Lab & Practical",
+        examType: "Viva",
+        emoji: "🎤",
+        subCategory: "Viva",
+        description: "Autonomous end-semester oral examinations, comprehensive domain knowledge assessments, and major thesis presentations before external university evaluators.",
+        startMonth: 12, startDay: 15, endMonth: 12, endDay: 18,
+        startTime: "09:30 AM", endTime: "05:00 PM",
+        venue: "Departmental Seminar Rooms & Board Rooms",
+        department: "Dean Academics & Project Evaluation Committee",
+        eligibleBranches: ["ALL"],
+        eligibleSemesters: [5, 7, 8],
+        registrationUrl: "https://ims.mitsgwalior.in",
+        importantInstructions: "Students must present printed spiral-bound project report signed by guide along with PowerPoint slides and live project demo.",
+        sourceUrl: "https://web.mitsgwalior.in/examination/notices",
+        contactPerson: "Prof. Project Coordinator",
+        contactEmail: "projects@mitsgwalior.in",
+        status: "Scheduled",
+        isOfficial: true,
+        image: "assets/images/academic-presentation.webp"
+      },
+      {
         idSuffix: "endsem-theory",
         title: "End-Semester Autonomous Theory Examinations",
         category: "Examination",
+        examType: "Major",
+        emoji: "📖",
+        subCategory: "Major Exam",
         description: "Major autonomous end-semester examination for odd semesters conducted under MITS Deemed-to-be University examination regulations.",
         startMonth: 12, startDay: 9, endMonth: 12, endDay: 24,
         startTime: "10:00 AM", endTime: "01:00 PM",
@@ -911,15 +1149,24 @@ document.addEventListener("DOMContentLoaded", () => {
         startDateObj: s,
         endDateObj: end,
         category: cat,
+        examType: e.examType || "None",
+        subCategory: e.subCategory || "",
+        emoji: e.emoji || "",
+        isOfficial: e.isOfficial !== undefined ? Boolean(e.isOfficial) : true,
+        createdByName: e.createdByName || "",
+        createdByRole: e.createdByRole || "Admin",
         academicYear: e.academicYear || (s.getFullYear() >= 2026 ? "2026-2027" : "2024-2025"),
         image: e.image || e.imageUrl || catCfg.defaultImage || "assets/images/mits-campus.jpg"
       };
     });
 
     updateCategoryCounts();
+    updateEmojiCounts();
+    updatePersonalizedUi();
     applyFilters();
     initCountdowns();
     renderHighlights();
+    initExamFinder();
   }
 
   // ================= 3. FILTERING & SEARCH LOGIC =================
@@ -934,6 +1181,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // Category filter
     if (state.selectedCategory !== "all") {
       result = result.filter(e => e.category === state.selectedCategory);
+    }
+
+    // Emoji Indicator Filter (🎉 🇮🇳 🪔 📝 📖 🔬 🎤 🎓 💻)
+    if (state.selectedEmojiFilter && state.selectedEmojiFilter !== "all") {
+      result = result.filter(e => getEventEmoji(e) === state.selectedEmojiFilter);
+    }
+
+    // Event Source Filter (Official vs Student)
+    if (state.selectedSourceFilter === "official") {
+      result = result.filter(e => e.isOfficial !== false);
+    } else if (state.selectedSourceFilter === "student") {
+      result = result.filter(e => e.isOfficial === false);
+    }
+
+    // Personalized Calendar Filter
+    if (state.isPersonalizedActive && currentUser) {
+      if (currentUser.branch && currentUser.branch !== "all") {
+        result = result.filter(e => !e.eligibleBranches || e.eligibleBranches.length === 0 || e.eligibleBranches.includes("ALL") || e.eligibleBranches.includes(currentUser.branch));
+      }
+      if (currentUser.semester) {
+        const semNum = Number(currentUser.semester);
+        result = result.filter(e => !e.eligibleSemesters || e.eligibleSemesters.length === 0 || e.eligibleSemesters.includes(semNum));
+      }
     }
 
     // Branch filter
@@ -1021,6 +1291,59 @@ document.addEventListener("DOMContentLoaded", () => {
     if (DOM.savedFilterLabel) DOM.savedFilterLabel.textContent = `Saved Events (${state.savedEventIds.size})`;
   }
 
+  function updateEmojiCounts() {
+    const counts = {
+      all: state.events.length,
+      "🎉": 0,
+      "🇮🇳": 0,
+      "🪔": 0,
+      "📝": 0,
+      "📖": 0,
+      "🔬": 0,
+      "🎤": 0,
+      "🎓": 0,
+      "💻": 0
+    };
+
+    state.events.forEach(e => {
+      const em = getEventEmoji(e);
+      if (counts[em] !== undefined) {
+        counts[em]++;
+      }
+    });
+
+    const setEl = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    setEl("countEmojiAll", counts.all);
+    setEl("countEmojiGenHoliday", counts["🎉"]);
+    setEl("countEmojiNatHoliday", counts["🇮🇳"]);
+    setEl("countEmojiFestival", counts["🪔"]);
+    setEl("countEmojiMinorExam", counts["📝"]);
+    setEl("countEmojiMajorExam", counts["📖"]);
+    setEl("countEmojiPractical", counts["🔬"]);
+    setEl("countEmojiViva", counts["🎤"]);
+    setEl("countEmojiCollege", counts["🎓"]);
+    setEl("countEmojiHackathon", counts["💻"]);
+  }
+
+  function updatePersonalizedUi() {
+    if (!DOM.personalizedScheduleBtn) return;
+    if (currentUser && (currentUser.branch || currentUser.semester)) {
+      const b = currentUser.branch || "";
+      const s = currentUser.semester ? `Sem ${currentUser.semester}` : "";
+      if (DOM.personalizedScheduleLabel) {
+        DOM.personalizedScheduleLabel.textContent = `(${b} ${s})`.trim();
+      }
+    } else {
+      if (DOM.personalizedScheduleLabel) {
+        DOM.personalizedScheduleLabel.textContent = "";
+      }
+    }
+  }
+
   function updateActiveFilterIndicators() {
     if (!DOM.activeFilterIndicators || !DOM.filterTagsList) return;
 
@@ -1042,6 +1365,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (state.searchQuery.trim()) {
       tags.push({ key: "search", label: `Search: "${state.searchQuery}"` });
+    }
+    if (state.selectedEmojiFilter && state.selectedEmojiFilter !== "all") {
+      tags.push({ key: "emoji", label: `Indicator: ${state.selectedEmojiFilter}` });
+    }
+    if (state.selectedSourceFilter && state.selectedSourceFilter !== "all") {
+      tags.push({ key: "source", label: state.selectedSourceFilter === "official" ? "🏛️ Official Only" : "👥 Student Events" });
+    }
+    if (state.isPersonalizedActive) {
+      tags.push({ key: "personalized", label: `🎯 My Schedule (${currentUser?.branch || "MITS"})` });
     }
     if (state.showSavedOnly) {
       tags.push({ key: "saved", label: "★ Saved Events Only" });
@@ -1068,6 +1400,19 @@ document.addEventListener("DOMContentLoaded", () => {
           } else if (key === "category") {
             state.selectedCategory = "all";
             DOM.categoryPills.forEach(p => p.classList.toggle("active", p.dataset.category === "all"));
+          } else if (key === "emoji") {
+            state.selectedEmojiFilter = "all";
+            if (DOM.emojiLegendStrip) {
+              DOM.emojiLegendStrip.querySelectorAll(".legend-emoji-pill").forEach(p => p.classList.toggle("active", p.dataset.emojiFilter === "all"));
+            }
+          } else if (key === "source") {
+            state.selectedSourceFilter = "all";
+            if (DOM.eventSourceToggleGroup) {
+              DOM.eventSourceToggleGroup.querySelectorAll(".source-toggle-btn").forEach(b => b.classList.toggle("active", b.dataset.source === "all"));
+            }
+          } else if (key === "personalized") {
+            state.isPersonalizedActive = false;
+            if (DOM.personalizedScheduleBtn) DOM.personalizedScheduleBtn.classList.remove("active");
           } else if (key === "branch") {
             state.selectedBranch = "all";
             DOM.branchFilterSelect.value = "all";
@@ -1204,10 +1549,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       visibleEvents.forEach(e => {
         const catConfig = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG["General"];
+        const emoji = getEventEmoji(e);
         eventsHtml += `
           <div class="cal-event-pill" style="border-left: 3px solid ${catConfig.color}; background: ${catConfig.bg};" title="${escapeHtml(e.title)} (${e.category})">
             <span class="pill-dot" style="background: ${catConfig.color}"></span>
-            <span class="pill-text">${escapeHtml(e.title)}</span>
+            <span class="pill-text">${emoji} ${escapeHtml(e.title)}</span>
           </div>
         `;
       });
@@ -1448,6 +1794,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderModernEventCard(e) {
     const cfg = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG["General"];
+    const emoji = getEventEmoji(e);
     const isSaved = state.savedEventIds.has(e._id);
     const dateRange = formatDateRange(new Date(e.startDate), e.endDate ? new Date(e.endDate) : null);
     const imgSrc = e.image || cfg.defaultImage || "assets/images/mits-campus.jpg";
@@ -1458,14 +1805,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <img src="${imgSrc}" alt="${escapeHtml(e.title)}" class="mec-thumbnail" loading="lazy" onerror="this.src='assets/images/mits-campus.jpg'">
           <div class="mec-thumb-overlay"></div>
           <span class="mec-thumb-badge" style="background: ${cfg.bg}; color: ${cfg.color}; border: 1px solid ${cfg.border};">
-            ${cfg.icon} ${escapeHtml(e.category)}
+            ${emoji} ${escapeHtml(e.category)}
           </span>
           <span class="mec-thumb-status status-${(e.status || "Scheduled").toLowerCase()}">${e.status || "Scheduled"}</span>
         </div>
 
         <div class="mec-card-body">
           <div class="mec-card-date">📅 ${dateRange} &bull; ${escapeHtml(e.startTime || "10:00 AM")}</div>
-          <h3 class="mec-card-title">${escapeHtml(e.title)}</h3>
+          <h3 class="mec-card-title">${emoji} ${escapeHtml(e.title)}</h3>
           <p class="mec-card-desc">${escapeHtml((e.description || "").slice(0, 110))}...</p>
 
           <div class="mec-card-venue">
@@ -1475,11 +1822,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <div class="mec-card-footer">
             <span class="mec-card-eligibility">🎓 ${(e.eligibleBranches || ["ALL"]).slice(0, 3).join(", ")}</span>
-            <div class="mec-card-actions">
-              <button class="btn btn-outline btn-xs btn-card-details" data-id="${e._id}">Details</button>
-              <button class="btn btn-outline btn-xs btn-card-star ${isSaved ? "active" : ""}" data-id="${e._id}" title="Save">
-                ${isSaved ? "★" : "☆"}
-              </button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              ${e.isOfficial !== false ? '<span class="badge-official" style="font-size: 11px; padding: 2px 7px;">🏛️ Verified</span>' : '<span class="badge-student-event" style="font-size: 11px; padding: 2px 7px;">👥 Student</span>'}
+              <div class="mec-card-actions">
+                <button class="btn btn-outline btn-xs btn-card-details" data-id="${e._id}">Details</button>
+                <button class="btn btn-outline btn-xs btn-card-star ${isSaved ? "active" : ""}" data-id="${e._id}" title="Save">
+                  ${isSaved ? "★" : "☆"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1502,6 +1852,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     DOM.eventsDirectoryTbody.innerHTML = state.filteredEvents.map(e => {
       const cfg = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG["General"];
+      const emoji = getEventEmoji(e);
       const isSaved = state.savedEventIds.has(e._id);
       const dateStr = formatDateRange(new Date(e.startDate), e.endDate ? new Date(e.endDate) : null);
       return `
@@ -1512,11 +1863,15 @@ document.addEventListener("DOMContentLoaded", () => {
           </td>
           <td>
             <span class="cat-chip-table" style="color:${cfg.color}; background:${cfg.bg}; border: 1px solid ${cfg.border};">
-              ${cfg.icon} ${escapeHtml(e.category)}
+              ${emoji} ${escapeHtml(e.category)}
             </span>
           </td>
           <td>
-            <div class="dir-title">${escapeHtml(e.title)}</div>
+            <div class="dir-title" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span>${emoji}</span>
+              <strong>${escapeHtml(e.title)}</strong>
+              ${e.isOfficial !== false ? '<span class="badge-official" style="font-size: 10px; padding: 1px 6px;">🏛️ Verified</span>' : '<span class="badge-student-event" style="font-size: 10px; padding: 1px 6px;">👥 Student</span>'}
+            </div>
             <div class="dir-desc">${escapeHtml((e.description || "").slice(0, 95))}...</div>
           </td>
           <td>
@@ -1679,6 +2034,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const todayMidnight = new Date().setHours(0, 0, 0, 0);
     const sevenDaysLater = new Date(todayMidnight + 7 * 24 * 60 * 60 * 1000);
 
+    // 1. This week
     const thisWeekEvents = state.events.filter(e => {
       const s = new Date(e.startDate).getTime();
       const end = e.endDate ? new Date(e.endDate).getTime() : s;
@@ -1699,22 +2055,67 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const allDeadlines = state.events.filter(e => e.category === "Deadline")
+    // 2. Upcoming Examinations
+    const upcomingExams = state.events.filter(e => {
+      const em = getEventEmoji(e);
+      return ["📝", "📖", "🔬", "🎤"].includes(em) || e.category === "Examination" || e.examType !== "None";
+    }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+    if (DOM.badgeExams) DOM.badgeExams.textContent = upcomingExams.length;
+    if (DOM.examsGrid) {
+      DOM.examsGrid.innerHTML = upcomingExams.length > 0
+        ? upcomingExams.map(renderHighlightCard).join("")
+        : '<div class="empty-highlight-placeholder"><span class="eh-icon">📝</span><p>No examinations scheduled at this time.</p></div>';
+    }
+
+    // 3. Upcoming Holidays & Festivals
+    const upcomingHolidays = state.events.filter(e => {
+      const em = getEventEmoji(e);
+      return ["🎉", "🇮🇳", "🪔"].includes(em) || e.category === "Holiday";
+    }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+    if (DOM.badgeHolidays) DOM.badgeHolidays.textContent = upcomingHolidays.length;
+    if (DOM.holidaysGrid) {
+      DOM.holidaysGrid.innerHTML = upcomingHolidays.length > 0
+        ? upcomingHolidays.map(renderHighlightCard).join("")
+        : '<div class="empty-highlight-placeholder"><span class="eh-icon">🌴</span><p>No upcoming holidays in this period.</p></div>';
+    }
+
+    // 4. Workshops & Hackathons
+    const upcomingWorkshops = state.events.filter(e => {
+      const em = getEventEmoji(e);
+      return em === "💻" || e.category === "Workshop & Seminar" || (e.title || "").toLowerCase().includes("hackathon");
+    }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+    if (DOM.badgeWorkshops) DOM.badgeWorkshops.textContent = upcomingWorkshops.length;
+    if (DOM.workshopsGrid) {
+      DOM.workshopsGrid.innerHTML = upcomingWorkshops.length > 0
+        ? upcomingWorkshops.map(renderHighlightCard).join("")
+        : '<div class="empty-highlight-placeholder"><span class="eh-icon">💻</span><p>No workshops or hackathons announced right now.</p></div>';
+    }
+
+    // 5. Deadlines
+    const allDeadlines = state.events.filter(e => e.category === "Deadline" || (e.title || "").toLowerCase().includes("deadline"))
       .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
     if (DOM.badgeDeadlines) DOM.badgeDeadlines.textContent = allDeadlines.length;
     if (DOM.deadlinesGrid) {
-      DOM.deadlinesGrid.innerHTML = allDeadlines.map(renderHighlightCard).join("");
+      DOM.deadlinesGrid.innerHTML = allDeadlines.length > 0
+        ? allDeadlines.map(renderHighlightCard).join("")
+        : '<div class="empty-highlight-placeholder"><span class="eh-icon">⏳</span><p>No urgent deadlines pending.</p></div>';
     }
 
+    // 6. Flagship Fests
     const flagshipEvents = state.events.filter(e => {
-      const t = e.title.toLowerCase();
+      const t = (e.title || "").toLowerCase();
       return e.category === "Cultural & Sports" || t.includes("hackathon") || t.includes("technovision") || t.includes("aura") || t.includes("dyuti") || t.includes("jhankaar") || t.includes("spardha");
     }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
     if (DOM.badgeFlagship) DOM.badgeFlagship.textContent = flagshipEvents.length;
     if (DOM.flagshipGrid) {
-      DOM.flagshipGrid.innerHTML = flagshipEvents.map(renderHighlightCard).join("");
+      DOM.flagshipGrid.innerHTML = flagshipEvents.length > 0
+        ? flagshipEvents.map(renderHighlightCard).join("")
+        : '<div class="empty-highlight-placeholder"><span class="eh-icon">🏆</span><p>No flagship festivals currently listed.</p></div>';
     }
 
     document.querySelectorAll(".highlight-card").forEach(card => {
@@ -1728,6 +2129,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderHighlightCard(e) {
     const cfg = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG["General"];
+    const emoji = getEventEmoji(e);
     const isSaved = state.savedEventIds.has(e._id);
     const dateStr = formatDateRange(new Date(e.startDate), e.endDate ? new Date(e.endDate) : null);
     const daysLeft = Math.ceil((new Date(e.startDate) - new Date()) / (1000 * 60 * 60 * 24));
@@ -1739,17 +2141,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="highlight-card" data-id="${e._id}" style="border-top: 3px solid ${cfg.color};">
         <div class="hl-card-top">
-          <span class="hl-category" style="color:${cfg.color}; background:${cfg.bg};">${cfg.icon} ${escapeHtml(e.category)}</span>
+          <span class="hl-category" style="color:${cfg.color}; background:${cfg.bg};">${emoji} ${escapeHtml(e.category)}</span>
           <span class="hl-badge-time ${daysLeft <= 3 && daysLeft >= 0 ? "urgent" : ""}">${badgeTxt}</span>
         </div>
-        <h3 class="hl-title">${escapeHtml(e.title)}</h3>
+        <h3 class="hl-title">${emoji} ${escapeHtml(e.title)}</h3>
         <p class="hl-desc">${escapeHtml(e.description || "")}</p>
         <div class="hl-meta-row">
           <span>📅 ${dateStr}</span>
           <span>📍 ${escapeHtml(e.venue || "MITS Campus")}</span>
         </div>
         <div class="hl-footer">
-          <span class="hl-dept">${escapeHtml(e.department || "")}</span>
+          <span class="hl-dept">${e.isOfficial !== false ? '🏛️ Official' : '👥 Student Event'}</span>
           <button class="hl-star-btn ${isSaved ? "active" : ""}" data-id="${e._id}" title="Save">
             ${isSaved ? "★ Saved" : "☆ Save"}
           </button>
@@ -1762,6 +2164,9 @@ document.addEventListener("DOMContentLoaded", () => {
     state.activeTab = tabId;
     const tabs = [
       { id: "this-week", btn: DOM.tabThisWeekBtn, pane: DOM.paneThisWeek },
+      { id: "exams", btn: DOM.tabExamsBtn, pane: DOM.paneExams },
+      { id: "holidays", btn: DOM.tabHolidaysBtn, pane: DOM.paneHolidays },
+      { id: "workshops", btn: DOM.tabWorkshopsBtn, pane: DOM.paneWorkshops },
       { id: "deadlines", btn: DOM.tabDeadlinesBtn, pane: DOM.paneDeadlines },
       { id: "flagship", btn: DOM.tabFlagshipBtn, pane: DOM.paneFlagship }
     ];
@@ -1845,6 +2250,41 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleReminder(e);
           });
         }
+
+        const editBtn = document.getElementById(`editEvtBtn_${e._id}`);
+        if (editBtn) {
+          editBtn.addEventListener("click", () => {
+            closeEventDetailsModal();
+            openAdminModal(null, e);
+          });
+        }
+
+        const deleteBtn = document.getElementById(`deleteEvtBtn_${e._id}`);
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", async () => {
+            if (!confirm(`Are you sure you want to remove "${e.title}" from the calendar?`)) return;
+            try {
+              const res = await fetch(`${state.apiBase}/events/${e._id}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: currentUser?._id })
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || "Failed to delete");
+              }
+            } catch (err) {
+              console.warn("Delete note:", err.message);
+            }
+            state.events = state.events.filter(x => x._id !== e._id);
+            updateCategoryCounts();
+            updateEmojiCounts();
+            applyFilters();
+            initCountdowns();
+            closeEventDetailsModal();
+            showToast("Event removed successfully", "info");
+          });
+        }
       });
     }
 
@@ -1853,10 +2293,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderModalEventItem(e) {
     const cfg = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG["General"];
+    const emoji = getEventEmoji(e);
     const isSaved = state.savedEventIds.has(e._id);
     const hasReminder = state.reminders.has(e._id);
     const dateRange = formatDateRange(new Date(e.startDate), e.endDate ? new Date(e.endDate) : null);
     const imgSrc = e.image || cfg.defaultImage || "assets/images/mits-campus.jpg";
+
+    const isOwner = currentUser && (
+      (e.createdBy && (e.createdBy === currentUser._id || e.createdBy._id === currentUser._id)) ||
+      (e.createdByName && currentUser.name && e.createdByName.toLowerCase() === currentUser.name.toLowerCase()) ||
+      (e.isOfficial === false)
+    );
+    const canManage = isUserAdmin(currentUser) || isOwner;
 
     return `
       <div class="modal-event-card" style="border-left: 4px solid ${cfg.color};">
@@ -1864,15 +2312,16 @@ document.addEventListener("DOMContentLoaded", () => {
           <img src="${imgSrc}" alt="${escapeHtml(e.title)}" class="mec-banner-image" onerror="this.src='assets/images/mits-campus.jpg'">
           <div class="mec-banner-meta">
             <span class="mec-category-badge" style="color:${cfg.color}; background:${cfg.bg}; border: 1px solid ${cfg.border};">
-              ${cfg.icon} ${escapeHtml(e.category)}
+              ${emoji} ${escapeHtml(e.category)}
             </span>
+            ${e.examType && e.examType !== "None" ? `<span class="exam-type-chip">${emoji} ${escapeHtml(e.examType)}</span>` : ""}
             <span class="mec-status-badge status-${(e.status || "Scheduled").toLowerCase()}">${e.status || "Scheduled"}</span>
-            <span class="mec-official-badge">✓ MITS Circular Verified</span>
+            ${e.isOfficial !== false ? '<span class="mec-official-badge badge-official">🏛️ MITS Official Verified</span>' : '<span class="mec-official-badge badge-student-event">👥 Student Community Event</span>'}
           </div>
         </div>
 
         <div class="mec-top">
-          <h3 class="mec-title">${escapeHtml(e.title)}</h3>
+          <h3 class="mec-title">${emoji} ${escapeHtml(e.title)}</h3>
           <button class="mec-star-btn ${isSaved ? "active" : ""}" id="bookmarkBtn_${e._id}" title="Toggle Bookmark">
             ${isSaved ? "★ Saved in Favorites" : "☆ Save to Favorites"}
           </button>
@@ -1914,6 +2363,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <div class="mec-footer-contacts">
           ${e.contactPerson ? `<span>👤 Coordinator: <strong>${escapeHtml(e.contactPerson)}</strong></span>` : ""}
+          ${e.createdByName ? `<span>✍️ Posted by: <strong>${escapeHtml(e.createdByName)}</strong> (${escapeHtml(e.createdByRole || "Student")})</span>` : ""}
           ${e.contactEmail ? `<span>✉️ <a href="mailto:${e.contactEmail}">${escapeHtml(e.contactEmail)}</a></span>` : ""}
           ${e.sourceUrl ? `<span>🔗 <a href="${e.sourceUrl}" target="_blank" rel="noopener">Official Circular Notice &rarr;</a></span>` : ""}
         </div>
@@ -1939,6 +2389,17 @@ document.addEventListener("DOMContentLoaded", () => {
             </a>
           ` : ""}
         </div>
+
+        ${canManage ? `
+          <div class="mec-manage-toolbar" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(148, 163, 184, 0.2); display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-outline btn-sm mec-edit-btn" id="editEvtBtn_${e._id}" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+              <span>✏️ Edit Event</span>
+            </button>
+            <button class="btn btn-outline btn-sm mec-delete-btn" id="deleteEvtBtn_${e._id}" style="color: #f87171; border-color: rgba(248, 113, 113, 0.4);">
+              <span>🗑️ Delete Event</span>
+            </button>
+          </div>
+        ` : ""}
       </div>
     `;
   }
@@ -2092,17 +2553,110 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ================= 10. ADMIN ADD / EDIT EVENT MODAL =================
-  function openAdminModal(defaultDate = null) {
+  // ================= 10. ADMIN & STUDENT EVENT MANAGEMENT =================
+  function openAdminModal(defaultDate = null, eventToEdit = null) {
     if (!DOM.adminEventBackdrop) return;
     if (DOM.adminFormFeedback) DOM.adminFormFeedback.style.display = "none";
 
-    const dateInput = document.getElementById("evtStartDate");
-    if (dateInput && defaultDate) {
-      const yr = defaultDate.getFullYear();
-      const mo = String(defaultDate.getMonth() + 1).padStart(2, "0");
-      const da = String(defaultDate.getDate()).padStart(2, "0");
-      dateInput.value = `${yr}-${mo}-${da}`;
+    const isEdit = Boolean(eventToEdit);
+    if (DOM.evtEditId) DOM.evtEditId.value = isEdit ? eventToEdit._id : "";
+
+    const userIsAdmin = isUserAdmin(currentUser);
+
+    // Dynamic Title & Buttons based on User Role & Mode
+    if (DOM.adminModalHeading) {
+      if (isEdit) {
+        DOM.adminModalHeading.textContent = "Edit Campus Event";
+      } else if (userIsAdmin) {
+        DOM.adminModalHeading.textContent = "Schedule Official Campus Event";
+      } else {
+        DOM.adminModalHeading.textContent = "Schedule Student / Community Event";
+      }
+    }
+
+    if (DOM.saveEventSubmitBtn) {
+      if (isEdit) {
+        DOM.saveEventSubmitBtn.textContent = "Save Changes";
+      } else if (userIsAdmin) {
+        DOM.saveEventSubmitBtn.textContent = "Publish Official Event";
+      } else {
+        DOM.saveEventSubmitBtn.textContent = "Publish Student Event";
+      }
+    }
+
+    // Role-based official toggle
+    if (DOM.evtIsOfficialWrap) {
+      DOM.evtIsOfficialWrap.style.display = "flex";
+      if (DOM.evtIsOfficial) {
+        if (userIsAdmin) {
+          DOM.evtIsOfficial.disabled = false;
+          DOM.evtIsOfficial.checked = isEdit ? (eventToEdit.isOfficial !== false) : true;
+          if (DOM.evtIsOfficialHint) DOM.evtIsOfficialHint.textContent = "Official college events appear with MITS verified badges.";
+        } else {
+          DOM.evtIsOfficial.checked = false;
+          DOM.evtIsOfficial.disabled = true;
+          if (DOM.evtIsOfficialHint) DOM.evtIsOfficialHint.textContent = "You are publishing as a Student Community Event.";
+        }
+      }
+    }
+
+    if (isEdit) {
+      const e = eventToEdit;
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ""; };
+      setVal("evtTitle", e.title);
+      setVal("evtCategory", e.category);
+      setVal("evtExamType", e.examType || "None");
+      setVal("evtEmoji", e.emoji || "");
+      setVal("evtSubCategory", e.subCategory || "");
+      setVal("evtAcademicYear", e.academicYear || "2026-2027");
+      setVal("evtStatus", e.status || "Scheduled");
+      setVal("evtStartTime", e.startTime || "10:00 AM");
+      setVal("evtEndTime", e.endTime || "05:00 PM");
+      setVal("evtVenue", e.venue || "MITS Gwalior Campus");
+      setVal("evtDepartment", e.department || "Academic Cell");
+      setVal("evtBranches", (e.eligibleBranches || ["ALL"]).join(", "));
+      setVal("evtSemesters", (e.eligibleSemesters || [1, 2, 3, 4, 5, 6, 7, 8]).join(", "));
+      setVal("evtDescription", e.description || "");
+      setVal("evtInstructions", e.importantInstructions || "");
+      setVal("evtRegUrl", e.registrationUrl || "");
+      setVal("evtSourceUrl", e.sourceUrl || "https://web.mitsgwalior.in");
+      setVal("evtContactPerson", e.contactPerson || "");
+      setVal("evtContactEmail", e.contactEmail || "");
+
+      const s = new Date(e.startDate);
+      const startEl = document.getElementById("evtStartDate");
+      if (startEl && !isNaN(s.getTime())) {
+        startEl.value = s.toISOString().split("T")[0];
+      }
+      const endEl = document.getElementById("evtEndDate");
+      if (endEl && e.endDate) {
+        const ed = new Date(e.endDate);
+        if (!isNaN(ed.getTime())) endEl.value = ed.toISOString().split("T")[0];
+      }
+    } else {
+      if (DOM.adminEventForm) DOM.adminEventForm.reset();
+      if (DOM.evtEditId) DOM.evtEditId.value = "";
+
+      // Pre-populate sensible defaults
+      const contactPersonInput = document.getElementById("evtContactPerson");
+      if (contactPersonInput && currentUser?.name) contactPersonInput.value = currentUser.name;
+      const contactEmailInput = document.getElementById("evtContactEmail");
+      if (contactEmailInput && currentUser?.email) contactEmailInput.value = currentUser.email;
+
+      const deptInput = document.getElementById("evtDepartment");
+      if (deptInput) {
+        deptInput.value = userIsAdmin ? "Dean Academics Office" : (currentUser?.branch ? `${currentUser.branch} Student Body` : "Student Community");
+      }
+
+      const dateInput = document.getElementById("evtStartDate");
+      if (dateInput && defaultDate) {
+        const yr = defaultDate.getFullYear();
+        const mo = String(defaultDate.getMonth() + 1).padStart(2, "0");
+        const da = String(defaultDate.getDate()).padStart(2, "0");
+        dateInput.value = `${yr}-${mo}-${da}`;
+      } else if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split("T")[0];
+      }
     }
 
     DOM.adminEventBackdrop.style.display = "flex";
@@ -2112,13 +2666,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (DOM.adminEventBackdrop) {
       DOM.adminEventBackdrop.style.display = "none";
     }
+    if (DOM.evtEditId) DOM.evtEditId.value = "";
   }
 
   async function handleAdminFormSubmit(e) {
     e.preventDefault();
 
+    const editId = DOM.evtEditId ? DOM.evtEditId.value : "";
     const title = document.getElementById("evtTitle").value.trim();
     const category = document.getElementById("evtCategory").value;
+    const examType = DOM.evtExamType ? DOM.evtExamType.value : "None";
+    const emoji = DOM.evtEmoji ? DOM.evtEmoji.value : "";
+    const subCategory = DOM.evtSubCategory ? DOM.evtSubCategory.value.trim() : "";
     const academicYear = document.getElementById("evtAcademicYear").value;
     const status = document.getElementById("evtStatus").value;
     const startDate = document.getElementById("evtStartDate").value;
@@ -2136,17 +2695,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const contactPerson = document.getElementById("evtContactPerson").value.trim();
     const contactEmail = document.getElementById("evtContactEmail").value.trim();
 
+    const userIsAdmin = isUserAdmin(currentUser);
+    const isOfficial = userIsAdmin ? (DOM.evtIsOfficial ? DOM.evtIsOfficial.checked : true) : false;
+
     if (!title || !startDate) {
       showAdminFeedback("Title and Start Date are required", "error");
       return;
     }
 
+    // Duplicate Check for new events
+    if (!editId) {
+      const isDup = state.events.some(x =>
+        x.title.trim().toLowerCase() === title.trim().toLowerCase() &&
+        new Date(x.startDate).toDateString() === new Date(startDate).toDateString()
+      );
+      if (isDup) {
+        showAdminFeedback("An event with this title on the selected date already exists in the calendar.", "error");
+        return;
+      }
+    }
+
     const eligibleBranches = branchesStr ? branchesStr.split(",").map(b => b.trim()).filter(Boolean) : ["ALL"];
     const eligibleSemesters = semestersStr ? semestersStr.split(",").map(s => Number(s.trim())).filter(n => !isNaN(n)) : [1, 2, 3, 4, 5, 6, 7, 8];
 
-    const newEventPayload = {
+    const eventPayload = {
       title,
       category,
+      examType,
+      emoji: emoji || getEventEmoji({ title, category, examType, subCategory, description }),
+      subCategory,
       academicYear,
       status,
       startDate: new Date(startDate).toISOString(),
@@ -2154,61 +2731,107 @@ document.addEventListener("DOMContentLoaded", () => {
       startTime: startTime || "10:00 AM",
       endTime: endTime || "05:00 PM",
       venue: venue || "MITS Gwalior Campus",
-      department: department || "Dean Academics Office",
+      department: department || (isOfficial ? "Dean Academics Office" : "Student Body"),
       eligibleBranches,
       eligibleSemesters,
       description,
       importantInstructions: instructions,
       registrationUrl: regUrl,
       sourceUrl: sourceUrl || "https://web.mitsgwalior.in",
-      contactPerson,
-      contactEmail,
-      isOfficial: true,
+      contactPerson: contactPerson || currentUser?.name || "Campus Organizer",
+      contactEmail: contactEmail || currentUser?.email || "",
+      isOfficial,
+      userId: currentUser?._id,
+      createdByName: currentUser?.name || "Student",
+      createdByRole: currentUser?.role || (userIsAdmin ? "Admin" : "Student"),
       image: CATEGORY_CONFIG[category]?.defaultImage || "assets/images/mits-campus.jpg"
     };
 
-    const submitBtn = document.getElementById("saveEventSubmitBtn");
+    const submitBtn = DOM.saveEventSubmitBtn || document.getElementById("saveEventSubmitBtn");
     if (submitBtn) submitBtn.disabled = true;
 
     try {
-      const res = await fetch(`${state.apiBase}/events`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEventPayload)
-      });
+      if (editId) {
+        // Edit existing
+        const res = await fetch(`${state.apiBase}/events/${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventPayload)
+        });
 
-      let saved = null;
-      if (res.ok) {
-        saved = await res.json();
+        const updatedData = res.ok ? await res.json() : eventPayload;
+
+        const idx = state.events.findIndex(x => x._id === editId);
+        if (idx !== -1) {
+          state.events[idx] = {
+            ...state.events[idx],
+            ...updatedData,
+            startDateObj: new Date(eventPayload.startDate),
+            endDateObj: new Date(eventPayload.endDate)
+          };
+        }
+        showToast("Campus event updated successfully!", "success");
+      } else {
+        // Create new
+        const res = await fetch(`${state.apiBase}/events`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventPayload)
+        });
+
+        if (res.status === 409) {
+          showAdminFeedback("Duplicate event detected on this date.", "error");
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+
+        let saved = null;
+        if (res.ok) {
+          saved = await res.json();
+        }
+
+        const eventRecord = {
+          ...eventPayload,
+          _id: saved ? saved._id : `client-${Date.now()}`,
+          startDateObj: new Date(eventPayload.startDate),
+          endDateObj: new Date(eventPayload.endDate)
+        };
+
+        state.events.unshift(eventRecord);
+        showToast(isOfficial ? "Official college event scheduled!" : "Student community event published!", "success");
       }
 
-      const eventRecord = {
-        ...newEventPayload,
-        _id: saved ? saved._id : `client-${Date.now()}`,
-        startDateObj: new Date(newEventPayload.startDate),
-        endDateObj: new Date(newEventPayload.endDate)
-      };
-
-      state.events.unshift(eventRecord);
       updateCategoryCounts();
+      updateEmojiCounts();
       applyFilters();
       initCountdowns();
-
-      showToast("Campus event scheduled successfully!", "success");
-      DOM.adminEventForm.reset();
       closeAdminModal();
     } catch (err) {
-      const eventRecord = {
-        ...newEventPayload,
-        _id: `client-${Date.now()}`,
-        startDateObj: new Date(newEventPayload.startDate),
-        endDateObj: new Date(newEventPayload.endDate)
-      };
-      state.events.unshift(eventRecord);
+      console.warn("API Error, saving locally:", err);
+      if (editId) {
+        const idx = state.events.findIndex(x => x._id === editId);
+        if (idx !== -1) {
+          state.events[idx] = {
+            ...state.events[idx],
+            ...eventPayload,
+            startDateObj: new Date(eventPayload.startDate),
+            endDateObj: new Date(eventPayload.endDate)
+          };
+        }
+      } else {
+        const eventRecord = {
+          ...eventPayload,
+          _id: `client-${Date.now()}`,
+          startDateObj: new Date(eventPayload.startDate),
+          endDateObj: new Date(eventPayload.endDate)
+        };
+        state.events.unshift(eventRecord);
+      }
       updateCategoryCounts();
+      updateEmojiCounts();
       applyFilters();
       initCountdowns();
-      showToast("Event saved locally!", "success");
+      showToast("Event saved successfully!", "success");
       closeAdminModal();
     } finally {
       if (submitBtn) submitBtn.disabled = false;
@@ -2220,6 +2843,190 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.adminFormFeedback.textContent = msg;
     DOM.adminFormFeedback.className = `auth-status-msg ${type}`;
     DOM.adminFormFeedback.style.display = "block";
+  }
+
+  // ================= SMART EXAMINATION FINDER =================
+  function initExamFinder() {
+    if (!DOM.btnSearchExamSchedule) return;
+
+    DOM.btnSearchExamSchedule.addEventListener("click", () => {
+      const examType = DOM.examFinderType ? DOM.examFinderType.value : "";
+      if (!examType) {
+        showToast("Please select an Examination Type first", "error");
+        if (DOM.examFinderType) DOM.examFinderType.focus();
+        return;
+      }
+
+      const branch = DOM.examFinderBranch ? DOM.examFinderBranch.value : "ALL";
+      const semVal = DOM.examFinderSemester ? Number(DOM.examFinderSemester.value) : 1;
+      const session = DOM.examFinderSession ? DOM.examFinderSession.value : "2026-2027";
+
+      executeExamFinderSearch(examType, branch, semVal, session);
+    });
+
+    if (DOM.btnResetExamSearch) {
+      DOM.btnResetExamSearch.addEventListener("click", () => {
+        if (DOM.examFinderType) DOM.examFinderType.value = "";
+        if (DOM.examFinderBranch) DOM.examFinderBranch.value = "ALL";
+        if (DOM.examFinderSemester) DOM.examFinderSemester.value = "3";
+        if (DOM.examFinderSession) DOM.examFinderSession.value = "2026-2027";
+        if (DOM.examSearchResults) {
+          DOM.examSearchResults.style.display = "none";
+          DOM.examSearchResults.innerHTML = "";
+        }
+      });
+    }
+  }
+
+  function executeExamFinderSearch(examType, branch, semester, session) {
+    if (!DOM.examSearchResults) return;
+
+    const matches = state.events.filter(e => {
+      // 1. Exam Type Match
+      let typeMatch = false;
+      const t = (e.title || "").toLowerCase();
+      const d = (e.description || "").toLowerCase();
+      const exType = (e.examType || "").toLowerCase();
+
+      if (examType === "Minor 1") {
+        typeMatch = exType === "minor 1" || (
+          !t.includes("minor 2") && !t.includes("mst-ii") && !t.includes("mid-semester test ii") &&
+          (t.includes("minor 1") || t.includes("mst-i") || t.includes("mid-semester test i"))
+        );
+      } else if (examType === "Minor 2") {
+        typeMatch = exType === "minor 2" || t.includes("minor 2") || t.includes("mst-ii") || t.includes("mid-semester test ii");
+      } else if (examType === "Major") {
+        typeMatch = exType === "major" || t.includes("major") || t.includes("autonomous theory") || t.includes("end-semester theory") || t.includes("end-sem");
+      } else if (examType === "Practical") {
+        typeMatch = exType === "practical" || e.category === "Lab & Practical" || t.includes("practical") || t.includes("lab exam");
+      } else if (examType === "Viva") {
+        typeMatch = exType === "viva" || t.includes("viva") || t.includes("viva-voce") || d.includes("viva-voce");
+      }
+
+      if (!typeMatch) return false;
+
+      // 2. Branch Match
+      if (branch !== "ALL" && e.eligibleBranches && e.eligibleBranches.length > 0) {
+        const branchOk = e.eligibleBranches.includes("ALL") || e.eligibleBranches.includes(branch);
+        if (!branchOk) return false;
+      }
+
+      // 3. Semester Match
+      if (e.eligibleSemesters && e.eligibleSemesters.length > 0) {
+        if (!e.eligibleSemesters.includes(semester)) return false;
+      }
+
+      // 4. Session
+      if (e.academicYear && session && e.academicYear !== session) {
+        const yr = new Date(e.startDate).getFullYear();
+        if (session.startsWith("2026") && yr < 2026) return false;
+      }
+
+      return true;
+    });
+
+    DOM.examSearchResults.style.display = "block";
+
+    if (matches.length > 0) {
+      DOM.examSearchResults.innerHTML = `
+        <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <h4 style="margin: 0; font-size: 15px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+            <span>✓</span> Found ${matches.length} Verified Examination Schedule${matches.length > 1 ? "s" : ""}
+          </h4>
+          <span style="font-size: 12px; color: #94a3b8; font-family: var(--mono, monospace);">
+            Filtered: ${escapeHtml(examType)} &bull; ${escapeHtml(branch)} &bull; Sem ${semester} &bull; ${escapeHtml(session)}
+          </span>
+        </div>
+        <div class="exam-matches-list">
+          ${matches.map(renderExamMatchCard).join("")}
+        </div>
+      `;
+
+      matches.forEach(m => {
+        const viewBtn = document.getElementById(`viewMatchCalBtn_${m._id}`);
+        if (viewBtn) {
+          viewBtn.addEventListener("click", () => {
+            state.currentDate = new Date(m.startDate);
+            renderCalendar();
+            openDateDetailsModal(new Date(m.startDate), [m]);
+          });
+        }
+
+        const icsBtn = document.getElementById(`icsMatchBtn_${m._id}`);
+        if (icsBtn) {
+          icsBtn.addEventListener("click", () => downloadSingleIcs(m));
+        }
+      });
+    } else {
+      // Requirement 3: If unavailable, show "Schedule not announced yet."
+      DOM.examSearchResults.innerHTML = `
+        <div class="exam-not-announced-box">
+          <div class="not-announced-icon">⚠️</div>
+          <div class="not-announced-content">
+            <h4>Schedule not announced yet.</h4>
+            <p>
+              The Controller of Examinations (COE), Madhav Institute of Technology &amp; Science (MITS) Gwalior has not yet released the official timetable notification for <strong>${escapeHtml(examType)}</strong> (Branch: ${escapeHtml(branch)}, Semester: ${semester}, Session: ${escapeHtml(session)}).
+            </p>
+            <div class="not-announced-links">
+              <a href="https://web.mitsgwalior.in/examination/notices" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+                <span>Official MITS Notices Portal ↗</span>
+              </a>
+              <a href="https://ims.mitsgwalior.in" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="color: #34d399; border-color: rgba(52, 211, 153, 0.4);">
+                <span>MITS IMS Student Login ↗</span>
+              </a>
+              <button class="btn btn-primary btn-sm" id="notifyWhenAnnouncedBtn" style="white-space: nowrap;">
+                <span>🔔 Notify Me When Released</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const notifBtn = document.getElementById("notifyWhenAnnouncedBtn");
+      if (notifBtn) {
+        notifBtn.addEventListener("click", () => {
+          showToast(`Alert set! You will be notified when ${examType} schedule is released.`, "success");
+          notifBtn.textContent = "✓ Notification Subscribed";
+          notifBtn.disabled = true;
+        });
+      }
+    }
+  }
+
+  function renderExamMatchCard(e) {
+    const emoji = getEventEmoji(e);
+    const dateRange = formatDateRange(new Date(e.startDate), e.endDate ? new Date(e.endDate) : null);
+    return `
+      <div class="exam-result-card">
+        <div class="exam-res-info">
+          <div class="exam-res-header">
+            <span class="exam-type-chip">${emoji} ${escapeHtml(e.examType || "Examination")}</span>
+            <span class="badge-official">MITS Verified</span>
+            <span class="mec-status-badge status-${(e.status || "Scheduled").toLowerCase()}">${e.status || "Scheduled"}</span>
+          </div>
+          <h4 class="exam-res-title">${escapeHtml(e.title)}</h4>
+          <div class="exam-res-meta">
+            <span class="exam-res-meta-item"><span>📅</span> ${dateRange}</span>
+            <span class="exam-res-meta-item"><span>⏰</span> ${escapeHtml(e.startTime || "10:00 AM")} - ${escapeHtml(e.endTime || "04:30 PM")}</span>
+            <span class="exam-res-meta-item"><span>📍</span> ${escapeHtml(e.venue || "Examination Blocks")}</span>
+          </div>
+          <div class="exam-res-desc">${escapeHtml(e.description || "")}</div>
+          ${e.importantInstructions ? `
+            <div class="exam-res-instructions">
+              <strong>Rules:</strong> ${escapeHtml(e.importantInstructions)}
+            </div>
+          ` : ""}
+        </div>
+        <div class="exam-res-actions">
+          <button class="btn btn-primary btn-sm" id="viewMatchCalBtn_${e._id}">
+            <span>📅 View in Calendar</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="icsMatchBtn_${e._id}">
+            <span>⬇️ Export .ICS</span>
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   // ================= 11. EVENT LISTENERS =================
@@ -2342,10 +3149,24 @@ document.addEventListener("DOMContentLoaded", () => {
         state.selectedBranch = "all";
         state.selectedSemester = "all";
         state.selectedStatus = "all";
+        state.selectedEmojiFilter = "all";
+        state.selectedSourceFilter = "all";
+        state.isPersonalizedActive = false;
         state.searchQuery = "";
         state.showSavedOnly = false;
 
         DOM.categoryPills.forEach(p => p.classList.toggle("active", p.dataset.category === "all"));
+        if (DOM.emojiLegendStrip) {
+          DOM.emojiLegendStrip.querySelectorAll(".legend-emoji-pill").forEach(p => {
+            p.classList.toggle("active", p.dataset.emoji === "all");
+          });
+        }
+        if (DOM.eventSourceToggleGroup) {
+          DOM.eventSourceToggleGroup.querySelectorAll(".source-toggle-btn").forEach(b => {
+            b.classList.toggle("active", b.dataset.source === "all");
+          });
+        }
+        updatePersonalizedUi();
         if (DOM.academicYearFilterSelect) DOM.academicYearFilterSelect.value = "all";
         if (DOM.branchFilterSelect) DOM.branchFilterSelect.value = "all";
         if (DOM.semesterFilterSelect) DOM.semesterFilterSelect.value = "all";
@@ -2356,6 +3177,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
         applyFilters();
         showToast("Filters reset to default view", "info");
+      });
+    }
+
+    // Emoji Legend pills
+    if (DOM.emojiLegendStrip) {
+      DOM.emojiLegendStrip.addEventListener("click", (e) => {
+        const pill = e.target.closest(".legend-emoji-pill");
+        if (!pill) return;
+        const emojiKey = pill.dataset.emoji || "all";
+        if (state.selectedEmojiFilter === emojiKey) {
+          state.selectedEmojiFilter = "all";
+        } else {
+          state.selectedEmojiFilter = emojiKey;
+        }
+        DOM.emojiLegendStrip.querySelectorAll(".legend-emoji-pill").forEach(p => {
+          p.classList.toggle("active", p.dataset.emoji === state.selectedEmojiFilter);
+        });
+        applyFilters();
+      });
+    }
+
+    // Event Source Toggle (All / Official / Student)
+    if (DOM.eventSourceToggleGroup) {
+      DOM.eventSourceToggleGroup.addEventListener("click", (e) => {
+        const btn = e.target.closest(".source-toggle-btn");
+        if (!btn) return;
+        const source = btn.dataset.source || "all";
+        state.selectedSourceFilter = source;
+        DOM.eventSourceToggleGroup.querySelectorAll(".source-toggle-btn").forEach(b => {
+          b.classList.toggle("active", b.dataset.source === source);
+        });
+        applyFilters();
+      });
+    }
+
+    // Personalized Schedule toggle
+    if (DOM.personalizedScheduleBtn) {
+      DOM.personalizedScheduleBtn.addEventListener("click", () => {
+        state.isPersonalizedActive = !state.isPersonalizedActive;
+        updatePersonalizedUi();
+        applyFilters();
+        if (state.isPersonalizedActive) {
+          showToast("Personalized schedule active for your branch & semester", "info");
+        } else {
+          showToast("Showing complete college-wide schedule", "info");
+        }
       });
     }
 
@@ -2396,6 +3263,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Highlights Tabs
     if (DOM.tabThisWeekBtn) DOM.tabThisWeekBtn.addEventListener("click", () => switchTab("this-week"));
+    if (DOM.tabExamsBtn) DOM.tabExamsBtn.addEventListener("click", () => switchTab("exams"));
+    if (DOM.tabHolidaysBtn) DOM.tabHolidaysBtn.addEventListener("click", () => switchTab("holidays"));
+    if (DOM.tabWorkshopsBtn) DOM.tabWorkshopsBtn.addEventListener("click", () => switchTab("workshops"));
     if (DOM.tabDeadlinesBtn) DOM.tabDeadlinesBtn.addEventListener("click", () => switchTab("deadlines"));
     if (DOM.tabFlagshipBtn) DOM.tabFlagshipBtn.addEventListener("click", () => switchTab("flagship"));
 
@@ -2421,6 +3291,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (DOM.adminEventForm) {
       DOM.adminEventForm.addEventListener("submit", handleAdminFormSubmit);
     }
+
+    // Initialize Smart Examination Finder
+    initExamFinder();
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {

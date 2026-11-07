@@ -191,6 +191,97 @@
         </div>
       </section>
 
+      <!-- ================= SMART EXAMINATION SCHEDULE FINDER ================= -->
+      <section class="smart-exam-finder-section" id="smartExamFinderSection" aria-label="Smart Examination Search">
+        <div class="exam-finder-header">
+          <div class="exam-finder-title-wrap">
+            <span class="exam-finder-badge">
+              <span>🔍</span> Official Autonomous Exam Timetable
+            </span>
+            <h3 class="exam-finder-title">Smart Examination Schedule Finder</h3>
+            <p class="exam-finder-subtitle">
+              Select your exam type, branch, semester, and session to instantly find verified MITS Gwalior examination schedules.
+            </p>
+          </div>
+          <div class="exam-finder-header-right">
+            <span class="meta-tag" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
+              <span>🛡️</span> Verified Autonomous OBE Schedule
+            </span>
+          </div>
+        </div>
+
+        <div class="exam-finder-controls">
+          <!-- Exam Type -->
+          <div class="finder-field-group">
+            <label class="finder-field-label" for="examFinderType">1. Examination Type *</label>
+            <select class="finder-select" id="examFinderType">
+              <option value="" disabled selected>-- Select Exam Type --</option>
+              <option value="Minor 1">📝 Minor 1 (MST-I Assessment)</option>
+              <option value="Minor 2">📝 Minor 2 (MST-II Assessment)</option>
+              <option value="Major">📖 Major (Autonomous Theory)</option>
+              <option value="Practical">🔬 Practical Examination</option>
+              <option value="Viva">🎤 Viva-Voce Evaluation</option>
+            </select>
+          </div>
+
+          <!-- Branch -->
+          <div class="finder-field-group">
+            <label class="finder-field-label" for="examFinderBranch">2. Engineering Branch *</label>
+            <select class="finder-select" id="examFinderBranch">
+              <option value="ALL">All Branches (Common/Autonomous)</option>
+              <option value="CSE">CSE - Computer Science &amp; Engg</option>
+              <option value="IT">IT - Information Technology</option>
+              <option value="AI-DS">AI-DS - AI &amp; Data Science</option>
+              <option value="CSD">CSD - Computer Science &amp; Design</option>
+              <option value="ECE">ECE - Electronics &amp; Communication</option>
+              <option value="EE">EE - Electrical Engineering</option>
+              <option value="ME">ME - Mechanical Engineering</option>
+              <option value="CE">CE - Civil Engineering</option>
+              <option value="MAC">MAC - Mathematics &amp; Computing</option>
+            </select>
+          </div>
+
+          <!-- Semester -->
+          <div class="finder-field-group">
+            <label class="finder-field-label" for="examFinderSemester">3. Semester *</label>
+            <select class="finder-select" id="examFinderSemester">
+              <option value="1">Semester 1 (Freshers)</option>
+              <option value="2">Semester 2</option>
+              <option value="3" selected>Semester 3 (Sophomores)</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5 (Pre-Final)</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7 (Final Year)</option>
+              <option value="8">Semester 8 (Final Year)</option>
+            </select>
+          </div>
+
+          <!-- Academic Session -->
+          <div class="finder-field-group">
+            <label class="finder-field-label" for="examFinderSession">4. Academic Session *</label>
+            <select class="finder-select" id="examFinderSession">
+              <option value="2026-2027" selected>2026 - 2027 (Active Session)</option>
+              <option value="2025-2026">2025 - 2026</option>
+              <option value="2024-2025">2024 - 2025</option>
+            </select>
+          </div>
+
+          <div class="exam-finder-actions">
+            <button class="btn btn-primary" id="btnSearchExamSchedule" style="white-space: nowrap;">
+              <span>🔍 Find Schedule</span>
+            </button>
+            <button class="btn btn-outline" id="btnResetExamSearch" title="Clear Search">
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Results Container -->
+        <div class="exam-results-container" id="examSearchResults" style="display: none;">
+          <!-- Dynamically populated or 'Schedule not announced yet.' -->
+        </div>
+      </section>
+
       <!-- Calendar Controls & Navigation Panel -->
       <section class="calendar-control-panel">
         <div class="calendar-nav-group">
@@ -273,6 +364,68 @@
         </button>
       </nav>
 
+      <!-- ================= INTERACTIVE EMOJI INDICATOR LEGEND ================= -->
+      <section class="emoji-legend-container" aria-label="Emoji Indicator Legend">
+        <div class="emoji-legend-header">
+          <div class="emoji-legend-title">
+            <span>✨</span> <span>Verified Event Indicators (Click to Filter)</span>
+          </div>
+          <span class="emoji-legend-hint">Official MITS Gwalior Emoji Categorization</span>
+        </div>
+        <div class="emoji-legend-strip" id="emojiLegendStrip">
+          <button class="legend-emoji-pill active" data-emoji-filter="all">
+            <span class="l-emoji">🌈</span>
+            <span>All Indicators</span>
+            <span class="l-count" id="countEmojiAll">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🎉" title="General holidays">
+            <span class="l-emoji">🎉</span>
+            <span>General Holidays</span>
+            <span class="l-count" id="countEmojiGenHoliday">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🇮🇳" title="National holidays">
+            <span class="l-emoji">🇮🇳</span>
+            <span>National Holidays</span>
+            <span class="l-count" id="countEmojiNatHoliday">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🪔" title="Festivals">
+            <span class="l-emoji">🪔</span>
+            <span>Festivals</span>
+            <span class="l-count" id="countEmojiFestival">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="📝" title="Minor exams">
+            <span class="l-emoji">📝</span>
+            <span>Minor Exams</span>
+            <span class="l-count" id="countEmojiMinorExam">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="📖" title="Major exams">
+            <span class="l-emoji">📖</span>
+            <span>Major Exams</span>
+            <span class="l-count" id="countEmojiMajorExam">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🔬" title="Practical exams">
+            <span class="l-emoji">🔬</span>
+            <span>Practical Exams</span>
+            <span class="l-count" id="countEmojiPractical">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🎤" title="Viva">
+            <span class="l-emoji">🎤</span>
+            <span>Viva</span>
+            <span class="l-count" id="countEmojiViva">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="🎓" title="College events">
+            <span class="l-emoji">🎓</span>
+            <span>College Events</span>
+            <span class="l-count" id="countEmojiCollege">0</span>
+          </button>
+          <button class="legend-emoji-pill" data-emoji-filter="💻" title="Hackathons and workshops">
+            <span class="l-emoji">💻</span>
+            <span>Hackathons &amp; Workshops</span>
+            <span class="l-count" id="countEmojiHackathon">0</span>
+          </button>
+        </div>
+      </section>
+
       <!-- Multi-Filter Toolbar (Academic Year, Branch, Semester, Status, Search) -->
       <div class="events-filter-toolbar">
         <div class="search-box">
@@ -282,6 +435,19 @@
         </div>
 
         <div class="filter-dropdowns">
+          <!-- Event Source (Official vs Student) -->
+          <div class="event-source-toggle-group" id="eventSourceToggleGroup" role="group" aria-label="Event Source">
+            <button class="source-toggle-btn active" data-source="all" type="button">All Events</button>
+            <button class="source-toggle-btn" data-source="official" type="button">🏛️ Official</button>
+            <button class="source-toggle-btn" data-source="student" type="button">👥 Student</button>
+          </div>
+
+          <!-- Personalized Schedule 1-Click Toggle -->
+          <button class="personalized-schedule-pill" id="personalizedScheduleBtn" type="button" title="Show schedules tailored to my branch & semester">
+            <span>🎯 My Schedule</span>
+            <span id="personalizedScheduleLabel"></span>
+          </button>
+
           <!-- Academic Year Filter -->
           <div class="select-wrapper">
             <select id="academicYearFilterSelect" aria-label="Filter by Academic Year">
@@ -416,12 +582,24 @@
             <span>📅 Happening This Week at MITS</span>
             <span class="badge-mini" id="badgeThisWeek">0</span>
           </button>
+          <button class="h-tab" data-tab="exams" id="tabExamsBtn">
+            <span>📝 Upcoming Examinations</span>
+            <span class="badge-mini" id="badgeExams">0</span>
+          </button>
+          <button class="h-tab" data-tab="holidays" id="tabHolidaysBtn">
+            <span>🌴 Upcoming Holidays &amp; Festivals</span>
+            <span class="badge-mini" id="badgeHolidays">0</span>
+          </button>
+          <button class="h-tab" data-tab="workshops" id="tabWorkshopsBtn">
+            <span>💻 Workshops &amp; Hackathons</span>
+            <span class="badge-mini" id="badgeWorkshops">0</span>
+          </button>
           <button class="h-tab" data-tab="deadlines" id="tabDeadlinesBtn">
             <span>⏳ Urgent Academic Deadlines</span>
             <span class="badge-mini" id="badgeDeadlines">0</span>
           </button>
           <button class="h-tab" data-tab="flagship" id="tabFlagshipBtn">
-            <span>🏆 Flagship Fests &amp; Hackathons</span>
+            <span>🏆 Flagship Fests</span>
             <span class="badge-mini" id="badgeFlagship">0</span>
           </button>
         </div>
@@ -433,14 +611,35 @@
           </div>
         </div>
 
-        <!-- Tab Pane 2: Urgent Deadlines -->
+        <!-- Tab Pane 2: Upcoming Examinations -->
+        <div class="h-tab-pane" id="paneExams" style="display: none;">
+          <div class="highlight-cards-grid" id="examsGrid">
+            <!-- Exam cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab Pane 3: Upcoming Holidays & Festivals -->
+        <div class="h-tab-pane" id="paneHolidays" style="display: none;">
+          <div class="highlight-cards-grid" id="holidaysGrid">
+            <!-- Holiday cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab Pane 4: Workshops & Hackathons -->
+        <div class="h-tab-pane" id="paneWorkshops" style="display: none;">
+          <div class="highlight-cards-grid" id="workshopsGrid">
+            <!-- Workshop cards generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab Pane 5: Urgent Deadlines -->
         <div class="h-tab-pane" id="paneDeadlines" style="display: none;">
           <div class="highlight-cards-grid" id="deadlinesGrid">
             <!-- Deadline cards generated dynamically -->
           </div>
         </div>
 
-        <!-- Tab Pane 3: Flagship Fests & Hackathons -->
+        <!-- Tab Pane 6: Flagship Fests & Hackathons -->
         <div class="h-tab-pane" id="paneFlagship" style="display: none;">
           <div class="highlight-cards-grid" id="flagshipGrid">
             <!-- Fest cards generated dynamically -->
@@ -514,6 +713,39 @@
               <option value="Cultural &amp; Sports">Cultural &amp; Sports Fest</option>
               <option value="General">General Campus Activity</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtExamType">Examination Classification</label>
+            <select class="field-input" id="evtExamType">
+              <option value="None" selected>None / Non-Exam Event</option>
+              <option value="Minor 1">📝 Minor 1 (MST-I)</option>
+              <option value="Minor 2">📝 Minor 2 (MST-II)</option>
+              <option value="Major">📖 Major (Autonomous Theory)</option>
+              <option value="Practical">🔬 Practical Examination</option>
+              <option value="Viva">🎤 Viva-Voce Evaluation</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtEmoji">Emoji Indicator *</label>
+            <select class="field-input" id="evtEmoji">
+              <option value="" selected>✨ Auto-detect by Event Type</option>
+              <option value="🎉">🎉 General holidays</option>
+              <option value="🇮🇳">🇮🇳 National holidays</option>
+              <option value="🪔">🪔 Festivals</option>
+              <option value="📝">📝 Minor exams</option>
+              <option value="📖">📖 Major exams</option>
+              <option value="🔬">🔬 Practical exams</option>
+              <option value="🎤">🎤 Viva</option>
+              <option value="🎓">🎓 College events</option>
+              <option value="💻">💻 Hackathons and workshops</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="evtSubCategory">Sub-Category</label>
+            <input class="field-input" type="text" id="evtSubCategory" placeholder="e.g. Festival, MST-I, Hackathon, Convocation">
           </div>
 
           <div class="form-group">
@@ -604,6 +836,19 @@
             <label class="field-label" for="evtContactEmail">Coordinator Email</label>
             <input class="field-input" type="email" id="evtContactEmail" placeholder="coe@mitsgwalior.in">
           </div>
+
+          <div class="form-group" id="evtIsOfficialWrap" style="grid-column: span 2; display: flex; align-items: center; gap: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 10px 14px;">
+            <input type="checkbox" id="evtIsOfficial" style="width: 18px; height: 18px; accent-color: #38bdf8;" checked>
+            <div>
+              <label for="evtIsOfficial" style="font-weight: 600; font-size: 13px; color: #f8fafc; cursor: pointer;">
+                Publish as Official College Event (MITS Verified)
+              </label>
+              <div id="evtIsOfficialHint" style="font-size: 11px; color: #94a3b8;">
+                Official events appear with an official verification badge in academic timelines.
+              </div>
+            </div>
+          </div>
+          <input type="hidden" id="evtEditId" value="">
         </div>
 
         <div id="adminFormFeedback" class="auth-status-msg" style="display: none; margin-top: 14px;"></div>
