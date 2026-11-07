@@ -4,6 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CampusConnect — MITS Gwalior Sign In</title>
+<script>
+  (function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("action") === "switch" || urlParams.get("logout") === "true") {
+      try { localStorage.removeItem("campusConnectUser"); } catch (e) {}
+      return;
+    }
+    try {
+      var raw = localStorage.getItem("campusConnectUser");
+      if (raw) {
+        var u = JSON.parse(raw);
+        if (u && (u.email || u.id || u._id)) {
+          if (u.profileCompleted) {
+            window.location.replace("index.html");
+          } else {
+            window.location.replace("onboarding.html");
+          }
+        }
+      }
+    } catch (e) {}
+  })();
+</script>
 <meta name="google-signin-client_id" content="1045933126405-v406lvthncnld96fpcm1l38pndlr5adi.apps.googleusercontent.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

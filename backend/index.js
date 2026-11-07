@@ -59,18 +59,35 @@ if (mongoUri) {
 const path = require("path");
 const fs = require("fs");
 
-// Serve static frontend files from parent directory (repo root)
-app.use(express.static(path.resolve(__dirname, "..")));
-// Also serve from current directory as fallback
-app.use(express.static(__dirname));
-
-// Health check and root route
+// Main entry point: Serve Sign-In page as the first screen for public visitors
 app.get("/", (req, res) => {
+  const rootLogin = path.resolve(__dirname, "..", "login.html");
+  if (fs.existsSync(rootLogin)) {
+    return res.sendFile(rootLogin);
+  }
   const rootIndex = path.resolve(__dirname, "..", "index.html");
   if (fs.existsSync(rootIndex)) {
     return res.sendFile(rootIndex);
   }
   res.send("CampusConnect backend is running.");
+});
+
+// Explicit route for Sign-In
+app.get("/login", (req, res) => {
+  const rootLogin = path.resolve(__dirname, "..", "login.html");
+  if (fs.existsSync(rootLogin)) {
+    return res.sendFile(rootLogin);
+  }
+  res.redirect("/");
+});
+
+// Explicit route for Dashboard
+app.get("/dashboard", (req, res) => {
+  const rootIndex = path.resolve(__dirname, "..", "index.html");
+  if (fs.existsSync(rootIndex)) {
+    return res.sendFile(rootIndex);
+  }
+  res.redirect("/");
 });
 
 app.get("/api-status", (req, res) => {
@@ -84,6 +101,10 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve static frontend files with index: false so GET / is never intercepted by index.html
+app.use(express.static(path.resolve(__dirname, ".."), { index: false }));
+app.use(express.static(__dirname, { index: false }));
 
 // Route registration
 app.use("/api/users", usersRouter);
