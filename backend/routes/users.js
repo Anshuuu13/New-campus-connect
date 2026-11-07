@@ -92,15 +92,17 @@ router.post("/google-auth", async (req, res) => {
 
     const googleId = payload.sub || payload.id;
     const email = (payload.email || "").toLowerCase().trim();
-    const name = payload.name || payload.given_name || "Student Achiever";
+    const name = payload.name || payload.given_name || "MITS Member";
     const picture = payload.picture || "";
-    const emailVerified = Boolean(payload.email_verified === true || payload.email_verified === "true");
 
-    // REQUIREMENT: College Email Domain Restriction (@mitsgwl.ac.in for students, @mitsgwalior.in for faculty/staff)
-    const isAllowedEmail = email.endsWith("@mitsgwl.ac.in") || email.endsWith("@mitsgwalior.in");
-    if (!isAllowedEmail) {
+    // REQUIREMENT: Allow ALL verified Google accounts ending in @mitsgwl.ac.in (students) and @mitsgwalior.in (professors)
+    // Do NOT restrict access to specific email IDs. Reject all other domains.
+    const isStudent = email.endsWith("@mitsgwl.ac.in") || /@([a-zA-Z0-9-]+\.)*mitsgwl\.ac\.in$/.test(email);
+    const isFaculty = email.endsWith("@mitsgwalior.in") || /@([a-zA-Z0-9-]+\.)*mitsgwalior\.in$/.test(email);
+
+    if (!isStudent && !isFaculty) {
       return res.status(403).json({
-        error: "Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in)."
+        error: "Access restricted. Please sign in using your official institutional Google account ending in @mitsgwl.ac.in (students) or @mitsgwalior.in (faculty)."
       });
     }
 
@@ -112,8 +114,8 @@ router.post("/google-auth", async (req, res) => {
       user = await User.findOne({ googleId });
     }
 
-    // B. If not found by googleId, check by verified email only
-    if (!user && email && emailVerified) {
+    // B. If not found by googleId, check by verified institutional email
+    if (!user && email) {
       user = await User.findOne({
         $or: [{ email: email }, { contactEmail: email }]
       });
@@ -139,10 +141,10 @@ router.post("/google-auth", async (req, res) => {
       }
 
       // Secure Role Assignment:
-      // @mitsgwalior.in is official MITS faculty / professor domain
-      // @mitsgwl.ac.in is official MITS student domain
-      const isFacultyDomain = email.endsWith("@mitsgwalior.in");
-      const assignedRole = isFacultyDomain ? "Professor" : "Student";
+      // ALL @mitsgwalior.in -> Professor
+      // ALL @mitsgwl.ac.in -> Student
+      const assignedRole = isFaculty ? "Professor" : "Student";
+      const assignedDept = isFaculty ? "Academic Faculty" : "Engineering";
 
       user = new User({
         name: finalName,
@@ -150,7 +152,7 @@ router.post("/google-auth", async (req, res) => {
         contactEmail: email,
         googleId: googleId,
         authProvider: "google",
-        department: isFacultyDomain ? "Academic Faculty" : "Engineering",
+        department: assignedDept,
         role: assignedRole,
         profilePicture: picture || "",
         profileCompleted: false
@@ -158,8 +160,10 @@ router.post("/google-auth", async (req, res) => {
       await user.save();
     } else {
       // Returning user: verify role matches institutional email domain
-      if (email.endsWith("@mitsgwalior.in") && user.role !== "Admin" && user.role !== "Professor") {
+      if (isFaculty && user.role !== "Admin" && user.role !== "Professor") {
         user.role = "Professor";
+      } else if (isStudent && user.role !== "Admin" && user.role !== "Student") {
+        user.role = "Student";
       }
       // Refresh profile picture if using Google avatar
       if (picture && (!user.profilePicture || user.profilePicture.includes("googleusercontent.com"))) {
@@ -172,12 +176,18 @@ router.post("/google-auth", async (req, res) => {
     const token = jwt ? jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: "7d" }) : undefined;
     res.json({
       _id: user._id,
+      id: user._id,
       name: user.name,
       department: user.department,
+      branch: user.branch || user.department,
+      year: user.year || "",
+      bio: user.bio || "",
       role: user.role,
       email: user.email || email,
+      contactEmail: user.contactEmail || user.email || email,
       profilePicture: user.profilePicture || picture || "",
       profileCompleted: Boolean(user.profileCompleted),
+      interests: user.interests || [],
       token
     });
   } catch (err) {

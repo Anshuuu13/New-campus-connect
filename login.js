@@ -7,6 +7,14 @@ let tokenClient = null;
 
 // Resolve API base URL: tests localhost:5000 first, falls back to deployed Render API
 async function getApiBase() {
+  if (window.location.port === "5000" || window.location.hostname.includes("onrender.com")) {
+    return "/api";
+  }
+  try {
+    const probe = await fetch("http://localhost:5000/health", { method: "GET", signal: AbortSignal.timeout(800) });
+    if (probe.ok) return "http://localhost:5000/api";
+  } catch (e) {}
+
   if (window.location.protocol === "http:" || window.location.protocol === "https:") {
     return "/api";
   }
@@ -41,6 +49,19 @@ function parseJwt(token) {
   }
 }
 
+// Helpers: Allow ALL accounts ending in @mitsgwl.ac.in (students) and @mitsgwalior.in (professors)
+function isStudentEmail(email) {
+  if (!email) return false;
+  const e = email.toLowerCase().trim();
+  return e.endsWith("@mitsgwl.ac.in") || /@([a-zA-Z0-9-]+\.)*mitsgwl\.ac\.in$/.test(e);
+}
+
+function isFacultyEmail(email) {
+  if (!email) return false;
+  const e = email.toLowerCase().trim();
+  return e.endsWith("@mitsgwalior.in") || /@([a-zA-Z0-9-]+\.)*mitsgwalior\.in$/.test(e);
+}
+
 // Process authenticated Google profile and enforce institutional domain restrictions
 async function processGoogleUser(profile, credential = null, accessToken = null) {
   const email = (profile.email || "").toLowerCase().trim();
@@ -49,14 +70,14 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
   const googleId = profile.sub || profile.id || `google_${Date.now()}`;
 
   // ==============================================================
-  // MITS College Email Restriction (@mitsgwl.ac.in for students, @mitsgwalior.in for faculty/staff)
+  // MITS Institutional Domain Check: Allow ALL @mitsgwl.ac.in and @mitsgwalior.in
   // ==============================================================
-  const isStudent = email.endsWith("@mitsgwl.ac.in");
-  const isFaculty = email.endsWith("@mitsgwalior.in");
+  const isStudent = isStudentEmail(email);
+  const isFaculty = isFacultyEmail(email);
 
   if (!isStudent && !isFaculty) {
     localStorage.removeItem("campusConnectUser");
-    showStatus("Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in).", "error");
+    showStatus("Access restricted. Please sign in using your official institutional Google account ending in @mitsgwl.ac.in (students) or @mitsgwalior.in (faculty).", "error");
     return;
   }
 
@@ -79,7 +100,7 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
   try {
     const apiBase = await getApiBase();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const bodyPayload = credential ? { credential } : { accessToken };
 

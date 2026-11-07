@@ -45,7 +45,7 @@ async function runTests() {
     const health = await request({ hostname: "localhost", port: 5000, path: "/health", method: "GET" });
     assert("Server health check returns ok", health.status === 200 && health.data.status === "ok");
 
-    // 2. Google Auth Domain Restriction: Reject @gmail.com
+    // 2. Google Auth Domain Restriction: Reject @gmail.com, @yahoo.com, @rgtu.ac.in
     const rejectGmail = await request({
       hostname: "localhost",
       port: 5000,
@@ -62,6 +62,38 @@ async function runTests() {
     });
     assert("Reject non-institutional Google accounts (@gmail.com) with 403", rejectGmail.status === 403);
 
+    const rejectYahoo = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      credential: createMockGoogleToken({
+        sub: "google-fake-67890",
+        name: "Yahoo User",
+        email: "someuser@yahoo.com",
+        email_verified: true
+      })
+    });
+    assert("Reject other external domains (@yahoo.com) with 403", rejectYahoo.status === 403);
+
+    const rejectOtherUniv = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      credential: createMockGoogleToken({
+        sub: "google-fake-33333",
+        name: "Other Univ User",
+        email: "student@othercollege.ac.in",
+        email_verified: true
+      })
+    });
+    assert("Reject non-MITS university domains (@othercollege.ac.in) with 403", rejectOtherUniv.status === 403);
+
     // 2b. Reject invalid accessToken
     const rejectInvalidToken = await request({
       hostname: "localhost",
@@ -74,7 +106,8 @@ async function runTests() {
     });
     assert("Reject invalid Google access token with 401", rejectInvalidToken.status === 401);
 
-    // 3. Google Auth Student Domain: Allow @mitsgwl.ac.in and assign Student
+    // 3. Google Auth Student Domain: Allow ALL @mitsgwl.ac.in and assign Student (No email whitelist restriction)
+    const student1Email = `student_${Date.now()}@mitsgwl.ac.in`;
     const studentAuth = await request({
       hostname: "localhost",
       port: 5000,
@@ -83,16 +116,34 @@ async function runTests() {
       headers: { "Content-Type": "application/json" }
     }, {
       credential: createMockGoogleToken({
-        sub: "google-student-test-999",
+        sub: `google-student-${Date.now()}`,
         name: "Anshika Student",
-        email: "anshika.test@mitsgwl.ac.in",
+        email: student1Email,
         email_verified: true
       })
     });
-    assert("Accept @mitsgwl.ac.in as Student role", studentAuth.status === 200 && studentAuth.data.role === "Student");
+    assert("Allow arbitrary student Google account (@mitsgwl.ac.in) with role Student", studentAuth.status === 200 && studentAuth.data.role === "Student");
     const testStudentId = studentAuth.data._id;
 
-    // 4. Google Auth Faculty Domain: Allow @mitsgwalior.in and assign Professor
+    // Test a second arbitrary student account
+    const student2Auth = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      credential: createMockGoogleToken({
+        sub: `google-student-2-${Date.now()}`,
+        name: "Rahul Verma",
+        email: `2024cse${Math.floor(100 + Math.random() * 900)}@mitsgwl.ac.in`,
+        email_verified: true
+      })
+    });
+    assert("Allow second distinct student account with automatic registration", student2Auth.status === 200 && student2Auth.data.role === "Student" && Boolean(student2Auth.data._id));
+
+    // 4. Google Auth Faculty Domain: Allow ALL @mitsgwalior.in and assign Professor (No email whitelist restriction)
+    const faculty1Email = `faculty_${Date.now()}@mitsgwalior.in`;
     const facultyAuth = await request({
       hostname: "localhost",
       port: 5000,
@@ -101,13 +152,47 @@ async function runTests() {
       headers: { "Content-Type": "application/json" }
     }, {
       credential: createMockGoogleToken({
-        sub: "google-faculty-test-888",
+        sub: `google-faculty-${Date.now()}`,
         name: "Dr. Sharma Faculty",
-        email: "rksharma.test@mitsgwalior.in",
+        email: faculty1Email,
         email_verified: true
       })
     });
-    assert("Accept @mitsgwalior.in as Professor role", facultyAuth.status === 200 && facultyAuth.data.role === "Professor");
+    assert("Allow arbitrary faculty Google account (@mitsgwalior.in) with role Professor", facultyAuth.status === 200 && facultyAuth.data.role === "Professor");
+
+    // Test a second arbitrary professor account
+    const faculty2Auth = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      credential: createMockGoogleToken({
+        sub: `google-faculty-2-${Date.now()}`,
+        name: "Prof. Manish Dixit",
+        email: `manish.dixit.${Math.floor(100 + Math.random() * 900)}@mitsgwalior.in`,
+        email_verified: true
+      })
+    });
+    assert("Allow second distinct faculty account with automatic registration", faculty2Auth.status === 200 && faculty2Auth.data.role === "Professor" && Boolean(faculty2Auth.data._id));
+
+    // Test re-login of an existing user (must return same _id and not duplicate)
+    const reloginStudent = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/users/google-auth",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      credential: createMockGoogleToken({
+        sub: `google-student-${Date.now()}`,
+        name: "Anshika Student",
+        email: student1Email,
+        email_verified: true
+      })
+    });
+    assert("Re-login of registered student account resolves to existing MongoDB document", reloginStudent.status === 200 && String(reloginStudent.data._id) === String(testStudentId));
 
     // 5. Profile Update & MongoDB Atlas Persistence
     const updateProfile = await request({

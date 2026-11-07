@@ -160,6 +160,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Resolve API Base
   async function getApiBase() {
+    if (window.location.port === "5000" || window.location.hostname.includes("onrender.com")) {
+      return "/api";
+    }
+    try {
+      const probe = await fetch("http://localhost:5000/health", { method: "GET", signal: AbortSignal.timeout(800) });
+      if (probe.ok) return "http://localhost:5000/api";
+    } catch (e) {}
+
     if (window.location.protocol === "http:" || window.location.protocol === "https:") {
       return "/api";
     }
@@ -205,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const apiBase = await getApiBase();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
         await fetch(`${apiBase}/users/${userId}`, {
           method: "PATCH",
