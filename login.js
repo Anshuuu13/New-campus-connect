@@ -71,15 +71,16 @@ async function handleGoogleCredentialResponse(response) {
     return;
   }
 
-  // Prepared student session object for valid @mitsgwalior.in user
+  // Prepared user session object for valid institutional user
+  const isFacultyDomain = email.endsWith("@mitsgwalior.in");
   let userSession = {
     _id: googleId,
     id: googleId,
     name: name,
     email: email,
     contactEmail: email,
-    department: "",
-    role: "Student",
+    department: isFacultyDomain ? "Academic Faculty" : "",
+    role: isFacultyDomain ? "Professor" : "Student",
     profilePicture: picture,
     profileCompleted: false,
     authProvider: "google"
@@ -210,76 +211,7 @@ async function initGoogleAuth() {
   }
 }
 
-// Direct College Email Sign In Handler
-function initCollegeEmailAuth() {
-  const form = document.getElementById("collegeEmailForm");
-  if (!form) return;
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const input = document.getElementById("collegeEmailInput");
-    const email = input ? input.value.trim().toLowerCase() : "";
-    if (!email) return;
-
-    const isAllowedEmail = email.endsWith("@mitsgwl.ac.in") || email.endsWith("@mitsgwalior.in");
-    if (!isAllowedEmail) {
-      showStatus("Access restricted. Please sign in using your official college email ID (@mitsgwl.ac.in or @mitsgwalior.in).", "error");
-      return;
-    }
-
-    showStatus("Signing in with college directory...", "loading");
-
-    try {
-      const apiBase = await getApiBase();
-      const res = await fetch(`${apiBase}/users/college-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        showStatus(data.error || "Authentication failed. Please check your college email.", "error");
-        return;
-      }
-
-      // Store authenticated session
-      localStorage.setItem("campusConnectUser", JSON.stringify(data));
-
-      if (!data.profileCompleted) {
-        showStatus(`Welcome, ${data.name}! Let's complete your profile...`, "success");
-        setTimeout(() => {
-          window.location.href = "onboarding.html";
-        }, 500);
-      } else {
-        showStatus(`Welcome back, ${data.name}! Loading campus dashboard...`, "success");
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 400);
-      }
-    } catch (err) {
-      console.error("College email auth error:", err);
-      // Fallback local session if network interruption
-      const emailPrefix = email.split("@")[0];
-      const localUser = {
-        _id: `user_${Date.now()}`,
-        name: emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1),
-        email: email,
-        contactEmail: email,
-        department: email.includes("cd") ? "Computer Science & Design" : "Computer Science & Engineering",
-        role: email.endsWith("@mitsgwalior.in") && (email.includes("prof") || email.includes("faculty")) ? "professor" : "Student",
-        profileCompleted: false
-      };
-      localStorage.setItem("campusConnectUser", JSON.stringify(localUser));
-      showStatus("Offline session established. Redirecting...", "info");
-      setTimeout(() => {
-        window.location.href = "onboarding.html";
-      }, 500);
-    }
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   initGoogleAuth();
-  initCollegeEmailAuth();
+});
 });

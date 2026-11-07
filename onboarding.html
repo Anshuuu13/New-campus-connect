@@ -44,42 +44,42 @@
         <input type="hidden" id="obName">
         <input type="hidden" id="obEmail">
 
-        <!-- Role Selection -->
-        <label class="field-label">I am a *</label>
-        <div class="role-selector-group">
-          <label class="role-option">
-            <input type="radio" name="roleOption" value="Student" checked>
-            <div class="role-box">
-              <span class="role-icon">🎓</span>
-              <span class="role-title">Student</span>
-              <span class="role-desc">Enrolled in an undergraduate or postgraduate program</span>
+        <!-- Verified Institutional Role (Read-only security badge) -->
+        <label class="field-label">Institutional Role (Verified by Google)</label>
+        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span id="obRoleIcon" style="font-size: 26px;">🎓</span>
+            <div>
+              <div id="obRoleTitle" style="font-weight: 600; color: #f8fafc; font-size: 15px;">Student</div>
+              <div id="obRoleDescription" style="font-size: 12px; color: var(--text-dim, #94a3b8); margin-top: 2px;">
+                Verified MITS student account (@mitsgwl.ac.in)
+              </div>
             </div>
-          </label>
-          <label class="role-option">
-            <input type="radio" name="roleOption" value="Faculty">
-            <div class="role-box">
-              <span class="role-icon">🏛️</span>
-              <span class="role-title">Faculty</span>
-              <span class="role-desc">Professor, Lecturer, or Academic Staff member</span>
-            </div>
-          </label>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.3);">
+            🔒 Role Protected
+          </span>
         </div>
 
-        <!-- Department -->
-        <label class="field-label" for="obDepartment" style="margin-top: 20px;">Department *</label>
+        <!-- Department / Branch -->
+        <label class="field-label" for="obDepartment" style="margin-top: 10px;">Department &amp; Branch *</label>
         <select class="field-input" id="obDepartment" required>
-          <option value="" disabled selected>Select your department...</option>
-          <option value="Computer Science & Engineering">Computer Science & Engineering</option>
-          <option value="Information Technology">Information Technology</option>
-          <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
-          <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
-          <option value="Electronics & Telecommunication Engineering">Electronics & Telecommunication Engineering</option>
-          <option value="Electrical Engineering">Electrical Engineering</option>
-          <option value="Mechanical Engineering">Mechanical Engineering</option>
-          <option value="Civil Engineering">Civil Engineering</option>
-          <option value="Chemical Engineering">Chemical Engineering</option>
-          <option value="Architecture & Planning">Architecture & Planning</option>
-          <option value="Applied Sciences & Humanities">Applied Sciences & Humanities</option>
+          <option value="" disabled selected>Select your engineering branch / department...</option>
+          <option value="Computer Science & Engineering">Computer Science &amp; Engineering (CSE)</option>
+          <option value="Information Technology">Information Technology (IT)</option>
+          <option value="Artificial Intelligence & Data Science">Artificial Intelligence &amp; Data Science (AIDS)</option>
+          <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence &amp; Machine Learning (AIML)</option>
+          <option value="Computer Science & Design">Computer Science &amp; Design (CSD)</option>
+          <option value="Electronics & Telecommunication Engineering">Electronics &amp; Telecommunication (ET)</option>
+          <option value="Electronics Engineering">Electronics Engineering (EE)</option>
+          <option value="Electrical Engineering">Electrical Engineering (EL)</option>
+          <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+          <option value="Civil Engineering">Civil Engineering (CE)</option>
+          <option value="Chemical Engineering">Chemical Engineering (CH)</option>
+          <option value="Architecture & Planning">Architecture &amp; Planning</option>
+          <option value="Applied Sciences & Humanities">Applied Sciences &amp; Humanities</option>
+          <option value="Master of Computer Applications">Master of Computer Applications (MCA)</option>
+          <option value="Management Studies">Management Studies (MBA)</option>
         </select>
 
         <!-- Academic Year / Batch -->

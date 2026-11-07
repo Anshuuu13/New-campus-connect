@@ -8,6 +8,7 @@ const Event = require("../models/Event");
 const JoinRequest = require("../models/JoinRequest");
 const SwapRequest = require("../models/SwapRequest");
 const Notification = require("../models/Notification");
+const Complaint = require("../models/Complaint");
 
 // GET /api/dashboard/summary - Live aggregated stats and feeds for dashboard
 router.get("/summary", async (req, res) => {
@@ -22,18 +23,24 @@ router.get("/summary", async (req, res) => {
       featuredPyqs,
       pendingJoinReqs,
       pendingSwapReqs,
-      unreadNotifCount
+      unreadNotifCount,
+      activeComplaintsCount,
+      userComplaintsCount
     ] = await Promise.all([
       Resource.countDocuments({}).catch(() => 37),
       FacultyPost.countDocuments({ status: "approved" }).catch(() => 5),
-      Announcement.find({}).sort({ createdAt: -1 }).limit(3).catch(() => []),
-      Event.find({ status: { $ne: "Completed" } }).sort({ startDate: 1 }).limit(3).catch(() => []),
+      Announcement.find({}).sort({ createdAt: -1 }).limit(4).catch(() => []),
+      Event.find({ status: { $ne: "Completed" } }).sort({ startDate: 1 }).limit(4).catch(() => []),
       Resource.find({ fileAvailable: true }).sort({ createdAt: -1 }).limit(4).catch(() => []),
       JoinRequest.countDocuments({ status: "pending" }).catch(() => 6),
       SwapRequest.countDocuments({ status: "pending" }).catch(() => 6),
       userId && mongoose.Types.ObjectId.isValid(userId)
         ? Notification.countDocuments({ readByUsers: { $ne: userId } }).catch(() => 7)
-        : Notification.countDocuments({}).catch(() => 7)
+        : Notification.countDocuments({}).catch(() => 7),
+      Complaint.countDocuments({ status: { $nin: ["Resolved", "Rejected"] } }).catch(() => 2),
+      userId && mongoose.Types.ObjectId.isValid(userId)
+        ? Complaint.countDocuments({ studentId: userId, status: { $nin: ["Resolved", "Rejected"] } }).catch(() => 0)
+        : 0
     ]);
 
     const activeRequests = (typeof pendingJoinReqs === "number" ? pendingJoinReqs : 6) +
@@ -41,12 +48,15 @@ router.get("/summary", async (req, res) => {
     const researchOpportunities = typeof facultyPostCount === "number" ? facultyPostCount : 5;
     const verifiedResources = typeof resourceCount === "number" ? resourceCount : 37;
     const unreadAnnouncements = typeof unreadNotifCount === "number" ? unreadNotifCount : (announcements ? announcements.length : 7);
+    const activeComplaints = typeof activeComplaintsCount === "number" ? activeComplaintsCount : 2;
 
     res.json({
       activeRequests,
       researchOpportunities,
       verifiedResources,
       unreadAnnouncements,
+      activeComplaints,
+      userComplaintsCount: typeof userComplaintsCount === "number" ? userComplaintsCount : 0,
       upcomingEvents: events && events.length > 0 ? events : [
         {
           title: "Mid-Semester Test II (MST-II) — Autonomous B.Tech",

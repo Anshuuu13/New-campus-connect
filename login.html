@@ -38,45 +38,18 @@
       </div>
 
       <!-- Google Sign-In Container -->
-      <div class="google-auth-section" style="margin-top: 18px;">
+      <div class="google-auth-section" style="margin-top: 24px;">
         <div id="googleBtnContainer" class="google-btn-wrapper"></div>
       </div>
 
       <!-- Realtime Feedback / Domain Error Box -->
-      <div id="authStatusMsg" class="auth-status-msg" style="display: none; margin-top: 14px;"></div>
+      <div id="authStatusMsg" class="auth-status-msg" style="display: none; margin-top: 16px;"></div>
 
-      <div class="auth-divider" style="display: flex; align-items: center; margin: 18px 0; color: var(--text-dim); font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em;">
-        <span style="flex: 1; height: 1px; background: var(--line);"></span>
-        <span style="padding: 0 10px;">or sign in with College Email</span>
-        <span style="flex: 1; height: 1px; background: var(--line);"></span>
-      </div>
-
-      <!-- Direct College Email Form -->
-      <form id="collegeEmailForm" style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
-        <label for="collegeEmailInput" style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em;">OFFICIAL MITS EMAIL</label>
-        <div style="display: flex; gap: 8px;">
-          <input
-            type="email"
-            id="collegeEmailInput"
-            placeholder="e.g. 25cd1an21@mitsgwl.ac.in"
-            required
-            style="flex: 1; padding: 10px 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; font-family: var(--font);"
-          />
-          <button
-            type="submit"
-            id="collegeEmailBtn"
-            class="btn btn-primary"
-            style="white-space: nowrap; padding: 10px 16px; font-size: 13px;"
-          >
-            Sign In &rarr;
-          </button>
-        </div>
-      </form>
-
-      <div class="auth-card-footer">
+      <div class="auth-card-footer" style="margin-top: 28px;">
         <p class="auth-footnote">
-          Please use your college-issued Google Workspace email.<br>
-          First-time users will complete their profile after signing in.
+          🔒 Secure Institutional Single Sign-On<br>
+          Use your official MITS Google Workspace account (<strong>@mitsgwl.ac.in</strong> for students or <strong>@mitsgwalior.in</strong> for faculty).<br>
+          Personal Google accounts (@gmail.com) are automatically blocked.
         </p>
       </div>
     </div>

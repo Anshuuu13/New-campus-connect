@@ -112,7 +112,7 @@ router.post("/google-auth", async (req, res) => {
       }
     }
 
-    // C. If still not found, create a new student account
+    // C. If still not found, create a new student or professor account based on verified domain
     if (!user) {
       // Avoid duplicate username constraint
       let finalName = name;
@@ -122,24 +122,34 @@ router.post("/google-auth", async (req, res) => {
         finalName = `${name} (${emailPrefix})`;
       }
 
+      // Secure Role Assignment:
+      // @mitsgwalior.in is official MITS faculty / professor domain
+      // @mitsgwl.ac.in is official MITS student domain
+      const isFacultyDomain = email.endsWith("@mitsgwalior.in");
+      const assignedRole = isFacultyDomain ? "Professor" : "Student";
+
       user = new User({
         name: finalName,
         email: email,
         contactEmail: email,
         googleId: googleId,
         authProvider: "google",
-        department: "Not specified",
-        role: "Student",
+        department: isFacultyDomain ? "Academic Faculty" : "Engineering",
+        role: assignedRole,
         profilePicture: picture || "",
         profileCompleted: false
       });
       await user.save();
     } else {
-      // Returning student: refresh profile picture if using Google avatar
+      // Returning user: verify role matches institutional email domain
+      if (email.endsWith("@mitsgwalior.in") && user.role !== "Admin" && user.role !== "Professor") {
+        user.role = "Professor";
+      }
+      // Refresh profile picture if using Google avatar
       if (picture && (!user.profilePicture || user.profilePicture.includes("googleusercontent.com"))) {
         user.profilePicture = picture;
-        await user.save();
       }
+      await user.save();
     }
 
     // Return session object matching localStorage.campusConnectUser
@@ -340,10 +350,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// UPDATE profile fields (picture, bio, branch, year, social links, interests, department, role, profileCompleted)
+// UPDATE profile fields (name, picture, bio, branch, year, social links, interests, department, profileCompleted)
 router.patch("/:id", async (req, res) => {
   try {
     const {
+      name,
       profilePicture,
       bio,
       branch,
@@ -376,6 +387,7 @@ router.patch("/:id", async (req, res) => {
       return res.status(404).json({ error: "User not found." });
     }
 
+    if (name !== undefined && name.trim()) user.name = name.trim();
     if (profilePicture !== undefined) user.profilePicture = profilePicture;
     if (bio !== undefined) user.bio = bio;
     if (branch !== undefined) user.branch = branch;
@@ -385,7 +397,21 @@ router.patch("/:id", async (req, res) => {
     if (contactEmail !== undefined) user.contactEmail = contactEmail;
     if (interests !== undefined) user.interests = Array.isArray(interests) ? interests : [];
     if (department !== undefined) user.department = department;
-    if (role !== undefined) user.role = role;
+
+    // Secure Role Assignment: prevent students from self-assigning privileged roles
+    if (role !== undefined) {
+      const targetRole = String(role).trim();
+      const isPrivileged = ["admin", "professor", "faculty"].includes(targetRole.toLowerCase());
+      const hasFacultyEmail = user.email && user.email.toLowerCase().endsWith("@mitsgwalior.in");
+      const isAlreadyAdmin = user.role === "Admin";
+
+      if (!isPrivileged || hasFacultyEmail || isAlreadyAdmin) {
+        user.role = targetRole;
+      } else {
+        console.warn(`Blocked unauthorized privileged role elevation attempt for user: ${user.email}`);
+      }
+    }
+
     if (profileCompleted !== undefined) user.profileCompleted = Boolean(profileCompleted);
 
     await user.save();

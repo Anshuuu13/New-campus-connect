@@ -17,17 +17,6 @@ const skillSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: [
-      "Programming",
-      "Web Development",
-      "AI/ML",
-      "Database",
-      "Mobile Development",
-      "Cloud & DevOps",
-      "Cybersecurity",
-      "Soft Skills",
-      "Other"
-    ],
     default: "Programming"
   },
   level: {

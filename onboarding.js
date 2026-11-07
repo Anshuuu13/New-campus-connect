@@ -43,6 +43,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (obName) obName.value = userName;
   if (obEmail) obEmail.value = userEmail;
 
+  // Render Google-verified role badge
+  const isFaculty = user.role === "Professor" || user.role === "Faculty" || userEmail.endsWith("@mitsgwalior.in");
+  const verifiedRole = isFaculty ? "Professor" : (user.role === "Admin" ? "Admin" : "Student");
+  
+  const obRoleIcon = document.getElementById("obRoleIcon");
+  const obRoleTitle = document.getElementById("obRoleTitle");
+  const obRoleDescription = document.getElementById("obRoleDescription");
+
+  if (obRoleIcon && obRoleTitle && obRoleDescription) {
+    if (verifiedRole === "Professor") {
+      obRoleIcon.textContent = "🏛️";
+      obRoleTitle.textContent = "Faculty / Professor";
+      obRoleDescription.textContent = "Verified MITS Academic Faculty Account (@mitsgwalior.in)";
+      if (studentYearContainer) studentYearContainer.style.display = "none";
+    } else if (verifiedRole === "Admin") {
+      obRoleIcon.textContent = "🛡️";
+      obRoleTitle.textContent = "Campus Administrator";
+      obRoleDescription.textContent = "Verified Administrative Privileges";
+      if (studentYearContainer) studentYearContainer.style.display = "none";
+    } else {
+      obRoleIcon.textContent = "🎓";
+      obRoleTitle.textContent = "Student";
+      obRoleDescription.textContent = "Verified MITS Student Account (@mitsgwl.ac.in)";
+      if (studentYearContainer) studentYearContainer.style.display = "block";
+    }
+  }
+
   // Pre-fill existing fields if available
   if (user.department && obDepartment) obDepartment.value = user.department;
   if (user.year && obYear) obYear.value = user.year;
@@ -131,18 +158,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   renderSelectedSkills();
 
-  // Role toggle: hide academic year if Faculty is selected
-  const roleRadios = document.querySelectorAll('input[name="roleOption"]');
-  roleRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-      if (e.target.value === "Faculty") {
-        if (studentYearContainer) studentYearContainer.style.display = "none";
-      } else {
-        if (studentYearContainer) studentYearContainer.style.display = "block";
-      }
-    });
-  });
-
   // Resolve API Base
   async function getApiBase() {
     if (window.location.protocol === "http:" || window.location.protocol === "https:") {
@@ -162,9 +177,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const selectedRole = document.querySelector('input[name="roleOption"]:checked')?.value || "Student";
       const department = obDepartment ? obDepartment.value : "";
-      const year = (selectedRole === "Student" && obYear) ? obYear.value : "Faculty Member";
+      const isFacultyUser = verifiedRole === "Professor" || verifiedRole === "Faculty";
+      const year = (!isFacultyUser && obYear) ? obYear.value : "Faculty Member";
       const bio = obBio ? obBio.value.trim() : "";
       const interests = Array.from(selectedSkills);
 
@@ -178,10 +193,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const userId = user.id || user._id;
 
       // Update local user state immediately
-      user.role = selectedRole === "Faculty" ? "Professor" : "Student";
+      user.role = verifiedRole;
       user.department = department;
+      user.branch = department;
       user.year = year;
-      user.branch = year;
       user.bio = bio;
       user.interests = interests;
       user.profileCompleted = true;
@@ -190,16 +205,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const apiBase = await getApiBase();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
 
         await fetch(`${apiBase}/users/${userId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             department,
-            role: user.role,
+            branch: department,
             year,
-            branch: year,
             bio,
             interests,
             profileCompleted: true

@@ -183,12 +183,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!statActiveRequests) return; // Not on dashboard page
 
     const statResearchOpps = document.getElementById("statResearchOpps");
-    const statVerifiedResources = document.getElementById("statVerifiedResources");
     const statUnreadAnnouncements = document.getElementById("statUnreadAnnouncements");
-    const featuredResourcesContainer = document.getElementById("dashboardFeaturedResources");
+    const statUpcomingEvents = document.getElementById("statUpcomingEvents");
+    const statActiveComplaints = document.getElementById("statActiveComplaints");
+
     const upcomingEventsContainer = document.getElementById("dashboardUpcomingEvents");
     const latestAnnouncementsContainer = document.getElementById("dashboardLatestAnnouncements");
-    const campusActivityContainer = document.getElementById("dashboardCampusActivity");
 
     try {
       const apiBase = await getApiBase();
@@ -197,73 +197,55 @@ document.addEventListener("DOMContentLoaded", async () => {
         const data = await res.json();
 
         // 1. Live Stats Counters
-        if (statActiveRequests) statActiveRequests.textContent = data.activeRequests || "4";
-        if (statResearchOpps) statResearchOpps.textContent = data.researchOpportunities || "7";
-        if (statVerifiedResources) statVerifiedResources.textContent = (data.verifiedResources || "37") + "+";
+        if (statActiveRequests) statActiveRequests.textContent = data.activeRequests || "12";
+        if (statResearchOpps) statResearchOpps.textContent = data.researchOpportunities || "5";
         if (statUnreadAnnouncements) statUnreadAnnouncements.textContent = data.unreadAnnouncements || "5";
+        if (statUpcomingEvents) statUpcomingEvents.textContent = (Array.isArray(data.upcomingEvents) ? data.upcomingEvents.length : "3");
+        if (statActiveComplaints) statActiveComplaints.textContent = data.activeComplaints !== undefined ? data.activeComplaints : "2";
 
-        // 2. Featured Academic Repository PYQs
-        if (featuredResourcesContainer && Array.isArray(data.featuredResources) && data.featuredResources.length > 0) {
-          featuredResourcesContainer.innerHTML = data.featuredResources.map(r => `
-            <div class="repo-card">
-              <div>
-                <div class="repo-card-meta">
-                  <span>${r.branch || "MITS"}</span> • <span>Sem ${r.semester}</span> • <span>${r.academicYear || "2024"}</span>
-                </div>
-                <h4 class="repo-card-title">${r.title || r.subjectName}</h4>
-              </div>
-              <div class="repo-card-actions">
-                <button type="button" class="btn-preview-sm dashboard-preview-btn" data-url="${r.previewUrl}" data-title="${r.title || r.subjectName}">
-                  Preview PDF
-                </button>
-                <a href="${r.downloadUrl}" class="btn-download-sm" title="Download Official PDF">
-                  Download
-                </a>
-              </div>
-            </div>
-          `).join("");
-
-          // Connect modal preview triggers
-          document.querySelectorAll(".dashboard-preview-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-              const url = btn.getAttribute("data-url");
-              const title = btn.getAttribute("data-title");
-              const modal = document.getElementById("dashboardPdfModal");
-              const frame = document.getElementById("dashboardPdfFrame");
-              const titleEl = document.getElementById("dashboardPdfTitle");
-              if (modal && frame) {
-                if (titleEl) titleEl.textContent = title || "Document Preview";
-                frame.src = url;
-                modal.style.display = "flex";
-              }
-            });
-          });
-        }
-
-        // 3. Upcoming Academic Calendar Events
+        // 2. Upcoming Academic Calendar Events
         if (upcomingEventsContainer && Array.isArray(data.upcomingEvents) && data.upcomingEvents.length > 0) {
-          upcomingEventsContainer.innerHTML = data.upcomingEvents.map(evt => {
-            const dateStr = evt.startDate ? new Date(evt.startDate).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Scheduled";
+          upcomingEventsContainer.innerHTML = data.upcomingEvents.slice(0, 4).map(evt => {
+            const dateObj = evt.startDate ? new Date(evt.startDate) : new Date();
+            const monthStr = dateObj.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
+            const dayStr = dateObj.getDate();
             const timeStr = evt.startTime || "";
+            const venueStr = evt.venue || "MITS Campus";
+            const categoryEmoji = evt.category === "Examination" ? "📝" : (evt.category === "Holiday" ? "🎉" : "🎓");
+
             return `
-              <li>
-                <strong>${evt.title}</strong>
-                <span>${dateStr} • ${timeStr || evt.venue || "MITS Campus"}</span>
-              </li>
+              <div class="event-entry">
+                <div class="event-date-box">
+                  <span class="event-month">${monthStr}</span>
+                  <span class="event-day">${dayStr}</span>
+                </div>
+                <div class="event-details">
+                  <div class="event-category-badge">${categoryEmoji} ${evt.category || "Academic Milestone"}</div>
+                  <h4 class="event-name">${evt.title}</h4>
+                  <div class="event-sub-info">${timeStr ? `${timeStr} • ` : ""}${venueStr}</div>
+                </div>
+              </div>
             `;
           }).join("");
         }
 
-        // 4. Latest Verified Announcements
+        // 3. Latest Verified Announcements
         if (latestAnnouncementsContainer && Array.isArray(data.latestAnnouncements) && data.latestAnnouncements.length > 0) {
-          latestAnnouncementsContainer.innerHTML = data.latestAnnouncements.map(ann => {
-            const dateStr = ann.createdAt ? new Date(ann.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recent";
-            const circ = ann.circularNumber ? `${ann.circularNumber} • ` : "";
+          latestAnnouncementsContainer.innerHTML = data.latestAnnouncements.slice(0, 4).map(ann => {
+            const dateStr = ann.createdAt ? new Date(ann.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recent";
+            const circ = ann.circularNumber || "MITS/Autonomous/2026";
+            const category = ann.category || "Official Circular";
+            const author = ann.author || "MITS Administrative Office";
+
             return `
-              <li>
-                <strong>${ann.title}</strong>
-                <span>${circ}${dateStr}</span>
-              </li>
+              <div class="notice-item">
+                <div class="notice-meta-tag">
+                  <span class="pill-category">${category}</span>
+                  <span class="pill-circ">${circ}</span>
+                </div>
+                <h4 class="notice-title">${ann.title}</h4>
+                <div class="notice-footer">${author} • ${dateStr}</div>
+              </div>
             `;
           }).join("");
         }
@@ -271,24 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (err) {
       console.warn("Could not load dynamic dashboard summary:", err.message);
     }
-
-    // Modal Close Handler
-    const closePdfBtn = document.getElementById("closeDashboardPdfBtn");
-    const pdfModal = document.getElementById("dashboardPdfModal");
-    if (closePdfBtn && pdfModal) {
-      closePdfBtn.addEventListener("click", () => {
-        pdfModal.style.display = "none";
-        const frame = document.getElementById("dashboardPdfFrame");
-        if (frame) frame.src = "";
-      });
-      pdfModal.addEventListener("click", (e) => {
-        if (e.target === pdfModal) {
-          pdfModal.style.display = "none";
-          const frame = document.getElementById("dashboardPdfFrame");
-          if (frame) frame.src = "";
-        }
-      });
-    }
+  }
   }
 
   loadLiveDashboardData();
