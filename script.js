@@ -93,14 +93,95 @@ if (nav) {
   });
 }
 
-// Mobile sidebar toggle
+// Mobile-friendly sidebar drawer and backdrop navigation
 const mobileMenuBtn = document.getElementById("mobileMenuBtn");
 const sidebarEl = document.getElementById("sidebar") || document.querySelector(".sidebar");
-if (mobileMenuBtn && sidebarEl) {
-  mobileMenuBtn.addEventListener("click", () => {
-    sidebarEl.classList.toggle("open");
+
+// Create or resolve sidebar backdrop element
+let sidebarBackdrop = document.querySelector(".sidebar-backdrop");
+if (!sidebarBackdrop) {
+  sidebarBackdrop = document.createElement("div");
+  sidebarBackdrop.className = "sidebar-backdrop";
+  sidebarBackdrop.setAttribute("aria-hidden", "true");
+  document.body.appendChild(sidebarBackdrop);
+}
+
+function openSidebar() {
+  if (sidebarEl) sidebarEl.classList.add("open");
+  if (sidebarBackdrop) sidebarBackdrop.classList.add("active");
+  document.body.classList.add("sidebar-drawer-open");
+}
+
+function closeSidebar() {
+  if (sidebarEl) sidebarEl.classList.remove("open");
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove("active");
+  document.body.classList.remove("sidebar-drawer-open");
+}
+
+function toggleSidebar() {
+  if (sidebarEl && sidebarEl.classList.contains("open")) {
+    closeSidebar();
+  } else {
+    openSidebar();
+  }
+}
+
+// Add close button to sidebar for mobile screens
+if (sidebarEl && !sidebarEl.querySelector(".sidebar-close-btn")) {
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "sidebar-close-btn";
+  closeBtn.setAttribute("aria-label", "Close Menu");
+  closeBtn.innerHTML = "&times;";
+  closeBtn.addEventListener("click", closeSidebar);
+
+  const wordmark = sidebarEl.querySelector(".wordmark");
+  if (wordmark) {
+    wordmark.style.display = "flex";
+    wordmark.style.alignItems = "center";
+    wordmark.style.justifyContent = "space-between";
+    wordmark.style.width = "100%";
+    wordmark.appendChild(closeBtn);
+  } else {
+    sidebarEl.insertBefore(closeBtn, sidebarEl.firstChild);
+  }
+}
+
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleSidebar();
   });
 }
+
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener("click", closeSidebar);
+}
+
+// Auto-close drawer when clicking any link in mobile view
+if (sidebarEl) {
+  sidebarEl.querySelectorAll(".sidebar-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 900) {
+        closeSidebar();
+      }
+    });
+  });
+}
+
+// Close drawer on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && sidebarEl && sidebarEl.classList.contains("open")) {
+    closeSidebar();
+  }
+});
+
+// Auto-reset when resizing back to desktop
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 900) {
+    closeSidebar();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("campusConnectUser") || "{}");

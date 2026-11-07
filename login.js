@@ -277,6 +277,7 @@ async function initGoogleAuth() {
           container.appendChild(renderTarget);
         }
 
+        const targetWidth = Math.min(320, Math.max(220, (container.clientWidth || window.innerWidth - 64)));
         google.accounts.id.renderButton(renderTarget, {
           type: "standard",
           theme: "outline",
@@ -284,7 +285,7 @@ async function initGoogleAuth() {
           text: "continue_with",
           shape: "rectangular",
           logo_alignment: "left",
-          width: 320
+          width: targetWidth
         });
 
         // Hide fallback button only when Google's iframe has successfully loaded

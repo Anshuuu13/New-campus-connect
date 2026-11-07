@@ -7789,3 +7789,604 @@ h1 {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--gold);
 }
+
+/* ==========================================================================
+   CAMPUSCONNECT COMPREHENSIVE RESPONSIVE DESIGN SUITE
+   Full cross-device adaptability: Smartphones (320px-480px),
+   Tablets (481px-1024px), Laptops & Desktops (>1024px).
+   Prevents horizontal scroll, adds mobile navigation drawer,
+   smooth touch interactions, and maintains elegant deep navy MITS UI.
+   ========================================================================== */
+
+/* Universal Overflow & Touch Handling */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile Navigation Hamburger Button */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface, #0b132b);
+  border: 1px solid var(--line, rgba(59, 130, 246, 0.2));
+  color: var(--text, #f8fafc);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.mobile-menu-btn:hover,
+.mobile-menu-btn:focus-visible {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: var(--surface-hover, #111c40);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.mobile-menu-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Mobile Sidebar Backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 20, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.sidebar-drawer-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+/* Sidebar Close Button */
+.sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-dim, #94a3b8);
+  font-size: 22px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.sidebar-close-btn:hover {
+  color: #fff;
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   TABLET & COMPACT SCREENS (<= 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 32px 32px 70px;
+  }
+
+  .stats-row {
+    gap: 12px;
+  }
+
+  .stat-card {
+    min-width: 140px;
+    padding: 16px 14px;
+  }
+
+  .hero {
+    padding: 40px 32px;
+    min-height: 300px;
+  }
+
+  .section-grid,
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   DRAWER NAVIGATION BREAKPOINT (<= 900px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .app-shell {
+    display: block;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 84vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #0b132b;
+    border-right: 1px solid rgba(56, 189, 248, 0.25);
+    z-index: 9999;
+    transform: translateX(-105%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    box-shadow: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 70px rgba(0, 0, 0, 0.85), 10px 0 35px rgba(0, 0, 0, 0.6);
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
+  }
+
+  .main-content {
+    padding: 20px 20px 60px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .top-navbar {
+    gap: 12px;
+    padding: 12px 0 18px;
+  }
+
+  .navbar-title-crumb {
+    font-size: 13px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px 24px;
+    min-height: 280px;
+    gap: 20px;
+    background-position: center 30%;
+  }
+
+  .hero-aside-badge {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .hero-aside-link {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 22px 0;
+  }
+
+  .stat-card {
+    min-width: 0;
+  }
+
+  /* Academic Resources */
+  .resource-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .page-header-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .banner-actions {
+    width: 100%;
+  }
+
+  .banner-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resources-gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   STANDARD SMARTPHONE BREAKPOINT (<= 640px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .crumb-root, .crumb-separator {
+    display: none;
+  }
+
+  .navbar-title-crumb {
+    font-size: 12px;
+  }
+
+  .profile-trigger {
+    padding: 4px 10px 4px 4px;
+    font-size: 13px;
+  }
+
+  .profile-trigger .nav-profile-pic {
+    width: 26px;
+    height: 26px;
+  }
+
+  .topbar {
+    padding: 14px 16px;
+  }
+
+  .page {
+    padding: 24px 16px 60px;
+  }
+
+  /* Dashboard Cards & Layout */
+  .hero {
+    padding: 26px 18px;
+    min-height: 260px;
+    border-radius: 14px;
+  }
+
+  .hero .name-greeting {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .hero .sub {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .quick-actions-grid a {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  /* Resources Hub Controls */
+  .filter-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filter-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .filter-item .custom-select {
+    width: 100%;
+  }
+
+  .filter-actions-right {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .filter-actions-right button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resource-category-tabs {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cat-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .branch-pills-scroll {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .branch-pill {
+    padding: 6px 11px;
+    font-size: 12px;
+  }
+
+  .resource-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .resource-card-actions a,
+  .resource-card-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modals */
+  .modal-box,
+  .pdf-modal-box,
+  .upload-modal-box,
+  .portfolio-modal-box {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 20px 16px !important;
+    max-height: 90vh !important;
+  }
+
+  .pdf-modal-header {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pdf-modal-header .modal-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Profile Screen */
+  .profile-pic-large {
+    width: 84px;
+    height: 84px;
+    margin: 10px auto;
+  }
+
+  .profile-header-extra {
+    text-align: center;
+  }
+
+  .profile-header-extra .social-links {
+    justify-content: center;
+  }
+
+  #editProfileBtn {
+    width: 100%;
+  }
+
+  /* Complaints Screen */
+  .complaint-card {
+    padding: 16px 14px;
+  }
+
+  .complaint-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .complaint-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .complaint-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .complaint-card-actions button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .timeline-stepper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Events & Announcements */
+  .events-hero-banner,
+  .announcement-card {
+    padding: 18px 14px;
+  }
+
+  .events-countdown-ribbon {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .hero-actions-panel {
+    width: 100%;
+  }
+
+  .hero-actions-panel button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   SMALL & EXTRA-SMALL SMARTPHONES (<= 420px & down to 320px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 420px) {
+  .main-content {
+    padding: 12px 10px 48px;
+  }
+
+  .top-navbar {
+    padding: 8px 0 14px;
+  }
+
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .navbar-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .profile-trigger #navUserName {
+    display: none;
+  }
+
+  .profile-trigger {
+    padding: 4px;
+    border-radius: 50%;
+  }
+
+  .profile-trigger .chevron {
+    display: none;
+  }
+
+  /* Hero Banner */
+  .hero {
+    padding: 20px 14px;
+    min-height: 240px;
+  }
+
+  .hero .name-greeting {
+    font-size: 20px;
+  }
+
+  .hero-college-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  /* Stats Row */
+  .stats-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 24px;
+  }
+
+  /* Quick Actions Grid */
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Login Screen */
+  .auth-wrap {
+    padding: 14px 10px;
+  }
+
+  .auth-card-focused {
+    padding: 24px 14px;
+    border-radius: 12px;
+  }
+
+  .auth-heading {
+    font-size: 20px;
+  }
+
+  .mits-portal-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .domain-notice-banner {
+    padding: 8px 10px;
+    font-size: 11px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .btn-google-standard {
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+
+  #googleBtnContainer {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+
+  #googleBtnContainer iframe {
+    max-width: 100% !important;
+  }
+
+  .auth-footnote {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  /* Resources */
+  .resource-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-search-wrapper {
+    padding: 8px 12px;
+  }
+
+  .resource-search-input {
+    font-size: 13px;
+  }
+
+  /* Portfolio Tabs */
+  .nav-tabs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+}
