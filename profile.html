@@ -5,405 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CampusConnect — Profile | MITS Gwalior</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app-shell">
+  <header class="topbar">
+    <a href="index.html" class="wordmark" style="text-decoration:none; color:inherit;">
+      <span class="seal">CC</span>
+      <span class="name">CampusConnect</span>
+    </a>
+    <div class="user-chip">
+      <span class="dot"></span>
+      <span id="userRole">Student</span>
+    </div>
+  </header>
 
-    <!-- Unified Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="wordmark">
-        <span class="seal">CC</span>
-        <span class="name">CampusConnect</span>
+  <main class="page">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="rule"></div>
+    <h1 id="profileName">Profile</h1>
+    <p class="sub" id="profileMeta"></p>
+    <span id="clubBadge" class="club-badge" style="display:none;"></span>
+
+    <div class="profile-header-extra">
+      <img id="profilePic" src="" alt="Profile Picture" class="profile-pic-large">
+      <p class="sub" id="profileBio"></p>
+      <p class="sub" id="profileBranchYear"></p>
+      <div class="social-links" id="profileSocialLinks"></div>
+      <button id="editProfileBtn" class="btn" style="margin-top: 10px;">Edit Profile</button>
+    </div>
+
+    <div class="skill-block">
+      <h3>Skills</h3>
+      <div id="profileSkills"></div>
+    </div>
+
+    <div class="skill-block">
+      <h3>Achievements</h3>
+      <div id="profileAchievements"></div>
+    </div>
+
+    <div class="skill-block">
+      <h3>Public Projects</h3>
+      <div id="profileProjects"></div>
+    </div> 
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal-overlay" style="display:none;">
+      <div class="modal-box">
+        <h3>Edit Profile</h3>
+        <form id="editProfileForm">
+          <label>Profile Picture</label>
+          <img id="picPreview" src="" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none;margin-bottom:8px;">
+          <input type="file" id="picInput" accept="image/*">
+
+          <label>Bio</label>
+          <textarea id="bioInput" rows="2"></textarea>
+
+          <label>Branch</label>
+          <input type="text" id="branchInput" placeholder="e.g. Computer Science & Engineering">
+
+          <label>Year</label>
+          <input type="text" id="yearInput" placeholder="e.g. 2nd Year">
+
+          <label>LinkedIn URL</label>
+          <input type="text" id="linkedinInput" placeholder="https://linkedin.com/in/username">
+
+          <label>GitHub URL</label>
+          <input type="text" id="githubInput" placeholder="https://github.com/username">
+
+          <label>Contact Email</label>
+          <input type="email" id="contactEmailInput" placeholder="name@mitsgwl.ac.in">
+
+          <div class="modal-actions"> 
+            <hr style="margin:20px 0; border-color:#444;">
+            <label>Request Club Head / President Role</label>
+            <input type="text" id="clubNameInput" placeholder="Club name (e.g. Coding Club)">
+            <input type="text" id="clubRoleTitleInput" placeholder="Role (e.g. President)" style="margin-top:8px;">
+            <button type="button" id="submitClubRequestBtn" class="btn" style="margin-top:10px;">Submit Request</button>
+            <p id="clubRequestStatus" class="sub" style="margin-top:6px;"></p>
+            <button type="button" id="cancelEditBtn">Cancel</button>
+            <button type="submit" class="btn">Save</button>
+          </div>
+        </form>
       </div>
+    </div>
+  </main>
 
-      <nav class="sidebar-nav" id="sidebarNav">
-        <!-- Populated automatically by script.js -->
-      </nav>
-
-      <div class="sidebar-footer-text">
-        MITS Gwalior<br>Autonomous &amp; NAAC A++
-      </div>
-    </aside>
-
-    <main class="main-content">
-
-      <!-- Top Navbar -->
-      <div class="top-navbar">
-        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-
-        <div class="navbar-title-crumb">
-          <span class="crumb-root">MITS Gwalior</span>
-          <span class="crumb-separator">/</span>
-          <span class="crumb-current" id="navCrumbTitle">User Profile</span>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
-          <a href="notifications.html" class="navbar-icon-btn" title="Notifications">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="notif-dot"></span>
-          </a>
-
-          <div class="profile-menu" id="profileMenu">
-            <button class="profile-trigger" id="profileTrigger">
-              <img id="navProfilePic" src="" alt="Profile" class="nav-profile-pic">
-              <span id="navUserName">Loading...</span>
-              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="profile-dropdown" id="profileDropdown">
-              <a href="profile.html" id="profileMenuLink">Profile</a>
-              <a href="settings.html">Settings</a>
-              <hr>
-              <button id="logoutBtn" class="logout-btn">Log out</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modern Profile Hero Card -->
-      <div class="profile-hero-card">
-        <div class="profile-hero-cover"></div>
-        <div class="profile-hero-body">
-          <div class="profile-avatar-container">
-            <img id="profilePic" src="" alt="Profile Picture" class="profile-pic-large">
-            <span class="profile-avatar-badge" title="Verified MITS Member">✓</span>
-          </div>
-
-          <div class="profile-identity-info">
-            <div class="profile-name-row">
-              <h1 id="profileName" class="profile-main-name">Loading Profile...</h1>
-              <span id="profileRoleBadge" class="role-badge-pill">Student</span>
-              <span id="clubBadge" class="club-badge" style="display:none;"></span>
-            </div>
-
-            <div class="profile-meta-pills" id="profileMetaPills">
-              <span class="meta-tag-pill" id="profileDeptPill">Engineering</span>
-              <span class="meta-tag-pill" id="profileYearPill">MITS Gwalior</span>
-              <span class="meta-tag-pill verified-domain-pill" id="profileEmailPill">...@mitsgwl.ac.in</span>
-            </div>
-
-            <p id="profileBio" class="profile-bio-text">Welcome to CampusConnect profile.</p>
-
-            <div class="social-links-row" id="profileSocialLinks">
-              <!-- LinkedIn, GitHub, Email dynamically populated -->
-            </div>
-          </div>
-
-          <div class="profile-actions-toolbar" id="profileOwnerActions">
-            <button id="editProfileBtn" class="btn btn-primary btn-with-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              <span>Edit Profile</span>
-            </button>
-            <button id="openAddSkillBtn" class="btn btn-secondary btn-with-icon">
-              <span>+ Add Skill</span>
-            </button>
-            <button id="openAddAchBtn" class="btn btn-secondary btn-with-icon">
-              <span>+ Add Achievement</span>
-            </button>
-            <button id="openAddProjBtn" class="btn btn-secondary btn-with-icon">
-              <span>+ Add Project</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Profile Content Grid -->
-      <div class="profile-grid-container">
-
-        <!-- Skills Section -->
-        <div class="profile-section-card">
-          <div class="profile-section-header">
-            <div class="profile-section-title">
-              <span class="section-icon">🛠️</span>
-              <div>
-                <h3>Technical Skills &amp; Proficiencies</h3>
-                <p>Verified proficiencies, tools, and engineering stacks</p>
-              </div>
-            </div>
-            <button id="headerAddSkillBtn" class="btn-text-action">+ Add Skill</button>
-          </div>
-          <div id="profileSkills" class="profile-skills-list">
-            <p class="sub" style="margin: 0;">Loading skills...</p>
-          </div>
-        </div>
-
-        <!-- Achievements Section -->
-        <div class="profile-section-card">
-          <div class="profile-section-header">
-            <div class="profile-section-title">
-              <span class="section-icon">🏆</span>
-              <div>
-                <h3>Achievements &amp; Honors</h3>
-                <p>Hackathons, competitive coding, papers, and academic awards</p>
-              </div>
-            </div>
-            <button id="headerAddAchBtn" class="btn-text-action">+ Add Achievement</button>
-          </div>
-          <div id="profileAchievements" class="profile-achievements-list">
-            <p class="sub" style="margin: 0;">Loading achievements...</p>
-          </div>
-        </div>
-
-        <!-- Public Projects Section -->
-        <div class="profile-section-card full-width-card">
-          <div class="profile-section-header">
-            <div class="profile-section-title">
-              <span class="section-icon">🚀</span>
-              <div>
-                <h3>Public Projects &amp; Repositories</h3>
-                <p>Active projects, engineering builds, and open-source contributions</p>
-              </div>
-            </div>
-            <button id="headerAddProjBtn" class="btn-text-action">+ Add Project</button>
-          </div>
-          <div id="profileProjects" class="profile-projects-grid">
-            <p class="sub" style="margin: 0;">Loading projects...</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- MODAL 1: Edit Profile -->
-      <div id="editProfileModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box" style="max-width: 600px; width: 95%;">
-          <div class="modal-header">
-            <h3 style="margin: 0; font-family: var(--display); font-size: 20px;">Edit Profile Details</h3>
-            <button type="button" class="modal-close-x" id="closeEditProfileX">&times;</button>
-          </div>
-
-          <form id="editProfileForm" style="margin-top: 16px;">
-            <div class="modal-avatar-preview-row">
-              <img id="picPreview" src="" alt="Avatar Preview" class="modal-preview-avatar">
-              <div style="flex: 1;">
-                <label class="field-label" style="margin-top:0;">Profile Picture</label>
-                <input type="file" id="picInput" accept="image/*" class="field-input" style="padding: 8px;">
-                <input type="url" id="picUrlInput" placeholder="Or enter Image URL (e.g. https://...)" class="field-input" style="margin-top: 8px;">
-                <p class="sub" style="font-size: 11px; margin-top: 4px;">Max 800KB for file upload, or paste an external image link.</p>
-              </div>
-            </div>
-
-            <label class="field-label" for="nameInput">Full Name *</label>
-            <input type="text" id="nameInput" class="field-input" required placeholder="Your full name">
-
-            <label class="field-label" for="bioInput">Bio</label>
-            <textarea id="bioInput" rows="2" class="field-input" placeholder="Tell your peers and professors about yourself..."></textarea>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-              <div>
-                <label class="field-label" for="departmentInput">Department &amp; Branch</label>
-                <select id="departmentInput" class="field-input">
-                  <option value="Computer Science & Engineering">Computer Science &amp; Engg (CSE)</option>
-                  <option value="Information Technology">Information Technology (IT)</option>
-                  <option value="Artificial Intelligence & Data Science">AI &amp; Data Science (AIDS)</option>
-                  <option value="Artificial Intelligence & Machine Learning">AI &amp; Machine Learning (AIML)</option>
-                  <option value="Computer Science & Design">CS &amp; Design (CSD)</option>
-                  <option value="Electronics & Telecommunication Engineering">Electronics &amp; Telecom (ET)</option>
-                  <option value="Electronics Engineering">Electronics Engineering (EE)</option>
-                  <option value="Electrical Engineering">Electrical Engineering (EL)</option>
-                  <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
-                  <option value="Civil Engineering">Civil Engineering (CE)</option>
-                  <option value="Chemical Engineering">Chemical Engineering (CH)</option>
-                  <option value="Architecture & Planning">Architecture &amp; Planning</option>
-                  <option value="Applied Sciences & Humanities">Applied Sciences</option>
-                  <option value="Master of Computer Applications">MCA</option>
-                  <option value="Management Studies">MBA</option>
-                </select>
-              </div>
-              <div>
-                <label class="field-label" for="yearInput">Academic Year</label>
-                <select id="yearInput" class="field-input">
-                  <option value="1st Year">1st Year (Freshman)</option>
-                  <option value="2nd Year">2nd Year (Sophomore)</option>
-                  <option value="3rd Year">3rd Year (Junior)</option>
-                  <option value="4th Year">4th Year (Senior)</option>
-                  <option value="Postgraduate">Postgraduate / PhD</option>
-                  <option value="Faculty Member">Faculty Member</option>
-                </select>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-              <div>
-                <label class="field-label" for="linkedinInput">LinkedIn URL</label>
-                <input type="url" id="linkedinInput" class="field-input" placeholder="https://linkedin.com/in/username">
-              </div>
-              <div>
-                <label class="field-label" for="githubInput">GitHub URL</label>
-                <input type="url" id="githubInput" class="field-input" placeholder="https://github.com/username">
-              </div>
-            </div>
-
-            <label class="field-label" for="contactEmailInput">Public Contact Email</label>
-            <input type="email" id="contactEmailInput" class="field-input" placeholder="name@mitsgwl.ac.in">
-
-            <!-- Preserved Club Role Request Section -->
-            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);">
-              <label class="field-label" style="color: #fbbf24;">Request Club Head / President Badge</label>
-              <div style="display: flex; gap: 10px; margin-top: 6px;">
-                <input type="text" id="clubNameInput" placeholder="Club name (e.g. Coding Club)" class="field-input" style="flex:1;">
-                <input type="text" id="clubRoleTitleInput" placeholder="Role (e.g. President)" class="field-input" style="flex:1;">
-                <button type="button" id="submitClubRequestBtn" class="btn btn-secondary">Submit</button>
-              </div>
-              <p id="clubRequestStatus" class="sub" style="font-size: 11px; margin-top: 4px;"></p>
-            </div>
-
-            <div class="modal-actions" style="margin-top: 20px;">
-              <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- MODAL 2: Add Skill -->
-      <div id="addSkillModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box" style="max-width: 480px; width: 95%;">
-          <div class="modal-header">
-            <h3 style="margin: 0; font-family: var(--display); font-size: 20px;">Add New Skill</h3>
-            <button type="button" class="modal-close-x" id="closeAddSkillX">&times;</button>
-          </div>
-
-          <form id="addSkillForm" style="margin-top: 16px;">
-            <label class="field-label" for="newSkillName">Skill Name *</label>
-            <input type="text" id="newSkillName" class="field-input" required placeholder="e.g. Python, React, CAD, Machine Learning">
-
-            <label class="field-label" for="newSkillCategory">Category</label>
-            <select id="newSkillCategory" class="field-input">
-              <option value="Programming">Programming &amp; Languages</option>
-              <option value="Web Development">Web &amp; App Development</option>
-              <option value="AI & Machine Learning">AI &amp; Data Science</option>
-              <option value="Core Engineering">Core Engineering &amp; CAD</option>
-              <option value="Cloud & DevOps">Cloud &amp; DevOps</option>
-              <option value="Design & Multimedia">UI/UX &amp; Design</option>
-              <option value="Soft Skills">Management &amp; Leadership</option>
-            </select>
-
-            <label class="field-label" for="newSkillProficiency">Proficiency Level</label>
-            <select id="newSkillProficiency" class="field-input">
-              <option value="Beginner">Beginner (Foundational - 35%)</option>
-              <option value="Intermediate" selected>Intermediate (Competent - 65%)</option>
-              <option value="Advanced">Advanced (Expert / Production - 90%)</option>
-            </select>
-
-            <div class="modal-actions" style="margin-top: 20px;">
-              <button type="button" id="cancelSkillBtn" class="btn btn-secondary">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="saveSkillBtn">Add Skill</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- MODAL 3: Add Achievement -->
-      <div id="addAchModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box" style="max-width: 540px; width: 95%;">
-          <div class="modal-header">
-            <h3 style="margin: 0; font-family: var(--display); font-size: 20px;">Add Achievement / Certification</h3>
-            <button type="button" class="modal-close-x" id="closeAddAchX">&times;</button>
-          </div>
-
-          <form id="addAchForm" style="margin-top: 16px;">
-            <label class="field-label" for="newAchTitle">Title / Award Name *</label>
-            <input type="text" id="newAchTitle" class="field-input" required placeholder="e.g. 1st Prize — Smart India Hackathon">
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label class="field-label" for="newAchCategory">Category</label>
-                <select id="newAchCategory" class="field-input">
-                  <option value="Hackathon">Hackathon</option>
-                  <option value="Competition">Coding Competition</option>
-                  <option value="Research Paper">Research Publication</option>
-                  <option value="Academic Merit">Academic Merit / Rank</option>
-                  <option value="Certification">Industry Certification</option>
-                  <option value="Open Source">Open Source Contribution</option>
-                  <option value="Sports & Cultural">Sports &amp; Cultural</option>
-                </select>
-              </div>
-              <div>
-                <label class="field-label" for="newAchDate">Date / Month</label>
-                <input type="text" id="newAchDate" class="field-input" placeholder="e.g. Oct 2026">
-              </div>
-            </div>
-
-            <label class="field-label" for="newAchCompetition">Organizer / Institution</label>
-            <input type="text" id="newAchCompetition" class="field-input" placeholder="e.g. MITS Gwalior, AICTE, IEEE">
-
-            <label class="field-label" for="newAchDesc">Description</label>
-            <textarea id="newAchDesc" rows="2" class="field-input" placeholder="Key highlights of your achievement..."></textarea>
-
-            <label class="field-label" for="newAchStack">Tech Stack / Domain (Optional)</label>
-            <input type="text" id="newAchStack" class="field-input" placeholder="e.g. React, Node.js, IoT, OpenCV">
-
-            <label class="field-label" for="newAchEvidence">Certificate / Evidence Link (URL)</label>
-            <input type="url" id="newAchEvidence" class="field-input" placeholder="https://certificate-link-or-drive-url">
-
-            <div class="modal-actions" style="margin-top: 20px;">
-              <button type="button" id="cancelAchBtn" class="btn btn-secondary">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="saveAchBtn">Save Achievement</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- MODAL 4: Add Project -->
-      <div id="addProjModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box" style="max-width: 540px; width: 95%;">
-          <div class="modal-header">
-            <h3 style="margin: 0; font-family: var(--display); font-size: 20px;">Add Public Project</h3>
-            <button type="button" class="modal-close-x" id="closeAddProjX">&times;</button>
-          </div>
-
-          <form id="addProjForm" style="margin-top: 16px;">
-            <label class="field-label" for="newProjTitle">Project Title *</label>
-            <input type="text" id="newProjTitle" class="field-input" required placeholder="e.g. Smart Campus Navigation App">
-
-            <label class="field-label" for="newProjDesc">Description</label>
-            <textarea id="newProjDesc" rows="2" class="field-input" placeholder="Describe the purpose, architecture, and features..."></textarea>
-
-            <label class="field-label" for="newProjStack">Technologies Used</label>
-            <input type="text" id="newProjStack" class="field-input" placeholder="e.g. React Native, MongoDB, Python">
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label class="field-label" for="newProjStatus">Status</label>
-                <select id="newProjStatus" class="field-input">
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <label class="field-label" for="newProjProgress">Progress (%)</label>
-                <input type="number" id="newProjProgress" class="field-input" min="0" max="100" value="60">
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label class="field-label" for="newProjGithub">GitHub Repository URL</label>
-                <input type="url" id="newProjGithub" class="field-input" placeholder="https://github.com/user/project">
-              </div>
-              <div>
-                <label class="field-label" for="newProjLive">Live Demo URL</label>
-                <input type="url" id="newProjLive" class="field-input" placeholder="https://project-demo.com">
-              </div>
-            </div>
-
-            <div class="modal-actions" style="margin-top: 20px;">
-              <button type="button" id="cancelProjBtn" class="btn btn-secondary">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="saveProjBtn">Add Project</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <script src="script.js"></script>
   <script src="profile.js"></script>
 </body>
 </html>

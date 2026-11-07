@@ -183,9 +183,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!statActiveRequests) return; // Not on dashboard page
 
     const statResearchOpps = document.getElementById("statResearchOpps");
+    const statVerifiedResources = document.getElementById("statVerifiedResources");
     const statUnreadAnnouncements = document.getElementById("statUnreadAnnouncements");
-    const statUpcomingEvents = document.getElementById("statUpcomingEvents");
-    const statActiveComplaints = document.getElementById("statActiveComplaints");
 
     const upcomingEventsContainer = document.getElementById("dashboardUpcomingEvents");
     const latestAnnouncementsContainer = document.getElementById("dashboardLatestAnnouncements");
@@ -199,32 +198,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         // 1. Live Stats Counters
         if (statActiveRequests) statActiveRequests.textContent = data.activeRequests || "12";
         if (statResearchOpps) statResearchOpps.textContent = data.researchOpportunities || "5";
-        if (statUnreadAnnouncements) statUnreadAnnouncements.textContent = data.unreadAnnouncements || "5";
-        if (statUpcomingEvents) statUpcomingEvents.textContent = (Array.isArray(data.upcomingEvents) ? data.upcomingEvents.length : "3");
-        if (statActiveComplaints) statActiveComplaints.textContent = data.activeComplaints !== undefined ? data.activeComplaints : "2";
+        if (statVerifiedResources) statVerifiedResources.textContent = (data.verifiedResources || "37") + "+";
+        if (statUnreadAnnouncements) statUnreadAnnouncements.textContent = data.unreadAnnouncements || "7";
 
         // 2. Upcoming Academic Calendar Events
         if (upcomingEventsContainer && Array.isArray(data.upcomingEvents) && data.upcomingEvents.length > 0) {
           upcomingEventsContainer.innerHTML = data.upcomingEvents.slice(0, 4).map(evt => {
-            const dateObj = evt.startDate ? new Date(evt.startDate) : new Date();
-            const monthStr = dateObj.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
-            const dayStr = dateObj.getDate();
+            const dateStr = evt.startDate ? new Date(evt.startDate).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Scheduled";
             const timeStr = evt.startTime || "";
-            const venueStr = evt.venue || "MITS Campus";
-            const categoryEmoji = evt.category === "Examination" ? "📝" : (evt.category === "Holiday" ? "🎉" : "🎓");
-
             return `
-              <div class="event-entry">
-                <div class="event-date-box">
-                  <span class="event-month">${monthStr}</span>
-                  <span class="event-day">${dayStr}</span>
-                </div>
-                <div class="event-details">
-                  <div class="event-category-badge">${categoryEmoji} ${evt.category || "Academic Milestone"}</div>
-                  <h4 class="event-name">${evt.title}</h4>
-                  <div class="event-sub-info">${timeStr ? `${timeStr} • ` : ""}${venueStr}</div>
-                </div>
-              </div>
+              <li>
+                <strong>${evt.title}</strong>
+                <span>${dateStr} • ${timeStr || evt.venue || "MITS Campus"}</span>
+              </li>
             `;
           }).join("");
         }
@@ -232,20 +218,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         // 3. Latest Verified Announcements
         if (latestAnnouncementsContainer && Array.isArray(data.latestAnnouncements) && data.latestAnnouncements.length > 0) {
           latestAnnouncementsContainer.innerHTML = data.latestAnnouncements.slice(0, 4).map(ann => {
-            const dateStr = ann.createdAt ? new Date(ann.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recent";
-            const circ = ann.circularNumber || "MITS/Autonomous/2026";
-            const category = ann.category || "Official Circular";
-            const author = ann.author || "MITS Administrative Office";
-
+            const dateStr = ann.createdAt ? new Date(ann.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recent";
+            const circ = ann.circularNumber ? `${ann.circularNumber} • ` : "";
             return `
-              <div class="notice-item">
-                <div class="notice-meta-tag">
-                  <span class="pill-category">${category}</span>
-                  <span class="pill-circ">${circ}</span>
-                </div>
-                <h4 class="notice-title">${ann.title}</h4>
-                <div class="notice-footer">${author} • ${dateStr}</div>
-              </div>
+              <li>
+                <strong>${ann.title}</strong>
+                <span>${circ}${dateStr}</span>
+              </li>
             `;
           }).join("");
         }
@@ -253,7 +232,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (err) {
       console.warn("Could not load dynamic dashboard summary:", err.message);
     }
-  }
   }
 
   loadLiveDashboardData();
