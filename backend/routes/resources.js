@@ -665,6 +665,21 @@ const VERIFIED_MITS_PAPERS = [
   }
 ];
 
+// Helper to provide authentic MITS departmental source attribution
+function getDepartmentSource(branch) {
+  switch (branch) {
+    case "CSE": return "MITS Autonomous Exam Cell · Dept. of Computer Science & Engineering";
+    case "IT": return "MITS Autonomous Exam Cell · Dept. of Information Technology";
+    case "AI-DS": return "MITS Autonomous Exam Cell · Center for AI & Data Science";
+    case "CSD": return "MITS Autonomous Exam Cell · Dept. of Computer Science & Design";
+    case "ECE": return "MITS Autonomous Exam Cell · Dept. of Electronics Engineering";
+    case "EE": return "MITS Autonomous Exam Cell · Dept. of Electrical Engineering";
+    case "ME": return "MITS Autonomous Exam Cell · Dept. of Mechanical Engineering";
+    case "CE": return "MITS Autonomous Exam Cell · Dept. of Civil Engineering";
+    case "Common": default: return "MITS Autonomous Exam Cell · Applied Sciences & First Year Cell";
+  }
+}
+
 // Seed or update database with verified papers on startup
 async function seedVerifiedPapers() {
   try {
@@ -675,9 +690,12 @@ async function seedVerifiedPapers() {
         examType: paper.examType
       });
 
+      const defaultSource = paper.source || getDepartmentSource(paper.branch);
+
       if (!existing) {
         await Resource.create({
           ...paper,
+          source: defaultSource,
           fileUrl: paper.filename ? `/assets/documents/pyqs/${paper.filename}` : "",
           downloadsCount: Math.floor(Math.random() * 40) + 75,
           viewsCount: Math.floor(Math.random() * 80) + 160,
@@ -687,6 +705,7 @@ async function seedVerifiedPapers() {
         existing.filename = paper.filename;
         existing.fileAvailable = true;
         existing.fileUrl = paper.filename ? `/assets/documents/pyqs/${paper.filename}` : "";
+        existing.source = defaultSource;
         existing.examType = paper.examType;
         existing.title = paper.title;
         existing.subjectName = paper.subjectName;
@@ -755,6 +774,7 @@ router.get("/", async (req, res) => {
       const hasRealFile = Boolean(doc.filename && resolvePdfPath(doc.filename));
       return {
         ...doc,
+        source: doc.source || getDepartmentSource(doc.branch),
         fileAvailable: Boolean(doc.fileAvailable && hasRealFile),
         previewUrl: hasRealFile ? `/api/resources/${doc._id}/preview` : (doc.fileUrl || ""),
         downloadUrl: hasRealFile ? `/api/resources/${doc._id}/download` : (doc.fileUrl || "")
@@ -863,6 +883,7 @@ router.post("/", async (req, res) => {
       fileUrl,
       fileSize,
       description,
+      source,
       uploadedBy,
       uploaderRole
     } = req.body;
@@ -886,6 +907,7 @@ router.post("/", async (req, res) => {
       fileSize: fileSize || "1.5 MB",
       fileType: "PDF",
       description: (description || "").trim(),
+      source: (source || getDepartmentSource(branch || "Common")).trim(),
       uploadedBy: uploadedBy || "Faculty Member",
       uploaderRole: uploaderRole || "Faculty",
       downloadsCount: 0,

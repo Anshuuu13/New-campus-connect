@@ -304,6 +304,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     }
 
+    const sourceBadgeText = item.source || item.uploadedBy || 'MITS Examination Cell';
+
     card.innerHTML = `
       <div class="res-card-top">
         <div class="res-badge-group">
@@ -316,20 +318,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       </div>
 
+      <div class="res-source-row">
+        <span class="res-source-badge" title="Official source: ${sourceBadgeText}">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Source: ${sourceBadgeText}</span>
+        </span>
+      </div>
+
       <h3 class="res-card-title">${item.title}</h3>
       <p class="res-card-desc">${item.description || "Official verified academic study material from MITS Gwalior repository."}</p>
 
       <div class="res-card-specs">
-        <span class="spec-pill">🏛️ ${branchName}</span>
-        <span class="spec-pill">📅 ${semName}</span>
-        <span class="spec-pill">🏷️ Year ${item.academicYear || "2024"}</span>
-        <span class="spec-pill">📄 ${item.fileSize || (isAvailable ? "PDF" : "Pending")}</span>
+        <span class="spec-pill"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> ${branchName}</span>
+        <span class="spec-pill"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${semName}</span>
+        <span class="spec-pill"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Year ${item.academicYear || "2024"}</span>
+        <span class="spec-pill"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ${item.fileSize || (isAvailable ? "PDF" : "Pending")}</span>
       </div>
 
       <div class="res-card-footer">
         <div class="res-meta-stats">
-          <span>📥 ${item.downloadsCount || 0} downloads</span>
-          <span>👁️ ${item.viewsCount || 0} views</span>
+          <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> ${item.downloadsCount || 0} downloads</span>
+          <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${item.viewsCount || 0} views</span>
         </div>
         <div class="res-actions-row">
           ${actionsHtml}
@@ -397,8 +406,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   function openPdfPreview(item) {
     activePreviewResource = item;
     modalTitle.textContent = item.title;
-    modalMeta.textContent = `${item.subjectName} (${item.subjectCode || "N/A"}) • ${item.branch} • Semester ${item.semester} • ${item.academicYear}`;
+    const sourceText = item.source || item.uploadedBy || "MITS Examination Cell";
+    modalMeta.textContent = `${item.subjectName} (${item.subjectCode || "N/A"}) • ${item.branch} • Semester ${item.semester} • ${item.academicYear} • Source: ${sourceText}`;
     modalCatBadge.textContent = `${item.category} • ${item.examType || "General"}`;
+
+    const footerNote = document.querySelector(".pdf-modal-footer .footer-note");
+    if (footerNote) {
+      footerNote.textContent = `Verified Source: ${sourceText} (MITS Gwalior Autonomous Repository)`;
+    }
 
     const resId = item._id || item.title;
     const isBookmarked = state.bookmarks.includes(resId);

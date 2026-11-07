@@ -237,8 +237,8 @@ setTimeout(seedDefaultFacultyAndRouting, 1200);
 // ====================================================================
 router.get("/", async (req, res) => {
   try {
-    const { userId, status, category, department, priority, search, isEscalated } = req.query;
-    const reqUserId = userId || req.headers["x-user-id"];
+    const { userId, studentId, status, category, department, priority, search, isEscalated } = req.query;
+    const reqUserId = userId || studentId || req.headers["x-user-id"];
 
     if (!reqUserId) {
       return res.status(401).json({ error: "Authentication required to view complaints." });
@@ -439,10 +439,11 @@ router.post("/", async (req, res) => {
       isAnonymous,
       isConfidential,
       priority,
-      userId
+      userId,
+      studentId
     } = req.body;
 
-    const reqUserId = userId || req.headers["x-user-id"];
+    const reqUserId = userId || studentId || req.headers["x-user-id"];
     if (!reqUserId) {
       return res.status(401).json({ error: "Please log in to submit a grievance." });
     }

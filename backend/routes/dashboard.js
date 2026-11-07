@@ -27,7 +27,7 @@ router.get("/summary", async (req, res) => {
       activeComplaintsCount,
       userComplaintsCount
     ] = await Promise.all([
-      Resource.countDocuments({}).catch(() => 37),
+      Resource.countDocuments({}).catch(() => 39),
       FacultyPost.countDocuments({ status: "approved" }).catch(() => 5),
       Announcement.find({}).sort({ createdAt: -1 }).limit(4).catch(() => []),
       Event.find({ status: { $ne: "Completed" } }).sort({ startDate: 1 }).limit(4).catch(() => []),
@@ -46,7 +46,7 @@ router.get("/summary", async (req, res) => {
     const activeRequests = (typeof pendingJoinReqs === "number" ? pendingJoinReqs : 6) +
                            (typeof pendingSwapReqs === "number" ? pendingSwapReqs : 6);
     const researchOpportunities = typeof facultyPostCount === "number" ? facultyPostCount : 5;
-    const verifiedResources = typeof resourceCount === "number" ? resourceCount : 37;
+    const verifiedResources = typeof resourceCount === "number" ? resourceCount : 39;
     const unreadAnnouncements = typeof unreadNotifCount === "number" ? unreadNotifCount : (announcements ? announcements.length : 7);
     const activeComplaints = typeof activeComplaintsCount === "number" ? activeComplaintsCount : 2;
 

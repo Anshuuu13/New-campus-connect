@@ -76,6 +76,10 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  source: {
+    type: String,
+    default: "MITS Autonomous Examination Cell"
+  },
   uploadedBy: {
     type: String,
     default: "MITS Academic Cell"

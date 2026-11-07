@@ -246,6 +246,90 @@ async function runTests() {
     });
     assert("Dashboard summary endpoint returns aggregated metrics", dashSummary.status === 200 && dashSummary.data.unreadAnnouncements !== undefined && dashSummary.data.activeComplaints !== undefined);
 
+    // 11. Resources & PYQs API Test
+    const allResources = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/resources",
+      method: "GET"
+    });
+    assert("Fetch verified academic resources (at least 39 papers)", allResources.status === 200 && Array.isArray(allResources.data) && allResources.data.length >= 39);
+
+    const firstPaper = allResources.data[0];
+    assert("Resource doc includes authentic source attribution", Boolean(firstPaper && (firstPaper.source || firstPaper.uploadedBy)));
+    assert("Resource doc includes working previewUrl and downloadUrl", Boolean(firstPaper && firstPaper.previewUrl && firstPaper.downloadUrl));
+
+    // Branch filter test
+    const cseResources = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/resources?branch=CSE",
+      method: "GET"
+    });
+    assert("Filter resources by branch (CSE)", cseResources.status === 200 && Array.isArray(cseResources.data) && cseResources.data.length > 0 && cseResources.data.every(r => r.branch === "CSE" || r.branch === "Common"));
+
+    // Semester filter test
+    const sem3Resources = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/resources?semester=3",
+      method: "GET"
+    });
+    assert("Filter resources by semester (Sem 3)", sem3Resources.status === 200 && Array.isArray(sem3Resources.data) && sem3Resources.data.length > 0 && sem3Resources.data.every(r => r.semester === 3));
+
+    // 12. PDF Preview & Download Streaming Test
+    const testPdfId = firstPaper._id;
+    const previewRes = await new Promise((resolve, reject) => {
+      http.get(`http://localhost:5000/api/resources/${testPdfId}/preview`, (res) => {
+        resolve({ status: res.statusCode, contentType: res.headers["content-type"] });
+      }).on("error", reject);
+    });
+    assert("GET /api/resources/:id/preview streams valid application/pdf", previewRes.status === 200 && previewRes.contentType.includes("application/pdf"));
+
+    const downloadRes = await new Promise((resolve, reject) => {
+      http.get(`http://localhost:5000/api/resources/${testPdfId}/download`, (res) => {
+        resolve({ status: res.statusCode, contentDisposition: res.headers["content-disposition"] });
+      }).on("error", reject);
+    });
+    assert("GET /api/resources/:id/download serves file attachment", downloadRes.status === 200 && Boolean(downloadRes.contentDisposition));
+
+    // 13. Smart Complaints Management System Test
+    const newComplaint = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/complaints",
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }, {
+      title: "Lab 3 Internet Connectivity Issue",
+      description: "Internet dropouts during practical lab session in Block B.",
+      category: "Campus Wi-Fi & IT",
+      department: "IT & Network Infrastructure",
+      studentId: testStudentId,
+      studentName: "Anshika Rai",
+      studentEmail: "anshika.test@mitsgwl.ac.in",
+      priority: "Medium"
+    });
+    assert("Submit complaint via POST /api/complaints with unique ID", newComplaint.status === 201 && (newComplaint.data.complaintId || newComplaint.data._id));
+    const createdComplaintId = newComplaint.data._id;
+
+    const listComplaints = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: `/api/complaints?studentId=${testStudentId}`,
+      method: "GET"
+    });
+    assert("Fetch user complaints via GET /api/complaints", listComplaints.status === 200 && Array.isArray(listComplaints.data) && listComplaints.data.length > 0);
+
+    // 14. Academic Calendar Events Test
+    const eventsRes = await request({
+      hostname: "localhost",
+      port: 5000,
+      path: "/api/events",
+      method: "GET"
+    });
+    assert("Fetch academic calendar events via GET /api/events", eventsRes.status === 200 && Array.isArray(eventsRes.data));
+
     console.log(`\n=== ALL TESTS COMPLETED: ${passed} PASSED, ${failed} FAILED ===`);
     process.exit(failed > 0 ? 1 : 0);
   } catch (err) {
