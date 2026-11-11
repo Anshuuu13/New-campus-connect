@@ -2,15 +2,19 @@ const assert = require("assert");
 
 async function run() {
   const baseUrl = "http://localhost:5000";
-  console.log("=== VERIFYING LOGIN, ENROLLMENT AUTO-EXTRACTION & DASHBOARD CREDENTIALS ===");
+  console.log("=== VERIFYING GOOGLE-ONLY LOGIN & DASHBOARD CREDENTIALS ===");
 
-  // 1. Test student login with branch & enrollment in email (0901cs211044@mitsgwl.ac.in)
-  console.log("\n[TEST 1] Student with branch & roll in email");
+  // 1. Test student login via Google OAuth with branch & enrollment in email (0901cs211044@mitsgwl.ac.in)
+  console.log("\n[TEST 1] Student Google Auth with branch & roll in email");
   const studentEmail1 = `0901cs211044_${Date.now()}@mitsgwl.ac.in`;
-  const res1 = await fetch(`${baseUrl}/api/users/college-login`, {
+  const res1 = await fetch(`${baseUrl}/api/users/google-auth`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: studentEmail1 })
+    body: JSON.stringify({
+      email: studentEmail1,
+      name: "Anshu Sharma",
+      googleId: `gid_stu_${Date.now()}`
+    })
   });
   assert.strictEqual(res1.status, 200);
   const data1 = await res1.json();
@@ -19,8 +23,8 @@ async function run() {
   assert.strictEqual(data1.department, "Computer Science & Engineering");
   console.log(`✓ Student 1: Role=${data1.role}, Enrollment=${data1.enrollmentNumber}, Branch=${data1.department}`);
 
-  // 2. Test student login with IT branch (0901it221088@mitsgwl.ac.in)
-  console.log("\n[TEST 2] Student with IT branch in email");
+  // 2. Test student login via Google OAuth with IT branch (0901it221088@mitsgwl.ac.in)
+  console.log("\n[TEST 2] Student Google Auth with IT branch in email");
   const studentEmail2 = `0901it221088_${Date.now()}@mitsgwl.ac.in`;
   const res2 = await fetch(`${baseUrl}/api/users/google-auth`, {
     method: "POST",
@@ -28,7 +32,7 @@ async function run() {
     body: JSON.stringify({
       email: studentEmail2,
       name: "Rohit IT Student",
-      googleId: `gid_${Date.now()}`
+      googleId: `gid_it_${Date.now()}`
     })
   });
   assert.strictEqual(res2.status, 200);
@@ -38,8 +42,8 @@ async function run() {
   assert.strictEqual(data2.department, "Information Technology");
   console.log(`✓ Student 2: Role=${data2.role}, Enrollment=${data2.enrollmentNumber}, Branch=${data2.department}`);
 
-  // 3. Test professor login (any faculty email @mitsgwalior.in)
-  console.log("\n[TEST 3] Faculty login (@mitsgwalior.in)");
+  // 3. Test professor login via Google OAuth (any faculty email @mitsgwalior.in)
+  console.log("\n[TEST 3] Faculty Google Auth (@mitsgwalior.in)");
   const profEmail = `dr.hod.electrical_${Date.now()}@mitsgwalior.in`;
   const res3 = await fetch(`${baseUrl}/api/users/google-auth`, {
     method: "POST",
@@ -97,8 +101,18 @@ async function run() {
   assert.strictEqual(getData.enrollmentNumber, "0901CS211044");
   console.log(`✓ Verified in MongoDB Atlas: Name=${getData.name}, Enrollment=${getData.enrollmentNumber}`);
 
-  // 7. Verify index.html contains non-editable credentials
-  console.log("\n[TEST 7] Verify Dashboard index.html contains non-editable fields");
+  // 7. Verify login.html has ONLY Google button and NO alternative login options
+  console.log("\n[TEST 7] Verify login.html is Google-Only");
+  const loginRes = await fetch(`${baseUrl}/login.html`);
+  const loginHtml = await loginRes.text();
+  assert(loginHtml.includes("Continue with Google"), "Must contain 'Continue with Google' button");
+  assert(!loginHtml.includes("mitsEmailInput"), "Must NOT contain manual email input");
+  assert(!loginHtml.includes("submitMitsEmailBtn"), "Must NOT contain manual email button");
+  assert(!loginHtml.includes("toggleEmailLoginBtn"), "Must NOT contain alternative toggle link");
+  console.log("✓ login.html verified as strictly Google-only");
+
+  // 8. Verify index.html contains non-editable credentials
+  console.log("\n[TEST 8] Verify Dashboard index.html contains non-editable fields");
   const indexRes = await fetch(`${baseUrl}/index.html`);
   const indexHtml = await indexRes.text();
   assert(indexHtml.includes('id="dashVerifiedName"'), "Must have dashVerifiedName");
@@ -106,7 +120,7 @@ async function run() {
   assert(indexHtml.includes('readonly'), "Fields must be marked readonly");
   console.log("✓ Dashboard index.html verified with non-editable credentials");
 
-  console.log("\n=== ALL 7 TESTS PASSED SUCCESSFULLY! ===");
+  console.log("\n=== ALL 8 TESTS PASSED SUCCESSFULLY! ===");
 }
 
 run().catch((err) => {

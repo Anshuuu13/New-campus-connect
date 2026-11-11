@@ -205,101 +205,10 @@ async function handleGoogleAccessToken(accessToken) {
   }
 }
 
-// Direct MITS College Email Verification Login
-async function loginWithMitsEmail(rawEmail) {
-  const email = (rawEmail || "").toLowerCase().trim();
-  const isStudent = isStudentEmail(email);
-  const isFaculty = isFacultyEmail(email);
-
-  if (!isStudent && !isFaculty) {
-    showStatus("Access restricted. Please enter a valid official institutional email ending in @mitsgwl.ac.in (students) or @mitsgwalior.in (faculty).", "error");
-    return;
-  }
-
-  showStatus("Verifying MITS institutional account...", "loading");
-
-  try {
-    const apiBase = await getApiBase();
-    const res = await fetch(`${apiBase}/users/college-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      showStatus(err.error || "Authentication failed. Please try again.", "error");
-      return;
-    }
-
-    const userData = await res.json();
-    localStorage.setItem("campusConnectUser", JSON.stringify(userData));
-
-    if (!userData.profileCompleted) {
-      showStatus(`Welcome, ${userData.name}! Redirecting to profile setup...`, "success");
-      setTimeout(() => { window.location.href = "onboarding.html"; }, 350);
-    } else {
-      showStatus(`Welcome back, ${userData.name}! Loading campus portal...`, "success");
-      setTimeout(() => { window.location.href = "index.html"; }, 350);
-    }
-  } catch (err) {
-    console.error("Institutional login error:", err);
-    showStatus("Unable to reach authentication server. Please check your network connection.", "error");
-  }
-}
-
-// Helper to reveal direct MITS email login form
-function revealDirectEmailForm(message = "") {
-  const directEmailForm = document.getElementById("directEmailForm");
-  if (directEmailForm) {
-    directEmailForm.style.display = "block";
-    const input = document.getElementById("mitsEmailInput");
-    if (input) input.focus();
-  }
-  if (message) {
-    showStatus(message, "info");
-  }
-}
-
-// Initialize Google Identity Services (GIS)
+// Initialize Google Identity Services (GIS) — Google-Only Authentication
 async function initGoogleAuth() {
   const container = document.getElementById("googleBtnContainer");
   const fallbackBtn = document.getElementById("continueWithGoogleBtn");
-  const toggleBtn = document.getElementById("toggleEmailLoginBtn");
-  const submitEmailBtn = document.getElementById("submitMitsEmailBtn");
-  const mitsEmailInput = document.getElementById("mitsEmailInput");
-
-  // Bind direct email toggle button
-  if (toggleBtn && !toggleBtn.dataset.bound) {
-    toggleBtn.dataset.bound = "true";
-    toggleBtn.addEventListener("click", () => {
-      const form = document.getElementById("directEmailForm");
-      if (form) {
-        const isHidden = form.style.display === "none" || !form.style.display;
-        form.style.display = isHidden ? "block" : "none";
-        if (isHidden && mitsEmailInput) mitsEmailInput.focus();
-      }
-    });
-  }
-
-  // Bind direct email submit button
-  if (submitEmailBtn && !submitEmailBtn.dataset.bound) {
-    submitEmailBtn.dataset.bound = "true";
-    submitEmailBtn.addEventListener("click", () => {
-      if (mitsEmailInput) loginWithMitsEmail(mitsEmailInput.value);
-    });
-  }
-
-  // Allow pressing Enter on email input
-  if (mitsEmailInput && !mitsEmailInput.dataset.bound) {
-    mitsEmailInput.dataset.bound = "true";
-    mitsEmailInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        loginWithMitsEmail(mitsEmailInput.value);
-      }
-    });
-  }
 
   // Attempt to fetch dynamically configured Client ID from backend
   try {
@@ -363,8 +272,9 @@ async function initGoogleAuth() {
         error_callback: (err) => {
           console.warn("GIS Notification:", err);
           if (err && (err.type === "origin_mismatch" || err.type === "idpiframe_initialization_failed")) {
-            revealDirectEmailForm(
-              "Sign in below using your official MITS College ID (@mitsgwl.ac.in or @mitsgwalior.in):"
+            showStatus(
+              "Please click 'Continue with Google' to sign in with your official MITS account.",
+              "info"
             );
           }
         }
@@ -413,7 +323,7 @@ async function initGoogleAuth() {
           } else if (tokenResponse && tokenResponse.error) {
             console.warn("OAuth2 token response error:", tokenResponse);
             if (tokenResponse.error === "origin_mismatch" || tokenResponse.error === "redirect_uri_mismatch") {
-              revealDirectEmailForm("Sign in with your official MITS institutional account below:");
+              showStatus("Google OAuth notice: Please sign in with your official @mitsgwl.ac.in or @mitsgwalior.in account.", "warning");
             }
           }
         }
