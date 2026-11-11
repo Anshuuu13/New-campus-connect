@@ -97,14 +97,24 @@ app.get("/api-status", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
+    version: "2.1.0-responsive",
     database: mongoose.connection.readyState === 1 ? "connected" : "connecting/disconnected",
     timestamp: new Date().toISOString()
   });
 });
 
 // Serve static frontend files with index: false so GET / is never intercepted by index.html
-app.use(express.static(path.resolve(__dirname, ".."), { index: false }));
-app.use(express.static(__dirname, { index: false }));
+// Set fresh cache headers for html/css/js so browser & edge proxies immediately receive responsive updates
+const staticOptions = {
+  index: false,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".html") || filePath.endsWith(".css") || filePath.endsWith(".js")) {
+      res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    }
+  }
+};
+app.use(express.static(path.resolve(__dirname, ".."), staticOptions));
+app.use(express.static(__dirname, staticOptions));
 
 // Route registration
 app.use("/api/users", usersRouter);

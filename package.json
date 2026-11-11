@@ -1,6 +1,6 @@
 {
   "name": "campusconnect-mits",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "CampusConnect - MITS Gwalior Student Portal",
   "main": "server.js",
   "scripts": {
