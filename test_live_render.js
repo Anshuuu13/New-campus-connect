@@ -125,6 +125,17 @@ async function checkLive() {
   assert(indexText.includes("dashEnrollmentNo"), "Must contain dashEnrollmentNo");
   console.log("✓ Live dashboard index.html verified with non-editable credentials");
 
+  // 8. Verify Google Client ID and Origin Configuration Endpoint
+  console.log("\n[LIVE TEST 8] Verify GET /api/users/google-client-id");
+  const idRes = await fetch(`${liveUrl}/api/users/google-client-id`, { cache: "no-store" });
+  assert.strictEqual(idRes.status, 200);
+  const idData = await idRes.json();
+  assert(idData.clientId, "Must return valid clientId");
+  console.log(`✓ Live Client ID verified: ${idData.clientId}`);
+  if (idData.authorizedOrigins) {
+    console.log(`✓ Configured Authorized Origins: ${idData.authorizedOrigins.join(", ")}`);
+  }
+
   console.log("\n=== ALL LIVE PRODUCTION CHECKS VERIFIED SUCCESSFULLY ===");
 }
 

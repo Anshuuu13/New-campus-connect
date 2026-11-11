@@ -205,6 +205,16 @@ async function handleGoogleAccessToken(accessToken) {
   }
 }
 
+// Helper: Surface clear diagnostic status for Google OAuth origin mismatch
+function notifyOriginMismatch(clientId) {
+  const currentOrigin = window.location.origin;
+  console.warn(`[Google OAuth Error 400: origin_mismatch] Origin "${currentOrigin}" must be added to Authorized JavaScript origins in Google Cloud Console for Client ID: ${clientId}`);
+  showStatus(
+    `Google OAuth Setup: Please ensure "${currentOrigin}" is authorized in Google Cloud Console under "Authorized JavaScript origins" for Client ID: ${clientId}.`,
+    "warning"
+  );
+}
+
 // Initialize Google Identity Services (GIS) — Google-Only Authentication
 async function initGoogleAuth() {
   const container = document.getElementById("googleBtnContainer");
@@ -217,46 +227,66 @@ async function initGoogleAuth() {
     if (idRes.ok) {
       const idData = await idRes.json();
       if (idData.clientId) {
-        activeClientId = idData.clientId;
+        activeClientId = String(idData.clientId).trim().replace(/^["']|["']$/g, "");
       }
     }
   } catch (e) {
     // Keep default activeClientId
   }
 
+  // Synchronize Google client ID meta tag
+  let metaTag = document.querySelector('meta[name="google-signin-client_id"]');
+  if (!metaTag) {
+    metaTag = document.createElement("meta");
+    metaTag.name = "google-signin-client_id";
+    document.head.appendChild(metaTag);
+  }
+  metaTag.content = activeClientId;
+
   // Setup click handler for visible "Continue with Google" button once
   if (fallbackBtn && !fallbackBtn.dataset.bound) {
     fallbackBtn.dataset.bound = "true";
     fallbackBtn.addEventListener("click", () => {
-      if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: "select_account" });
-      } else if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+      showStatus("Connecting to Google Sign-In...", "loading");
+
+      // Prefer GIS ID Token Prompt first
+      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
         google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            console.warn("GIS prompt skipped or not displayed:", notification.getNotDisplayedReason());
+            const reason = notification.getNotDisplayedReason ? notification.getNotDisplayedReason() : "skipped";
+            console.warn("GIS prompt skipped or not displayed:", reason);
             if (tokenClient) {
-              tokenClient.requestAccessToken({ prompt: "select_account" });
+              try {
+                tokenClient.requestAccessToken({ prompt: "select_account" });
+              } catch (tErr) {
+                console.warn("tokenClient request error:", tErr);
+              }
             } else {
               showStatus("Please click 'Continue with Google' to sign in with your official MITS account.", "info");
             }
           }
         });
+      } else if (tokenClient) {
+        try {
+          tokenClient.requestAccessToken({ prompt: "select_account" });
+        } catch (tErr) {
+          console.warn("tokenClient request error:", tErr);
+        }
       } else {
-        showStatus("Connecting to Google Sign-In...", "loading");
         setTimeout(() => {
           if (tokenClient) {
             tokenClient.requestAccessToken({ prompt: "select_account" });
           } else {
             showStatus("Google Sign-In is initializing. Please click 'Continue with Google'.", "info");
           }
-        }, 1200);
+        }, 1000);
       }
     });
   }
 
   // Wait for Google GIS library to be available
   if (typeof google === "undefined" || !google.accounts) {
-    setTimeout(initGoogleAuth, 250);
+    setTimeout(initGoogleAuth, 200);
     return;
   }
 
@@ -270,12 +300,9 @@ async function initGoogleAuth() {
         cancel_on_tap_outside: true,
         itp_support: true,
         error_callback: (err) => {
-          console.warn("GIS Notification:", err);
+          console.warn("GIS Error callback:", err);
           if (err && (err.type === "origin_mismatch" || err.type === "idpiframe_initialization_failed")) {
-            showStatus(
-              "Please click 'Continue with Google' to sign in with your official MITS account.",
-              "info"
-            );
+            notifyOriginMismatch(activeClientId);
           }
         }
       });
@@ -303,12 +330,16 @@ async function initGoogleAuth() {
           width: targetWidth
         });
 
-        // Hide fallback button only when Google's iframe has successfully loaded
-        setTimeout(() => {
+        // Hide fallback button once Google's official iframe renders
+        let pollCount = 0;
+        const checkIframe = setInterval(() => {
+          pollCount++;
           if (renderTarget && renderTarget.querySelector("iframe")) {
+            clearInterval(checkIframe);
             if (fallbackBtn) fallbackBtn.style.display = "none";
           }
-        }, 350);
+          if (pollCount > 30) clearInterval(checkIframe);
+        }, 100);
       }
     }
 
@@ -317,13 +348,21 @@ async function initGoogleAuth() {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: activeClientId,
         scope: "email profile openid",
+        error_callback: (err) => {
+          console.warn("OAuth2 token error callback:", err);
+          if (err && (err.type === "origin_mismatch" || err.error === "origin_mismatch" || err.error === "redirect_uri_mismatch")) {
+            notifyOriginMismatch(activeClientId);
+          }
+        },
         callback: async (tokenResponse) => {
           if (tokenResponse && tokenResponse.access_token) {
             await handleGoogleAccessToken(tokenResponse.access_token);
           } else if (tokenResponse && tokenResponse.error) {
             console.warn("OAuth2 token response error:", tokenResponse);
             if (tokenResponse.error === "origin_mismatch" || tokenResponse.error === "redirect_uri_mismatch") {
-              showStatus("Google OAuth notice: Please sign in with your official @mitsgwl.ac.in or @mitsgwalior.in account.", "warning");
+              notifyOriginMismatch(activeClientId);
+            } else {
+              showStatus("Google sign-in was canceled or could not be completed. Please try again.", "info");
             }
           }
         }

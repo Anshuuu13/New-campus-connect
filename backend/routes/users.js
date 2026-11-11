@@ -15,9 +15,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "campusconnect_jwt_secret_2026";
 
 const OFFICIAL_MITS_GOOGLE_CLIENT_ID = "1045933126405-v406lvthncnld96fpcm1l38pndlr5adi.apps.googleusercontent.com";
 
-// Resolve active client ID from env or official fallback
+// Resolve active client ID from env or official fallback (sanitizes quotes/whitespace)
 function getActiveGoogleClientId() {
-  const envId = (process.env.GOOGLE_CLIENT_ID || "").trim();
+  let envId = (process.env.GOOGLE_CLIENT_ID || "").trim();
+  if ((envId.startsWith('"') && envId.endsWith('"')) || (envId.startsWith("'") && envId.endsWith("'"))) {
+    envId = envId.slice(1, -1).trim();
+  }
   if (envId && !envId.startsWith("YOUR_GOOGLE_CLIENT_ID")) {
     return envId;
   }
@@ -60,10 +63,22 @@ function deduceBranchFromEnrollment(enrollmentNo) {
   return "Engineering";
 }
 
-// GET configured Google OAuth Client ID for frontend GIS initialization
+// GET configured Google OAuth Client ID and deployment origins for frontend GIS initialization
 router.get("/google-client-id", (req, res) => {
   const clientId = getActiveGoogleClientId();
-  res.json({ clientId });
+  const host = req.get("host") || "";
+  const protocol = req.protocol || (req.secure ? "https" : "http");
+  res.json({
+    clientId,
+    productionOrigin: "https://campus-connect-1q2c.onrender.com",
+    currentOrigin: `${protocol}://${host}`,
+    authorizedOrigins: [
+      "https://campus-connect-1q2c.onrender.com",
+      "http://localhost:5000",
+      "http://127.0.0.1:5000",
+      "http://localhost:3000"
+    ]
+  });
 });
 
 // GOOGLE AUTH — Register or log in with verified Google ID token or OAuth access token
