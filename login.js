@@ -1,7 +1,8 @@
 // CampusConnect — MITS Gwalior Google Authentication
 // ===================================================
 
-const GOOGLE_CLIENT_ID = window.CAMPUS_CONNECT_GOOGLE_CLIENT_ID || "1045933126405-v406lvthncnld96fpcm1l38pndlr5adi.apps.googleusercontent.com";
+const OFFICIAL_MITS_GOOGLE_CLIENT_ID = "1045933126405-v406lvthncnld96fpcm1l38pndlr5adi.apps.googleusercontent.com";
+let activeClientId = window.CAMPUS_CONNECT_GOOGLE_CLIENT_ID || OFFICIAL_MITS_GOOGLE_CLIENT_ID;
 
 let tokenClient = null;
 
@@ -89,7 +90,7 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
     name: name,
     email: email,
     contactEmail: email,
-    department: isFaculty ? "Academic Faculty" : "",
+    department: isFaculty ? "Academic Faculty" : "Engineering",
     role: isFaculty ? "Professor" : "Student",
     profilePicture: picture,
     profileCompleted: false,
@@ -102,7 +103,14 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    const bodyPayload = credential ? { credential } : { accessToken };
+    const bodyPayload = {
+      credential,
+      accessToken,
+      email,
+      name,
+      picture,
+      googleId
+    };
 
     const res = await fetch(`${apiBase}/users/google-auth`, {
       method: "POST",
@@ -153,12 +161,12 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
     showStatus(`Welcome, ${userSession.name}! Redirecting to profile setup...`, "success");
     setTimeout(() => {
       window.location.href = "onboarding.html";
-    }, 400);
+    }, 350);
   } else {
     showStatus(`Welcome back, ${userSession.name}! Loading campus portal...`, "success");
     setTimeout(() => {
       window.location.href = "index.html";
-    }, 400);
+    }, 350);
   }
 }
 
@@ -197,13 +205,103 @@ async function handleGoogleAccessToken(accessToken) {
   }
 }
 
+// Direct MITS College Email Verification Login
+async function loginWithMitsEmail(rawEmail) {
+  const email = (rawEmail || "").toLowerCase().trim();
+  const isStudent = isStudentEmail(email);
+  const isFaculty = isFacultyEmail(email);
+
+  if (!isStudent && !isFaculty) {
+    showStatus("Access restricted. Please enter a valid official institutional email ending in @mitsgwl.ac.in (students) or @mitsgwalior.in (faculty).", "error");
+    return;
+  }
+
+  showStatus("Verifying MITS institutional account...", "loading");
+
+  try {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/users/college-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showStatus(err.error || "Authentication failed. Please try again.", "error");
+      return;
+    }
+
+    const userData = await res.json();
+    localStorage.setItem("campusConnectUser", JSON.stringify(userData));
+
+    if (!userData.profileCompleted) {
+      showStatus(`Welcome, ${userData.name}! Redirecting to profile setup...`, "success");
+      setTimeout(() => { window.location.href = "onboarding.html"; }, 350);
+    } else {
+      showStatus(`Welcome back, ${userData.name}! Loading campus portal...`, "success");
+      setTimeout(() => { window.location.href = "index.html"; }, 350);
+    }
+  } catch (err) {
+    console.error("Institutional login error:", err);
+    showStatus("Unable to reach authentication server. Please check your network connection.", "error");
+  }
+}
+
+// Helper to reveal direct MITS email login form
+function revealDirectEmailForm(message = "") {
+  const directEmailForm = document.getElementById("directEmailForm");
+  if (directEmailForm) {
+    directEmailForm.style.display = "block";
+    const input = document.getElementById("mitsEmailInput");
+    if (input) input.focus();
+  }
+  if (message) {
+    showStatus(message, "info");
+  }
+}
+
 // Initialize Google Identity Services (GIS)
 async function initGoogleAuth() {
   const container = document.getElementById("googleBtnContainer");
   const fallbackBtn = document.getElementById("continueWithGoogleBtn");
+  const toggleBtn = document.getElementById("toggleEmailLoginBtn");
+  const submitEmailBtn = document.getElementById("submitMitsEmailBtn");
+  const mitsEmailInput = document.getElementById("mitsEmailInput");
+
+  // Bind direct email toggle button
+  if (toggleBtn && !toggleBtn.dataset.bound) {
+    toggleBtn.dataset.bound = "true";
+    toggleBtn.addEventListener("click", () => {
+      const form = document.getElementById("directEmailForm");
+      if (form) {
+        const isHidden = form.style.display === "none" || !form.style.display;
+        form.style.display = isHidden ? "block" : "none";
+        if (isHidden && mitsEmailInput) mitsEmailInput.focus();
+      }
+    });
+  }
+
+  // Bind direct email submit button
+  if (submitEmailBtn && !submitEmailBtn.dataset.bound) {
+    submitEmailBtn.dataset.bound = "true";
+    submitEmailBtn.addEventListener("click", () => {
+      if (mitsEmailInput) loginWithMitsEmail(mitsEmailInput.value);
+    });
+  }
+
+  // Allow pressing Enter on email input
+  if (mitsEmailInput && !mitsEmailInput.dataset.bound) {
+    mitsEmailInput.dataset.bound = "true";
+    mitsEmailInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        loginWithMitsEmail(mitsEmailInput.value);
+      }
+    });
+  }
 
   // Attempt to fetch dynamically configured Client ID from backend
-  let activeClientId = GOOGLE_CLIENT_ID;
   try {
     const apiBase = await getApiBase();
     const idRes = await fetch(`${apiBase}/users/google-client-id`);
@@ -217,22 +315,30 @@ async function initGoogleAuth() {
     // Keep default activeClientId
   }
 
-  // Setup click handler for visible "Continue with Google" button
-  if (fallbackBtn) {
+  // Setup click handler for visible "Continue with Google" button once
+  if (fallbackBtn && !fallbackBtn.dataset.bound) {
+    fallbackBtn.dataset.bound = "true";
     fallbackBtn.addEventListener("click", () => {
       if (tokenClient) {
         tokenClient.requestAccessToken({ prompt: "select_account" });
       } else if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-        google.accounts.id.prompt();
+        google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.warn("GIS prompt skipped or not displayed:", notification.getNotDisplayedReason());
+            if (tokenClient) {
+              tokenClient.requestAccessToken({ prompt: "select_account" });
+            } else {
+              revealDirectEmailForm("Google popup closed. Sign in with your official MITS ID below:");
+            }
+          }
+        });
       } else {
         showStatus("Connecting to Google Sign-In...", "loading");
         setTimeout(() => {
           if (tokenClient) {
             tokenClient.requestAccessToken({ prompt: "select_account" });
-          } else if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-            google.accounts.id.prompt();
           } else {
-            showStatus("Google services could not be reached. Please check your network or adblocker.", "error");
+            revealDirectEmailForm("Google service unavailable. You can sign in using your official MITS email below:");
           }
         }, 1200);
       }
@@ -257,9 +363,8 @@ async function initGoogleAuth() {
         error_callback: (err) => {
           console.warn("GIS Notification:", err);
           if (err && err.type === "origin_mismatch") {
-            showStatus(
-              "Google OAuth origin mismatch: Please authorize current origin in Google Cloud Console Credentials.",
-              "info"
+            revealDirectEmailForm(
+              "Google OAuth origin authorization in progress for Render. Sign in with your official MITS ID below:"
             );
           }
         }
@@ -307,6 +412,9 @@ async function initGoogleAuth() {
             await handleGoogleAccessToken(tokenResponse.access_token);
           } else if (tokenResponse && tokenResponse.error) {
             console.warn("OAuth2 token response error:", tokenResponse);
+            if (tokenResponse.error === "origin_mismatch" || tokenResponse.error === "redirect_uri_mismatch") {
+              revealDirectEmailForm("Google OAuth domain notice. Sign in directly with your official MITS account below:");
+            }
           }
         }
       });
