@@ -362,10 +362,9 @@ async function initGoogleAuth() {
         itp_support: true,
         error_callback: (err) => {
           console.warn("GIS Notification:", err);
-          if (err && err.type === "origin_mismatch") {
-            showStatus(
-              "Google OAuth origin authorization active. Please click 'Continue with Google' to sign in.",
-              "info"
+          if (err && (err.type === "origin_mismatch" || err.type === "idpiframe_initialization_failed")) {
+            revealDirectEmailForm(
+              "Sign in below using your official MITS College ID (@mitsgwl.ac.in or @mitsgwalior.in):"
             );
           }
         }
@@ -414,7 +413,7 @@ async function initGoogleAuth() {
           } else if (tokenResponse && tokenResponse.error) {
             console.warn("OAuth2 token response error:", tokenResponse);
             if (tokenResponse.error === "origin_mismatch" || tokenResponse.error === "redirect_uri_mismatch") {
-              showStatus("Google OAuth configuration notice: Please sign in with your official @mitsgwl.ac.in or @mitsgwalior.in Google account.", "warning");
+              revealDirectEmailForm("Sign in with your official MITS institutional account below:");
             }
           }
         }

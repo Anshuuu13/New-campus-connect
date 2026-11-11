@@ -88,6 +88,24 @@
       <!-- Realtime Feedback / Domain Error Box -->
       <div id="authStatusMsg" class="auth-status-msg" style="display: none; margin-top: 16px;"></div>
 
+      <!-- Direct Institutional Sign-In Option -->
+      <div id="institutionalEmailSection" style="margin-top: 18px; text-align: center;">
+        <button type="button" id="toggleEmailLoginBtn" style="background: none; border: none; color: #38bdf8; font-family: var(--body); font-size: 13px; cursor: pointer; text-decoration: underline; padding: 4px 8px;">
+          Or sign in with MITS College ID (@mitsgwl.ac.in / @mitsgwalior.in)
+        </button>
+        <div id="directEmailForm" style="display: none; margin-top: 14px; text-align: left;">
+          <label for="mitsEmailInput" style="display: block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px;">
+            Official MITS Email Address:
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="email" id="mitsEmailInput" placeholder="name@mitsgwl.ac.in or 0901cs211001@mitsgwl.ac.in" style="flex: 1; padding: 10px 12px; background: rgba(5, 10, 26, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; color: #fff; font-size: 13px; outline: none; min-width: 0;">
+            <button type="button" id="submitMitsEmailBtn" class="btn btn-primary" style="padding: 10px 14px; font-size: 13px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="auth-card-footer" style="margin-top: 24px;">
         <p class="auth-footnote">
           🔒 Secure Institutional Single Sign-On<br>

@@ -194,6 +194,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   const navProfilePic = document.getElementById("navProfilePic");
   const profileMenuLink = document.getElementById("profileMenuLink");
 
+  // Dashboard Non-Editable Credentials Elements
+  const dashVerifiedName = document.getElementById("dashVerifiedName");
+  const dashEnrollmentNo = document.getElementById("dashEnrollmentNo");
+  const dashEnrollmentLabel = document.getElementById("dashEnrollmentLabel");
+  const dashRoleDept = document.getElementById("dashRoleDept");
+  const dashOfficialEmail = document.getElementById("dashOfficialEmail");
+
+  function renderDashboardIdFields(u) {
+    if (!u) return;
+    if (dashVerifiedName) dashVerifiedName.value = u.name || "MITS Member";
+    if (dashEnrollmentNo) {
+      if (u.role === "Professor" || u.role === "Faculty") {
+        dashEnrollmentNo.value = u.enrollmentNumber || "Faculty Account (Verified)";
+        if (dashEnrollmentLabel) dashEnrollmentLabel.textContent = "Faculty / Employee ID";
+      } else {
+        dashEnrollmentNo.value = u.enrollmentNumber || "Pending Enrollment Verification";
+        if (dashEnrollmentLabel) dashEnrollmentLabel.textContent = "Actual Enrollment Number";
+      }
+    }
+    if (dashRoleDept) {
+      const roleStr = u.role || "Student";
+      const branchStr = u.branch || u.department || "Engineering";
+      const yearStr = u.year && u.year !== "Faculty Member" ? ` • ${u.year}` : "";
+      dashRoleDept.value = `${roleStr} — ${branchStr}${yearStr}`;
+    }
+    if (dashOfficialEmail) {
+      dashOfficialEmail.value = u.email || u.contactEmail || "student@mitsgwl.ac.in";
+    }
+  }
+
+  renderDashboardIdFields(user);
+
   if (navUserName) navUserName.textContent = user.name || "Student";
   if (profileMenuLink) profileMenuLink.href = `profile.html?userId=${userId}`;
 
@@ -211,9 +243,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const res = await fetch(`${apiBase}/users/${userId}`);
     if (res.ok) {
       const liveUser = await res.json();
+      const mergedUser = { ...user, ...liveUser };
+      localStorage.setItem("campusConnectUser", JSON.stringify(mergedUser));
       if (navProfilePic && liveUser.profilePicture) {
         navProfilePic.src = liveUser.profilePicture;
       }
+      if (navUserName && liveUser.name) {
+        navUserName.textContent = liveUser.name;
+      }
+      renderDashboardIdFields(mergedUser);
     }
   } catch (err) {
     console.warn("Could not refresh live nav profile picture:", err);

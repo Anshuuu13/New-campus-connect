@@ -44,8 +44,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (obDisplayName) obDisplayName.textContent = userName;
   if (obDisplayEmail) obDisplayEmail.textContent = userEmail;
   if (obName) obName.value = userName;
-  if (obEnrollmentNumber && user.enrollmentNumber) {
-    obEnrollmentNumber.value = user.enrollmentNumber;
+
+  const autoEnrollment = user.enrollmentNumber || (function() {
+    if (!userEmail) return "";
+    const m = userEmail.split("@")[0].trim().match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
+    return m ? m[1].toUpperCase() : "";
+  })();
+
+  if (obEnrollmentNumber && autoEnrollment) {
+    obEnrollmentNumber.value = autoEnrollment;
   }
   if (obEmail) obEmail.value = userEmail;
 
@@ -94,7 +101,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Pre-fill existing fields if available
-  if (user.department && obDepartment) obDepartment.value = user.department;
+  if (user.department && obDepartment) {
+    obDepartment.value = user.department;
+  } else if (autoEnrollment && obDepartment) {
+    const en = autoEnrollment.toUpperCase();
+    if (en.includes("CS") || en.includes("CSE")) obDepartment.value = "Computer Science & Engineering";
+    else if (en.includes("IT")) obDepartment.value = "Information Technology";
+    else if (en.includes("AIDS") || en.includes("AI")) obDepartment.value = "Artificial Intelligence & Data Science";
+    else if (en.includes("AIML") || en.includes("AL")) obDepartment.value = "Artificial Intelligence & Machine Learning";
+    else if (en.includes("CSD") || en.includes("CD")) obDepartment.value = "Computer Science & Design";
+    else if (en.includes("EC") || en.includes("ET")) obDepartment.value = "Electronics & Telecommunication Engineering";
+    else if (en.includes("EE")) obDepartment.value = "Electronics Engineering";
+    else if (en.includes("EL")) obDepartment.value = "Electrical Engineering";
+    else if (en.includes("ME")) obDepartment.value = "Mechanical Engineering";
+    else if (en.includes("CE")) obDepartment.value = "Civil Engineering";
+    else if (en.includes("CH")) obDepartment.value = "Chemical Engineering";
+  }
   if (user.year && obYear) obYear.value = user.year;
   if (user.bio && obBio) obBio.value = user.bio;
 

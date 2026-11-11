@@ -29,6 +29,37 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_SECRET || ""
 );
 
+// Helper to extract actual MITS enrollment number from email (e.g. 0901cs211001@mitsgwl.ac.in -> 0901CS211001)
+function extractEnrollmentFromEmail(email) {
+  if (!email) return "";
+  const prefix = email.split("@")[0].trim();
+  const match = prefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
+  if (match) {
+    return match[1].toUpperCase();
+  }
+  return "";
+}
+
+// Helper to deduce department from branch code in enrollment number
+function deduceBranchFromEnrollment(enrollmentNo) {
+  if (!enrollmentNo) return "Engineering";
+  const en = enrollmentNo.toUpperCase();
+  if (en.includes("CS") || en.includes("CSE")) return "Computer Science & Engineering";
+  if (en.includes("IT")) return "Information Technology";
+  if (en.includes("AIDS") || en.includes("AI") || en.includes("AD")) return "Artificial Intelligence & Data Science";
+  if (en.includes("AIML") || en.includes("AL")) return "Artificial Intelligence & Machine Learning";
+  if (en.includes("CSD") || en.includes("CD")) return "Computer Science & Design";
+  if (en.includes("ET") || en.includes("EC")) return "Electronics & Telecommunication Engineering";
+  if (en.includes("EE")) return "Electronics Engineering";
+  if (en.includes("EL")) return "Electrical Engineering";
+  if (en.includes("ME")) return "Mechanical Engineering";
+  if (en.includes("CE")) return "Civil Engineering";
+  if (en.includes("CH")) return "Chemical Engineering";
+  if (en.includes("AR")) return "Architecture & Planning";
+  if (en.includes("MCA") || en.includes("CA")) return "Master of Computer Applications";
+  return "Engineering";
+}
+
 // GET configured Google OAuth Client ID for frontend GIS initialization
 router.get("/google-client-id", (req, res) => {
   const clientId = getActiveGoogleClientId();
@@ -174,7 +205,8 @@ router.post("/google-auth", async (req, res) => {
       // ALL @mitsgwalior.in -> Professor
       // ALL @mitsgwl.ac.in -> Student
       const assignedRole = isFaculty ? "Professor" : "Student";
-      const assignedDept = isFaculty ? "Academic Faculty" : "Engineering";
+      const extractedEnrollment = isStudent ? extractEnrollmentFromEmail(email) : "";
+      const assignedDept = isFaculty ? "Academic Faculty" : (extractedEnrollment ? deduceBranchFromEnrollment(extractedEnrollment) : "Engineering");
 
       user = new User({
         name: finalName,
@@ -183,7 +215,9 @@ router.post("/google-auth", async (req, res) => {
         googleId: googleId,
         authProvider: "google",
         department: assignedDept,
+        branch: assignedDept,
         role: assignedRole,
+        enrollmentNumber: extractedEnrollment || "",
         profilePicture: picture || "",
         profileCompleted: false
       });
@@ -194,6 +228,14 @@ router.post("/google-auth", async (req, res) => {
         user.role = "Professor";
       } else if (isStudent && user.role !== "Admin" && user.role !== "Student") {
         user.role = "Student";
+      }
+      const extractedEnrollment = isStudent ? extractEnrollmentFromEmail(email) : "";
+      if (extractedEnrollment && (!user.enrollmentNumber || user.enrollmentNumber === "")) {
+        user.enrollmentNumber = extractedEnrollment;
+        if (!user.branch || user.branch === "Not specified" || user.branch === "Engineering") {
+          user.branch = deduceBranchFromEnrollment(extractedEnrollment);
+          user.department = user.branch;
+        }
       }
       if (picture && (!user.profilePicture || user.profilePicture.includes("googleusercontent.com"))) {
         user.profilePicture = picture;
@@ -254,13 +296,14 @@ router.post("/college-login", async (req, res) => {
 
     if (!user) {
       const emailPrefix = email.split("@")[0];
+      const extractedEnrollment = isStudent ? extractEnrollmentFromEmail(email) : "";
       const displayName = emailPrefix.replace(/[._0-9]/g, " ").trim();
       const formattedName = displayName.length > 2
         ? displayName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
         : `MITS Member (${emailPrefix})`;
 
       const assignedRole = isFaculty ? "Professor" : "Student";
-      const assignedDept = isFaculty ? "Academic Faculty" : "Engineering";
+      const assignedDept = isFaculty ? "Academic Faculty" : (extractedEnrollment ? deduceBranchFromEnrollment(extractedEnrollment) : "Engineering");
 
       user = new User({
         name: formattedName,
@@ -268,7 +311,9 @@ router.post("/college-login", async (req, res) => {
         contactEmail: email,
         authProvider: "google",
         department: assignedDept,
+        branch: assignedDept,
         role: assignedRole,
+        enrollmentNumber: extractedEnrollment || "",
         profileCompleted: false
       });
       await user.save();
@@ -278,6 +323,15 @@ router.post("/college-login", async (req, res) => {
         await user.save();
       } else if (isStudent && user.role !== "Admin" && user.role !== "Student") {
         user.role = "Student";
+        await user.save();
+      }
+      const extractedEnrollment = isStudent ? extractEnrollmentFromEmail(email) : "";
+      if (extractedEnrollment && (!user.enrollmentNumber || user.enrollmentNumber === "")) {
+        user.enrollmentNumber = extractedEnrollment;
+        if (!user.branch || user.branch === "Not specified" || user.branch === "Engineering") {
+          user.branch = deduceBranchFromEnrollment(extractedEnrollment);
+          user.department = user.branch;
+        }
         await user.save();
       }
     }
