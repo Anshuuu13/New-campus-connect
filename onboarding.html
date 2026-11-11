@@ -41,8 +41,27 @@
 
       <form id="onboardingForm" style="margin-top: 24px;">
         <!-- Hidden auto-populated values -->
-        <input type="hidden" id="obName">
         <input type="hidden" id="obEmail">
+
+        <!-- Student's Google-Verified Full Name -->
+        <div style="margin-bottom: 20px;">
+          <label class="field-label" for="obName">Full Name (Verified by Google) *</label>
+          <div style="position: relative;">
+            <input class="field-input" type="text" id="obName" required placeholder="Full Name" style="padding-right: 140px;">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: #34d399; background: rgba(16, 185, 129, 0.12); padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(16, 185, 129, 0.3); pointer-events: none;">
+              ✓ Google Verified
+            </span>
+          </div>
+        </div>
+
+        <!-- Required Enrollment Number Field -->
+        <div id="enrollmentNumberContainer" style="margin-bottom: 20px;">
+          <label class="field-label" for="obEnrollmentNumber" id="obEnrollmentLabel">Enrollment Number *</label>
+          <input class="field-input" type="text" id="obEnrollmentNumber" required placeholder="e.g. 0901CS211001" style="text-transform: uppercase; font-family: var(--mono);" autocomplete="off">
+          <p class="sub" id="obEnrollmentHelp" style="font-size: 12px; margin-top: 4px; margin-bottom: 0; color: var(--text-dim, #94a3b8);">
+            Official MITS Institute Enrollment Number as per university records.
+          </p>
+        </div>
 
         <!-- Verified Institutional Role (Read-only security badge) -->
         <label class="field-label">Institutional Role (Verified by Google)</label>

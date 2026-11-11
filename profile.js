@@ -37,6 +37,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const profileAchievements = document.getElementById("profileAchievements");
   const profileProjects = document.getElementById("profileProjects");
 
+  const profileEnrollmentBadge = document.getElementById("profileEnrollmentBadge");
+  const profileEnrollmentText = document.getElementById("profileEnrollmentText");
+  const nameInput = document.getElementById("nameInput");
+  const enrollmentInput = document.getElementById("enrollmentInput");
+
   // Modal elements
   const modal = document.getElementById("editProfileModal");
   const cancelBtn = document.getElementById("cancelEditBtn");
@@ -104,6 +109,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       clubBadge.style.display = "inline-block";
     } else {
       clubBadge.style.display = "none";
+    }
+  }
+
+  if (profileEnrollmentBadge && profileEnrollmentText) {
+    if (targetUser.enrollmentNumber) {
+      profileEnrollmentText.textContent = targetUser.enrollmentNumber;
+      profileEnrollmentBadge.style.display = "block";
+    } else {
+      profileEnrollmentBadge.style.display = "none";
     }
   }
 
@@ -223,6 +237,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (editBtn) {
       editBtn.style.display = "inline-block";
       editBtn.addEventListener("click", () => {
+        if (nameInput) nameInput.value = targetUser.name || "";
+        if (enrollmentInput) enrollmentInput.value = targetUser.enrollmentNumber || "";
         if (bioInput) bioInput.value = targetUser.bio || "";
         if (branchInput) branchInput.value = targetUser.branch || "";
         if (yearInput) yearInput.value = targetUser.year || "";
@@ -280,6 +296,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.preventDefault();
 
         const updatedData = {
+          name: nameInput ? nameInput.value.trim() : (targetUser.name || ""),
+          enrollmentNumber: enrollmentInput ? enrollmentInput.value.trim().toUpperCase() : (targetUser.enrollmentNumber || ""),
           profilePicture: base64Picture || targetUser.profilePicture || "",
           bio: bioInput.value.trim(),
           branch: branchInput.value.trim(),
@@ -318,6 +336,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         // Live update DOM elements
+        if (profileName) {
+          profileName.textContent = isOwnProfile ? `${targetUser.name}'s Profile` : `${targetUser.name}`;
+        }
+        if (profileEnrollmentBadge && profileEnrollmentText) {
+          if (targetUser.enrollmentNumber) {
+            profileEnrollmentText.textContent = targetUser.enrollmentNumber;
+            profileEnrollmentBadge.style.display = "block";
+          } else {
+            profileEnrollmentBadge.style.display = "none";
+          }
+        }
         if (profileBio) profileBio.textContent = targetUser.bio || "No bio added yet.";
         if (profileBranchYear) {
           profileBranchYear.textContent = [targetUser.branch, targetUser.year].filter(Boolean).join(" • ");

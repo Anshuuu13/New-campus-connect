@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const obDisplayName = document.getElementById("obDisplayName");
   const obDisplayEmail = document.getElementById("obDisplayEmail");
   const obName = document.getElementById("obName");
+  const obEnrollmentNumber = document.getElementById("obEnrollmentNumber");
+  const obEnrollmentLabel = document.getElementById("obEnrollmentLabel");
+  const obEnrollmentHelp = document.getElementById("obEnrollmentHelp");
   const obEmail = document.getElementById("obEmail");
   const obDepartment = document.getElementById("obDepartment");
   const obYear = document.getElementById("obYear");
@@ -41,6 +44,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (obDisplayName) obDisplayName.textContent = userName;
   if (obDisplayEmail) obDisplayEmail.textContent = userEmail;
   if (obName) obName.value = userName;
+  if (obEnrollmentNumber && user.enrollmentNumber) {
+    obEnrollmentNumber.value = user.enrollmentNumber;
+  }
   if (obEmail) obEmail.value = userEmail;
 
   // Render Google-verified role badge
@@ -57,16 +63,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       obRoleTitle.textContent = "Faculty / Professor";
       obRoleDescription.textContent = "Verified MITS Academic Faculty Account (@mitsgwalior.in)";
       if (studentYearContainer) studentYearContainer.style.display = "none";
+      if (obEnrollmentLabel) obEnrollmentLabel.textContent = "Faculty / Employee ID (Optional)";
+      if (obEnrollmentNumber) {
+        obEnrollmentNumber.removeAttribute("required");
+        obEnrollmentNumber.placeholder = "e.g. MITS-FAC-2024";
+      }
+      if (obEnrollmentHelp) {
+        obEnrollmentHelp.textContent = "Official MITS faculty / staff identity code.";
+      }
     } else if (verifiedRole === "Admin") {
       obRoleIcon.textContent = "🛡️";
       obRoleTitle.textContent = "Campus Administrator";
       obRoleDescription.textContent = "Verified Administrative Privileges";
       if (studentYearContainer) studentYearContainer.style.display = "none";
+      if (obEnrollmentNumber) obEnrollmentNumber.removeAttribute("required");
     } else {
       obRoleIcon.textContent = "🎓";
       obRoleTitle.textContent = "Student";
       obRoleDescription.textContent = "Verified MITS Student Account (@mitsgwl.ac.in)";
       if (studentYearContainer) studentYearContainer.style.display = "block";
+      if (obEnrollmentLabel) obEnrollmentLabel.textContent = "Enrollment Number *";
+      if (obEnrollmentNumber) {
+        obEnrollmentNumber.setAttribute("required", "required");
+        obEnrollmentNumber.placeholder = "e.g. 0901CS211001";
+      }
+      if (obEnrollmentHelp) {
+        obEnrollmentHelp.textContent = "Official MITS Institute Enrollment Number as per university records.";
+      }
     }
   }
 
@@ -185,14 +208,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      const fullName = obName ? obName.value.trim() : userName;
+      const enrollmentNumber = obEnrollmentNumber ? obEnrollmentNumber.value.trim().toUpperCase() : "";
       const department = obDepartment ? obDepartment.value : "";
       const isFacultyUser = verifiedRole === "Professor" || verifiedRole === "Faculty";
       const year = (!isFacultyUser && obYear) ? obYear.value : "Faculty Member";
       const bio = obBio ? obBio.value.trim() : "";
       const interests = Array.from(selectedSkills);
 
+      if (!fullName) {
+        showStatus("Please enter your full name.", "error");
+        if (obName) obName.focus();
+        return;
+      }
+
+      if (!isFacultyUser && !enrollmentNumber) {
+        showStatus("Please enter your required MITS Enrollment Number (e.g. 0901CS211001).", "error");
+        if (obEnrollmentNumber) obEnrollmentNumber.focus();
+        return;
+      }
+
       if (!department) {
         showStatus("Please select your department.", "error");
+        if (obDepartment) obDepartment.focus();
         return;
       }
 
@@ -201,6 +239,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const userId = user.id || user._id;
 
       // Update local user state immediately
+      user.name = fullName;
+      user.enrollmentNumber = enrollmentNumber;
       user.role = verifiedRole;
       user.department = department;
       user.branch = department;
@@ -215,10 +255,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-        await fetch(`${apiBase}/users/${userId}`, {
+        const patchRes = await fetch(`${apiBase}/users/${userId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            name: fullName,
+            enrollmentNumber,
             department,
             branch: department,
             year,
@@ -229,6 +271,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+
+        if (patchRes.ok) {
+          const savedData = await patchRes.json();
+          if (savedData && (savedData._id || savedData.name)) {
+            user = { ...user, ...savedData };
+            localStorage.setItem("campusConnectUser", JSON.stringify(user));
+          }
+        }
       } catch (err) {
         console.warn("Could not sync profile to backend right now:", err.message);
       }

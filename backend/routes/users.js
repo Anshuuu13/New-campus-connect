@@ -198,6 +198,9 @@ router.post("/google-auth", async (req, res) => {
       if (picture && (!user.profilePicture || user.profilePicture.includes("googleusercontent.com"))) {
         user.profilePicture = picture;
       }
+      if (name && (!user.name || user.name.startsWith("MITS Member") || user.name.includes("@"))) {
+        user.name = name;
+      }
       await user.save();
     }
 
@@ -207,6 +210,7 @@ router.post("/google-auth", async (req, res) => {
       _id: user._id,
       id: user._id,
       name: user.name,
+      enrollmentNumber: user.enrollmentNumber || "",
       department: user.department,
       branch: user.branch || user.department,
       year: user.year || "",
@@ -283,6 +287,7 @@ router.post("/college-login", async (req, res) => {
       _id: user._id,
       id: user._id,
       name: user.name,
+      enrollmentNumber: user.enrollmentNumber || "",
       department: user.department,
       role: user.role,
       email: user.email || email,
@@ -394,7 +399,7 @@ router.get("/:id", async (req, res) => {
     let user = null;
     if (mongoose.Types.ObjectId.isValid(targetId)) {
       user = await User.findById(targetId).select(
-        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted"
+        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted enrollmentNumber"
       );
     }
     if (!user) {
@@ -405,7 +410,7 @@ router.get("/:id", async (req, res) => {
           { contactEmail: targetId }
         ]
       }).select(
-        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted"
+        "name department role profilePicture bio branch year linkedin github contactEmail clubRole interests profileCompleted enrollmentNumber"
       );
     }
 
@@ -419,11 +424,12 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// UPDATE profile fields (name, picture, bio, branch, year, social links, interests, department, profileCompleted)
+// UPDATE profile fields (name, enrollmentNumber, picture, bio, branch, year, social links, interests, department, profileCompleted)
 router.patch("/:id", async (req, res) => {
   try {
     const {
       name,
+      enrollmentNumber,
       profilePicture,
       bio,
       branch,
@@ -457,6 +463,7 @@ router.patch("/:id", async (req, res) => {
     }
 
     if (name !== undefined && name.trim()) user.name = name.trim();
+    if (enrollmentNumber !== undefined) user.enrollmentNumber = enrollmentNumber.trim();
     if (profilePicture !== undefined) user.profilePicture = profilePicture;
     if (bio !== undefined) user.bio = bio;
     if (branch !== undefined) user.branch = branch;
@@ -488,6 +495,7 @@ router.patch("/:id", async (req, res) => {
     res.json({
       _id: user._id,
       name: user.name,
+      enrollmentNumber: user.enrollmentNumber || "",
       department: user.department,
       role: user.role,
       profilePicture: user.profilePicture || "",

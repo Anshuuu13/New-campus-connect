@@ -328,7 +328,7 @@ async function initGoogleAuth() {
             if (tokenClient) {
               tokenClient.requestAccessToken({ prompt: "select_account" });
             } else {
-              revealDirectEmailForm("Google popup closed. Sign in with your official MITS ID below:");
+              showStatus("Please click 'Continue with Google' to sign in with your official MITS account.", "info");
             }
           }
         });
@@ -338,7 +338,7 @@ async function initGoogleAuth() {
           if (tokenClient) {
             tokenClient.requestAccessToken({ prompt: "select_account" });
           } else {
-            revealDirectEmailForm("Google service unavailable. You can sign in using your official MITS email below:");
+            showStatus("Google Sign-In is initializing. Please click 'Continue with Google'.", "info");
           }
         }, 1200);
       }
@@ -363,8 +363,9 @@ async function initGoogleAuth() {
         error_callback: (err) => {
           console.warn("GIS Notification:", err);
           if (err && err.type === "origin_mismatch") {
-            revealDirectEmailForm(
-              "Google OAuth origin authorization in progress for Render. Sign in with your official MITS ID below:"
+            showStatus(
+              "Google OAuth origin authorization active. Please click 'Continue with Google' to sign in.",
+              "info"
             );
           }
         }
@@ -413,7 +414,7 @@ async function initGoogleAuth() {
           } else if (tokenResponse && tokenResponse.error) {
             console.warn("OAuth2 token response error:", tokenResponse);
             if (tokenResponse.error === "origin_mismatch" || tokenResponse.error === "redirect_uri_mismatch") {
-              revealDirectEmailForm("Google OAuth domain notice. Sign in directly with your official MITS account below:");
+              showStatus("Google OAuth configuration notice: Please sign in with your official @mitsgwl.ac.in or @mitsgwalior.in Google account.", "warning");
             }
           }
         }

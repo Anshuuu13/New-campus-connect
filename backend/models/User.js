@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  enrollmentNumber: {
+    type: String,
+    default: "",
+    trim: true
+  },
   department: {
     type: String,
     default: "Not specified"
