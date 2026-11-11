@@ -11,13 +11,13 @@ async function checkLive() {
   while (!deployed && attempts < maxAttempts) {
     attempts++;
     try {
-      console.log(`[Attempt ${attempts}/${maxAttempts}] Probing live onboarding.html and API...`);
-      const obRes = await fetch(`${liveUrl}/onboarding.html`, { cache: "no-store" });
-      if (obRes.ok) {
-        const text = await obRes.text();
-        if (text.includes("obEnrollmentNumber") && text.includes("obName")) {
+      console.log(`[Attempt ${attempts}/${maxAttempts}] Probing live index.html for dashboard credentials strip...`);
+      const indexRes = await fetch(`${liveUrl}/index.html`, { cache: "no-store" });
+      if (indexRes.ok) {
+        const text = await indexRes.text();
+        if (text.includes("dashVerifiedName") && text.includes("dashEnrollmentNo")) {
           deployed = true;
-          console.log("✓ Live Render deployment has latest onboarding form with Enrollment Number!");
+          console.log("✓ Live Render deployment has latest dashboard non-editable identity panel!");
           break;
         }
       }
@@ -31,56 +31,87 @@ async function checkLive() {
     console.warn("Render deployment still finishing or queued. Checking API status...");
   }
 
-  // Verify live Google auth and onboarding endpoints
-  const testStudentEmail = `live_verify_${Date.now()}@mitsgwl.ac.in`;
-  const googleName = "Live MITS Scholar";
-  const authRes = await fetch(`${liveUrl}/api/users/google-auth`, {
+  // 1. Verify live student login with auto enrollment extraction (any branch/year)
+  console.log("\n[LIVE TEST 1] Student login with branch in email (0901cs211077@mitsgwl.ac.in)");
+  const testStudentEmail = `0901cs211077_${Date.now()}@mitsgwl.ac.in`;
+  const studentName = "Anshu Verified Student";
+  const authRes1 = await fetch(`${liveUrl}/api/users/college-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: testStudentEmail })
+  });
+  console.log(`[LIVE] Student Login Status: ${authRes1.status}`);
+  assert.strictEqual(authRes1.status, 200);
+  const authData1 = await authRes1.json();
+  console.log(`[LIVE] Created: ID=${authData1._id}, Role=${authData1.role}, Enrollment=${authData1.enrollmentNumber}, Branch=${authData1.department}`);
+  assert.strictEqual(authData1.role, "Student");
+  assert(authData1.enrollmentNumber.includes("0901CS211077"));
+
+  // 2. Verify live professor login (any faculty email @mitsgwalior.in)
+  console.log("\n[LIVE TEST 2] Faculty login (@mitsgwalior.in)");
+  const profEmail = `prof.director_${Date.now()}@mitsgwalior.in`;
+  const authRes2 = await fetch(`${liveUrl}/api/users/google-auth`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: testStudentEmail,
-      name: googleName,
-      googleId: `live_gid_${Date.now()}`
+      email: profEmail,
+      name: "Dr. Faculty Member",
+      googleId: `live_prof_gid_${Date.now()}`
     })
   });
-  console.log(`[LIVE] Google Auth Status: ${authRes.status}`);
-  const authData = await authRes.json();
-  console.log(`[LIVE] User created: ${authData.name} (${authData.role}), ID: ${authData._id}`);
+  console.log(`[LIVE] Faculty Login Status: ${authRes2.status}`);
+  assert.strictEqual(authRes2.status, 200);
+  const authData2 = await authRes2.json();
+  console.log(`[LIVE] Created: ID=${authData2._id}, Role=${authData2.role}, Dept=${authData2.department}`);
+  assert.strictEqual(authData2.role, "Professor");
 
-  // Test PATCH
-  const liveEnrollment = "0901CS221099";
-  const patchRes = await fetch(`${liveUrl}/api/users/${authData._id}`, {
+  // 3. Verify non-institutional rejection
+  console.log("\n[LIVE TEST 3] Reject non-institutional account (@gmail.com)");
+  const authRes3 = await fetch(`${liveUrl}/api/users/google-auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "randomuser@gmail.com", name: "Stranger" })
+  });
+  console.log(`[LIVE] Non-institutional status: ${authRes3.status} (Expected 403)`);
+  assert.strictEqual(authRes3.status, 403);
+
+  // 4. Verify securely saving details after first login
+  console.log("\n[LIVE TEST 4] Securely save profile details via PATCH");
+  const patchRes = await fetch(`${liveUrl}/api/users/${authData1._id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: googleName,
-      enrollmentNumber: liveEnrollment,
+      name: studentName,
+      enrollmentNumber: "0901CS211077",
       department: "Computer Science & Engineering",
       branch: "Computer Science & Engineering",
-      year: "3rd Year",
-      bio: "Live verified on Render",
+      year: "4th Year",
+      bio: "Senior Student at MITS",
       profileCompleted: true
     })
   });
-  console.log(`[LIVE] PATCH Onboarding Status: ${patchRes.status}`);
+  console.log(`[LIVE] PATCH Status: ${patchRes.status}`);
+  assert.strictEqual(patchRes.status, 200);
   const patchData = await patchRes.json();
-  console.log(`[LIVE] Patched Enrollment: ${patchData.enrollmentNumber}, Name: ${patchData.name}`);
+  console.log(`[LIVE] Saved Profile: Name="${patchData.name}", Enrollment="${patchData.enrollmentNumber}", Completed=${patchData.profileCompleted}`);
 
-  // Test GET
-  const getRes = await fetch(`${liveUrl}/api/users/${authData._id}`);
+  // 5. Verify database persistence with GET
+  console.log("\n[LIVE TEST 5] GET /api/users/:id verified from MongoDB Atlas");
+  const getRes = await fetch(`${liveUrl}/api/users/${authData1._id}`);
   const getData = await getRes.json();
-  console.log(`[LIVE] GET Profile Status: ${getRes.status}, Enrollment in DB: ${getData.enrollmentNumber}`);
+  assert.strictEqual(getData.name, studentName);
+  assert.strictEqual(getData.enrollmentNumber, "0901CS211077");
+  console.log(`[LIVE] DB Record: Name="${getData.name}", Enrollment="${getData.enrollmentNumber}"`);
 
-  assert.strictEqual(getData.enrollmentNumber, liveEnrollment, "Live DB must return saved enrollmentNumber");
-  assert.strictEqual(getData.name, googleName, "Live DB must return saved name");
-
-  // Verify login.html is Google-only on live
+  // 6. Verify login page accessibility
+  console.log("\n[LIVE TEST 6] Verify login page has both Google and direct MITS options");
   const loginRes = await fetch(`${liveUrl}/login.html`, { cache: "no-store" });
   const loginText = await loginRes.text();
-  const isGoogleOnly = !loginText.includes("mitsEmailInput");
-  console.log(`[LIVE] login.html is Google-only: ${isGoogleOnly}`);
+  assert(loginText.includes("Continue with Google"));
+  assert(loginText.includes("institutionalEmailSection") || loginText.includes("mitsEmailInput"));
+  console.log("✓ Live login.html has Google GIS and MITS institutional access");
 
-  console.log("=== ALL LIVE PRODUCTION CHECKS VERIFIED SUCCESSFULLY ===");
+  console.log("\n=== ALL LIVE PRODUCTION CHECKS VERIFIED SUCCESSFULLY ===");
 }
 
 checkLive().catch((err) => {
