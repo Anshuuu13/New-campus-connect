@@ -233,24 +233,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             officialMITSVerifiedDataset.map(o => [(o.title || "").toLowerCase().trim(), o])
           );
 
-          const enrichedLiveData = liveData.map(liveItem => {
+          // Deduplicate live records and enrich with official photo assets
+          const seenLiveTitles = new Set();
+          const deduplicatedLive = [];
+
+          for (const liveItem of liveData) {
             const key = (liveItem.title || "").toLowerCase().trim();
+            if (!key || seenLiveTitles.has(key)) continue;
+            seenLiveTitles.add(key);
+
             const officialMatch = officialByTitle.get(key);
             if (officialMatch) {
-              return {
+              deduplicatedLive.push({
                 ...officialMatch,
                 ...liveItem,
                 photoUrl: liveItem.photoUrl && liveItem.photoUrl.trim() ? liveItem.photoUrl.trim() : officialMatch.photoUrl,
                 sourceName: liveItem.sourceName || officialMatch.sourceName,
                 sourceUrl: liveItem.sourceUrl || officialMatch.sourceUrl
-              };
+              });
+            } else {
+              deduplicatedLive.push(liveItem);
             }
-            return liveItem;
+          }
+
+          // Add any remaining official dataset entries that are not present in live data
+          const extraOfficial = officialMITSVerifiedDataset.filter(o => {
+            const key = (o.title || "").toLowerCase().trim();
+            return key && !seenLiveTitles.has(key);
           });
 
-          const liveTitles = new Set(enrichedLiveData.map(d => (d.title || "").toLowerCase().trim()));
-          const extraOfficial = officialMITSVerifiedDataset.filter(o => !liveTitles.has((o.title || "").toLowerCase().trim()));
-          currentAchievements = [...enrichedLiveData, ...extraOfficial];
+          currentAchievements = [...deduplicatedLive, ...extraOfficial];
           renderGallery();
         }
       }
@@ -357,13 +369,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Render gallery
   function renderGallery() {
+    if (!achievementList) return;
+    // Clear the container completely before rendering
     achievementList.innerHTML = "";
 
     const query = achievementSearch ? achievementSearch.value.trim().toLowerCase() : "";
     const selectedCategory = categoryFilter ? categoryFilter.value : "ALL";
     const selectedType = typeFilter ? typeFilter.value : "ALL";
 
-    const filtered = currentAchievements.filter(item => {
+    // Deduplicate records so each unique achievement appears exactly once
+    const seenTitles = new Set();
+    const uniqueAchievements = [];
+    for (const item of currentAchievements) {
+      const key = (item.title || "").toLowerCase().trim();
+      if (!key || seenTitles.has(key)) continue;
+      seenTitles.add(key);
+      uniqueAchievements.push(item);
+    }
+
+    const filtered = uniqueAchievements.filter(item => {
       // Category filter
       if (selectedCategory !== "ALL") {
         const itemCat = (item.category || "").toLowerCase();
@@ -602,12 +626,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         descInput.value = "";
         stackInput.value = "";
 
-        // Add to local dataset and re-render
-        currentAchievements.unshift({
+        // Add to local dataset avoiding duplicates and re-render
+        const submittedItem = {
           ...newEntry,
           ...created,
           isVerified: false
-        });
+        };
+        const submittedTitle = (submittedItem.title || "").toLowerCase().trim();
+        const existingIdx = currentAchievements.findIndex(a => (a.title || "").toLowerCase().trim() === submittedTitle);
+        if (existingIdx !== -1) {
+          currentAchievements[existingIdx] = { ...currentAchievements[existingIdx], ...submittedItem };
+        } else {
+          currentAchievements.unshift(submittedItem);
+        }
         renderGallery();
 
         setTimeout(() => {
@@ -616,8 +647,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 4000);
       } catch (err) {
         console.error("SUBMIT ERROR:", err);
-        // Fallback: add locally to current session
-        currentAchievements.unshift(newEntry);
+        // Fallback: add locally avoiding duplicates
+        const fallbackTitle = (newEntry.title || "").toLowerCase().trim();
+        const existingIdx = currentAchievements.findIndex(a => (a.title || "").toLowerCase().trim() === fallbackTitle);
+        if (existingIdx !== -1) {
+          currentAchievements[existingIdx] = { ...currentAchievements[existingIdx], ...newEntry };
+        } else {
+          currentAchievements.unshift(newEntry);
+        }
         renderGallery();
         submitMsg.textContent = "Submitted! Added to gallery as Self-Reported.";
         submitMsg.style.color = "#34d399";
