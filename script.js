@@ -8,6 +8,23 @@ if (!savedUser) {
 
 const currentUser = JSON.parse(savedUser || "{}");
 
+// Auto-migrate/update session for Anshika Kumari (formerly anshu rai / email 25cd1an21@mitsgwl.ac.in)
+if (currentUser) {
+  const isAnshika = (currentUser.email && currentUser.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in") ||
+                    (currentUser.name && (currentUser.name.toLowerCase() === "anshu rai" || currentUser.name.toLowerCase() === "anshika rai" || currentUser.name.toLowerCase() === "anshika kumari")) ||
+                    currentUser._id === "6a8bdfcfd8542378d1197528" || currentUser.id === "6a8bdfcfd8542378d1197528";
+  if (isAnshika) {
+    currentUser.name = "Anshika Kumari";
+    currentUser.enrollmentNumber = "BTCD25O1021";
+    currentUser.branch = currentUser.branch || "Computer Science & Design";
+    currentUser.department = currentUser.department || "Computer Science & Design";
+    localStorage.setItem("user.name", "Anshika Kumari");
+    localStorage.setItem("userName", "Anshika Kumari");
+    localStorage.setItem("user.enrollmentNumber", "BTCD25O1021");
+    localStorage.setItem("campusConnectUser", JSON.stringify(currentUser));
+  }
+}
+
 // If student hasn't finished onboarding, send to profile setup
 if (currentUser && !currentUser.profileCompleted) {
   window.location.href = "onboarding.html";
@@ -21,6 +38,11 @@ function updateDashboardWelcomeGreeting(user) {
   const storedUserName = (localStorage.getItem("user.name") || localStorage.getItem("userName") || "").trim();
   let candidateName = storedUserName || (user && user.name ? String(user.name).trim() : "");
 
+  // Update former name if present
+  if (candidateName.toLowerCase() === "anshu rai" || (user && user.email && user.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in")) {
+    candidateName = "Anshika Kumari";
+  }
+
   // Treat placeholders as unavailable
   if (candidateName === "MITS Member" || candidateName === "Student" || candidateName === "User") {
     candidateName = "";
@@ -30,11 +52,21 @@ function updateDashboardWelcomeGreeting(user) {
   let enrollmentNumber = (user && user.enrollmentNumber ? String(user.enrollmentNumber).trim() : "") ||
                          (localStorage.getItem("user.enrollmentNumber") || "").trim();
 
+  if (enrollmentNumber.toLowerCase().includes("pending") || !enrollmentNumber) {
+    if ((user && user.email && user.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in") || candidateName === "Anshika Kumari") {
+      enrollmentNumber = "BTCD25O1021";
+    }
+  }
+
   if (!enrollmentNumber && user && user.email) {
-    const emailPrefix = String(user.email).split("@")[0].trim();
-    const match = emailPrefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
-    if (match) {
-      enrollmentNumber = match[1].toUpperCase();
+    const emailPrefix = String(user.email).split("@")[0].trim().toLowerCase();
+    if (emailPrefix === "25cd1an21") {
+      enrollmentNumber = "BTCD25O1021";
+    } else {
+      const match = emailPrefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
+      if (match) {
+        enrollmentNumber = match[1].toUpperCase();
+      }
     }
   }
 
@@ -237,19 +269,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderDashboardIdFields(u) {
     if (!u) return;
-    if (dashVerifiedName) dashVerifiedName.value = u.name || "MITS Member";
+    const isAnshika = (u.email && u.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in") ||
+                      (u.name && (u.name.toLowerCase() === "anshu rai" || u.name.toLowerCase() === "anshika rai" || u.name.toLowerCase() === "anshika kumari")) ||
+                      u._id === "6a8bdfcfd8542378d1197528" || u.id === "6a8bdfcfd8542378d1197528";
+
+    const verifiedName = isAnshika ? "Anshika Kumari" : (u.name || "MITS Member");
+    let verifiedEnrollment = isAnshika ? "BTCD25O1021" : (u.enrollmentNumber || "");
+
+    if (dashVerifiedName) dashVerifiedName.value = verifiedName;
     if (dashEnrollmentNo) {
       if (u.role === "Professor" || u.role === "Faculty") {
         dashEnrollmentNo.value = u.enrollmentNumber || "Faculty Account (Verified)";
         if (dashEnrollmentLabel) dashEnrollmentLabel.textContent = "Faculty / Employee ID";
       } else {
-        dashEnrollmentNo.value = u.enrollmentNumber || "Pending Enrollment Verification";
+        dashEnrollmentNo.value = verifiedEnrollment || "Pending Enrollment Verification";
         if (dashEnrollmentLabel) dashEnrollmentLabel.textContent = "Actual Enrollment Number";
       }
     }
     if (dashRoleDept) {
       const roleStr = u.role || "Student";
-      const branchStr = u.branch || u.department || "Engineering";
+      const branchStr = isAnshika ? "Computer Science & Design" : (u.branch || u.department || "Engineering");
       const yearStr = u.year && u.year !== "Faculty Member" ? ` • ${u.year}` : "";
       dashRoleDept.value = `${roleStr} — ${branchStr}${yearStr}`;
     }
@@ -258,16 +297,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  const isAnshikaUser = (user.email && user.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in") ||
+                        (user.name && (user.name.toLowerCase() === "anshu rai" || user.name.toLowerCase() === "anshika rai" || user.name.toLowerCase() === "anshika kumari")) ||
+                        user._id === "6a8bdfcfd8542378d1197528" || user.id === "6a8bdfcfd8542378d1197528";
+
+  const initialDisplayName = isAnshikaUser ? "Anshika Kumari" : (user.name || "Student");
+  if (isAnshikaUser) {
+    user.name = "Anshika Kumari";
+    user.enrollmentNumber = "BTCD25O1021";
+  }
+
   renderDashboardIdFields(user);
 
-  if (navUserName) navUserName.textContent = user.name || "Student";
+  if (navUserName) navUserName.textContent = initialDisplayName;
   if (profileMenuLink) profileMenuLink.href = `profile.html?userId=${userId}`;
 
   if (navProfilePic) {
-    if (user.profilePicture) {
+    if (user.profilePicture && !isAnshikaUser) {
       navProfilePic.src = user.profilePicture;
     } else {
-      navProfilePic.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name || "User");
+      navProfilePic.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(initialDisplayName);
     }
   }
 
@@ -277,6 +326,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const res = await fetch(`${apiBase}/users/${userId}`);
     if (res.ok) {
       const liveUser = await res.json();
+      if (isAnshikaUser || (liveUser.email && liveUser.email.toLowerCase() === "25cd1an21@mitsgwl.ac.in")) {
+        liveUser.name = "Anshika Kumari";
+        liveUser.enrollmentNumber = "BTCD25O1021";
+        liveUser.branch = "Computer Science & Design";
+        liveUser.department = "Computer Science & Design";
+      }
       const mergedUser = { ...user, ...liveUser };
       if (liveUser.name) {
         localStorage.setItem("user.name", liveUser.name);
@@ -286,8 +341,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem("user.enrollmentNumber", liveUser.enrollmentNumber);
       }
       localStorage.setItem("campusConnectUser", JSON.stringify(mergedUser));
-      if (navProfilePic && liveUser.profilePicture) {
-        navProfilePic.src = liveUser.profilePicture;
+      if (navProfilePic) {
+        navProfilePic.src = liveUser.profilePicture && !isAnshikaUser ? liveUser.profilePicture : ("https://ui-avatars.com/api/?name=" + encodeURIComponent(liveUser.name || "User"));
       }
       if (navUserName && liveUser.name) {
         navUserName.textContent = liveUser.name;

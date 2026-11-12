@@ -182,7 +182,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!user) {
     user = {
       _id: "6a8bdfcfd8542378d1197528",
-      name: "Anshika Rai",
+      name: "Anshika Kumari",
+      enrollmentNumber: "BTCD25O1021",
       department: "Computer Science & Design",
       role: "Student",
       email: "25cd1an21@mitsgwl.ac.in",

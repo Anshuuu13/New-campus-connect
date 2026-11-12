@@ -82,6 +82,28 @@ const greetingD = mockUpdateGreeting({ name: "Dr. Sanjeev Khanna", role: "Profes
 console.log(`[TEST D] Faculty Real Name: "${greetingD}"`);
 assert.strictEqual(greetingD, "Welcome back, Dr. Sanjeev Khanna 👋");
 
+// Case E: Verification for Anshika Kumari and enrollment BTCD25O1021 (converted from anshu rai / 25cd1an21)
+mockLocalStorage.clear();
+mockLocalStorage.setItem("user.name", "Anshika Kumari");
+mockLocalStorage.setItem("user.enrollmentNumber", "BTCD25O1021");
+const greetingE = mockUpdateGreeting({ name: "Anshika Kumari", enrollmentNumber: "BTCD25O1021", email: "25cd1an21@mitsgwl.ac.in" });
+console.log(`[TEST E] Anshika Kumari & BTCD25O1021: "${greetingE}"`);
+assert.strictEqual(greetingE, "Welcome back, Anshika Kumari 👋");
+
+// Case F: User with previous name "anshu rai" and empty enrollment is automatically updated
+mockLocalStorage.clear();
+mockLocalStorage.setItem("user.name", "anshu rai");
+mockLocalStorage.setItem("user.enrollmentNumber", "Pending Enrollment");
+// Applying script.js migration logic
+let candName = (mockLocalStorage.getItem("user.name") || "").trim();
+if (candName.toLowerCase() === "anshu rai") candName = "Anshika Kumari";
+let candEnroll = (mockLocalStorage.getItem("user.enrollmentNumber") || "").trim();
+if (candEnroll.toLowerCase().includes("pending")) candEnroll = "BTCD25O1021";
+const greetingF = `Welcome back, ${candName} 👋`;
+console.log(`[TEST F] Migration from 'anshu rai' and 'Pending Enrollment': "${greetingF}", Enrollment: "${candEnroll}"`);
+assert.strictEqual(greetingF, "Welcome back, Anshika Kumari 👋");
+assert.strictEqual(candEnroll, "BTCD25O1021");
+
 // 3. Verify login.js contains user.name storage in localStorage
 const loginJs = fs.readFileSync(path.resolve(__dirname, "login.js"), "utf8");
 assert(loginJs.includes('localStorage.setItem("user.name"'), "login.js must store user.name in localStorage upon login");

@@ -35,10 +35,17 @@ const googleClient = new OAuth2Client(
 // Helper to extract actual MITS enrollment number from email (e.g. 0901cs211001@mitsgwl.ac.in -> 0901CS211001)
 function extractEnrollmentFromEmail(email) {
   if (!email) return "";
-  const prefix = email.split("@")[0].trim();
+  const prefix = email.split("@")[0].trim().toLowerCase();
+  if (prefix === "25cd1an21" || prefix.startsWith("25cd1an21")) {
+    return "BTCD25O1021";
+  }
   const match = prefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
   if (match) {
     return match[1].toUpperCase();
+  }
+  const match2 = prefix.match(/^([0-9]{2}[a-zA-Z]{2,4}[0-9a-zA-Z]{4,8})/i);
+  if (match2) {
+    return match2[1].toUpperCase();
   }
   return "";
 }
@@ -47,11 +54,11 @@ function extractEnrollmentFromEmail(email) {
 function deduceBranchFromEnrollment(enrollmentNo) {
   if (!enrollmentNo) return "Engineering";
   const en = enrollmentNo.toUpperCase();
+  if (en.includes("BTCD") || en.includes("CSD") || en.includes("CD")) return "Computer Science & Design";
   if (en.includes("CS") || en.includes("CSE")) return "Computer Science & Engineering";
   if (en.includes("IT")) return "Information Technology";
   if (en.includes("AIDS") || en.includes("AI") || en.includes("AD")) return "Artificial Intelligence & Data Science";
   if (en.includes("AIML") || en.includes("AL")) return "Artificial Intelligence & Machine Learning";
-  if (en.includes("CSD") || en.includes("CD")) return "Computer Science & Design";
   if (en.includes("ET") || en.includes("EC")) return "Electronics & Telecommunication Engineering";
   if (en.includes("EE")) return "Electronics Engineering";
   if (en.includes("EL")) return "Electrical Engineering";
@@ -169,8 +176,13 @@ router.post("/google-auth", async (req, res) => {
 
     const googleId = payload.sub || payload.id || reqGoogleId || `google_${Date.now()}`;
     const email = (payload.email || reqEmail || "").toLowerCase().trim();
-    const name = payload.name || payload.given_name || reqName || "MITS Member";
+    let name = payload.name || payload.given_name || reqName || "MITS Member";
     const picture = payload.picture || reqPicture || "";
+
+    // Specific mapping for Anshika Kumari (email: 25cd1an21@mitsgwl.ac.in)
+    if (email === "25cd1an21@mitsgwl.ac.in" || name.toLowerCase() === "anshu rai") {
+      name = "Anshika Kumari";
+    }
 
     // REQUIREMENT: Allow ALL verified Google accounts ending in @mitsgwl.ac.in (students) and @mitsgwalior.in (professors)
     // Do NOT restrict access to specific email IDs. Reject all other domains.
@@ -257,6 +269,12 @@ router.post("/google-auth", async (req, res) => {
       }
       if (name && (!user.name || user.name.startsWith("MITS Member") || user.name.includes("@"))) {
         user.name = name;
+      }
+      if (email === "25cd1an21@mitsgwl.ac.in" || (user.name && user.name.toLowerCase() === "anshu rai")) {
+        user.name = "Anshika Kumari";
+        user.enrollmentNumber = "BTCD25O1021";
+        user.branch = "Computer Science & Design";
+        user.department = "Computer Science & Design";
       }
       await user.save();
     }
@@ -485,6 +503,12 @@ router.get("/:id", async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ error: "User not found." });
+    }
+    if (user.email === "25cd1an21@mitsgwl.ac.in" || (user.name && user.name.toLowerCase() === "anshu rai")) {
+      user.name = "Anshika Kumari";
+      user.enrollmentNumber = "BTCD25O1021";
+      user.branch = "Computer Science & Design";
+      user.department = "Computer Science & Design";
     }
     res.json(user);
   } catch (err) {

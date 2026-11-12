@@ -70,7 +70,8 @@ async function resolveUserId(inputUserId) {
 
   // If no user exists in DB at all, create a default MITS student
   const defaultStudent = new User({
-    name: "Anshika Rai",
+    name: "Anshika Kumari",
+    enrollmentNumber: "BTCD25O1021",
     email: "25cd1an21@mitsgwl.ac.in",
     contactEmail: "25cd1an21@mitsgwl.ac.in",
     department: "Computer Science & Design",

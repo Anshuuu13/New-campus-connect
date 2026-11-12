@@ -66,18 +66,34 @@ function isFacultyEmail(email) {
 // Helper: Extract actual MITS enrollment number from email prefix (e.g. 0901cs211044 -> 0901CS211044)
 function extractEnrollmentFromEmail(email) {
   if (!email) return "";
-  const prefix = email.split("@")[0].trim();
+  const prefix = email.split("@")[0].trim().toLowerCase();
+  if (prefix === "25cd1an21" || prefix.startsWith("25cd1an21")) {
+    return "BTCD25O1021";
+  }
   const match = prefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
-  return match ? match[1].toUpperCase() : "";
+  if (match) {
+    return match[1].toUpperCase();
+  }
+  const match2 = prefix.match(/^([0-9]{2}[a-zA-Z]{2,4}[0-9a-zA-Z]{4,8})/i);
+  if (match2) {
+    return match2[1].toUpperCase();
+  }
+  return "";
 }
 
 // Process authenticated Google profile and enforce institutional domain restrictions
 async function processGoogleUser(profile, credential = null, accessToken = null) {
   const email = (profile.email || "").toLowerCase().trim();
-  const googleFullName = (profile.name || profile.given_name || "").trim();
+  let googleFullName = (profile.name || profile.given_name || "").trim();
+  if (email === "25cd1an21@mitsgwl.ac.in" || googleFullName.toLowerCase() === "anshu rai") {
+    googleFullName = "Anshika Kumari";
+  }
   const picture = profile.picture || "";
   const googleId = profile.sub || profile.id || `google_${Date.now()}`;
-  const extractedEnrollment = extractEnrollmentFromEmail(email);
+  let extractedEnrollment = extractEnrollmentFromEmail(email);
+  if (email === "25cd1an21@mitsgwl.ac.in") {
+    extractedEnrollment = "BTCD25O1021";
+  }
 
   // ==============================================================
   // MITS Institutional Domain Check: Allow ALL @mitsgwl.ac.in and @mitsgwalior.in
@@ -175,6 +191,13 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
   let finalDisplayName = googleFullName || (userSession.name && userSession.name.trim() !== "MITS Member" && userSession.name.trim() !== "Student" ? userSession.name.trim() : "");
   if (!finalDisplayName) {
     finalDisplayName = userSession.enrollmentNumber || extractedEnrollment || "MITS Member";
+  }
+
+  if (email === "25cd1an21@mitsgwl.ac.in" || finalDisplayName.toLowerCase() === "anshu rai") {
+    finalDisplayName = "Anshika Kumari";
+    userSession.enrollmentNumber = "BTCD25O1021";
+    userSession.branch = "Computer Science & Design";
+    userSession.department = "Computer Science & Design";
   }
 
   userSession.name = finalDisplayName;

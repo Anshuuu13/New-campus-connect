@@ -56,7 +56,8 @@ async function resolveUserId(inputUserId) {
   if (anyUser) return anyUser._id;
 
   const defaultStudent = new User({
-    name: "Anshika Rai",
+    name: "Anshika Kumari",
+    enrollmentNumber: "BTCD25O1021",
     email: "25cd1an21@mitsgwl.ac.in",
     contactEmail: "25cd1an21@mitsgwl.ac.in",
     department: "Computer Science & Design",

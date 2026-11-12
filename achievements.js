@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     {
       _id: "6a8c504fa505efa116001618",
       title: "CampusConnect Platform",
-      studentName: "Anshu Rai",
+      studentName: "Anshika Kumari",
       competition: "Campus Student Initiative (CSBS)",
       category: "Technical Projects",
       achievementType: "Student",

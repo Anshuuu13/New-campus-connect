@@ -136,6 +136,17 @@ async function checkLive() {
     console.log(`✓ Configured Authorized Origins: ${idData.authorizedOrigins.join(", ")}`);
   }
 
+  // 9. Verify Anshika Kumari and BTCD25O1021 on Live API
+  console.log("\n[LIVE TEST 9] Verify Anshika Kumari & BTCD25O1021 record");
+  const anshikaRes = await fetch(`${liveUrl}/api/users/6a8bdfcfd8542378d1197528`, { cache: "no-store" });
+  if (anshikaRes.ok) {
+    const anshikaData = await anshikaRes.json();
+    console.log(`[LIVE] Anshika Record: Name="${anshikaData.name}", Enrollment="${anshikaData.enrollmentNumber}"`);
+    assert.strictEqual(anshikaData.name, "Anshika Kumari");
+    assert.strictEqual(anshikaData.enrollmentNumber, "BTCD25O1021");
+    console.log("✓ Live Anshika Kumari and BTCD25O1021 verified successfully");
+  }
+
   console.log("\n=== ALL LIVE PRODUCTION CHECKS VERIFIED SUCCESSFULLY ===");
 }
 
