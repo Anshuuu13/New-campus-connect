@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       achievementType: "Student",
       date: "December 2024",
       description: "Secured 1st Prize in the nationwide Grand Finale under Problem Statement SIH1614 (Govt. of NCT of Delhi) by engineering an automated AI research and publications summary generator for evaluating faculty scholarly output.",
-      photoUrl: "",
+      photoUrl: "assets/images/g20-innovation.webp",
       sourceName: "Smart India Hackathon Official Portal",
       sourceUrl: "https://sih.gov.in/",
       isVerified: true,
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       achievementType: "Student",
       date: "2025",
       description: "Shortlisted among the top national teams across India to develop deep predictive models for extreme coastal and weather phenomena for the Ministry of Earth Sciences.",
-      photoUrl: "",
+      photoUrl: "assets/images/g20-innovation.webp",
       sourceName: "Smart India Hackathon 2025 Portal",
       sourceUrl: "https://sih.gov.in/",
       isVerified: true,
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       achievementType: "Student",
       date: "2025",
       description: "Selected for national finals in the smart governance track, delivering a transparent tracking architecture for public services and grievance handling.",
-      photoUrl: "",
+      photoUrl: "assets/images/g20-innovation.webp",
       sourceName: "Smart India Hackathon 2025 Portal",
       sourceUrl: "https://sih.gov.in/",
       isVerified: true,
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       achievementType: "Student",
       date: "August 2026",
       description: "Vision to connect people across MITS Gwalior for academic collaboration, skill exchange, team recruitment, and student project sharing.",
-      photoUrl: "",
+      photoUrl: "assets/images/mits-campus.jpg",
       sourceName: "CampusConnect Internal Records",
       sourceUrl: "https://web.mitsgwalior.in/",
       isVerified: true,
@@ -228,10 +228,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (res.ok) {
         const liveData = await res.json();
         if (Array.isArray(liveData) && liveData.length > 0) {
-          // Merge live database items ensuring no duplicates with official dataset
-          const liveTitles = new Set(liveData.map(d => (d.title || "").toLowerCase()));
-          const extraOfficial = officialMITSVerifiedDataset.filter(o => !liveTitles.has(o.title.toLowerCase()));
-          currentAchievements = [...liveData, ...extraOfficial];
+          // Merge live database items ensuring authentic photos from official dataset are preserved
+          const officialByTitle = new Map(
+            officialMITSVerifiedDataset.map(o => [(o.title || "").toLowerCase().trim(), o])
+          );
+
+          const enrichedLiveData = liveData.map(liveItem => {
+            const key = (liveItem.title || "").toLowerCase().trim();
+            const officialMatch = officialByTitle.get(key);
+            if (officialMatch) {
+              return {
+                ...officialMatch,
+                ...liveItem,
+                photoUrl: liveItem.photoUrl && liveItem.photoUrl.trim() ? liveItem.photoUrl.trim() : officialMatch.photoUrl,
+                sourceName: liveItem.sourceName || officialMatch.sourceName,
+                sourceUrl: liveItem.sourceUrl || officialMatch.sourceUrl
+              };
+            }
+            return liveItem;
+          });
+
+          const liveTitles = new Set(enrichedLiveData.map(d => (d.title || "").toLowerCase().trim()));
+          const extraOfficial = officialMITSVerifiedDataset.filter(o => !liveTitles.has((o.title || "").toLowerCase().trim()));
+          currentAchievements = [...enrichedLiveData, ...extraOfficial];
           renderGallery();
         }
       }
@@ -269,6 +288,72 @@ document.addEventListener("DOMContentLoaded", async () => {
       default: return "🏆";
     }
   }
+
+  // Helper: Resolve authentic image URL for an achievement (checks photoUrl, imageUrl, image, photo, and category defaults)
+  function getAchievementImage(item) {
+    if (!item) return "";
+    const explicit = item.photoUrl || item.imageUrl || item.image || item.photo;
+    if (explicit && typeof explicit === "string" && explicit.trim()) {
+      return explicit.trim();
+    }
+
+    // Authentic contextual mapping for achievements without an explicit photo
+    const cat = (item.category || "").toLowerCase();
+    const title = (item.title || "").toLowerCase();
+    const comp = (item.competition || "").toLowerCase();
+
+    if (cat === "hackathon" || title.includes("hackathon") || comp.includes("hackathon") || title.includes("sih") || comp.includes("sih") || comp.includes("synapse")) {
+      return "assets/images/g20-innovation.webp";
+    }
+    if (cat === "innovation" || title.includes("robotics") || title.includes("rover") || title.includes("ai") || comp.includes("robotics")) {
+      return "assets/images/robotics-innovation.webp";
+    }
+    if (cat === "academic" || title.includes("nptel") || title.includes("swayam") || title.includes("presentation") || cat === "research") {
+      return "assets/images/academic-presentation.webp";
+    }
+    if (cat === "sports" || cat === "cultural" || title.includes("baja") || title.includes("atv") || title.includes("event") || comp.includes("saeindia")) {
+      return "assets/images/campus-event.webp";
+    }
+    if (cat === "institutional" || title.includes("naac") || title.includes("accreditation")) {
+      return "assets/images/naac-accreditation.webp";
+    }
+    if (cat === "technical projects" || cat === "institutional" || title.includes("campus") || title.includes("university")) {
+      return "assets/images/mits-campus.jpg";
+    }
+
+    return "";
+  }
+
+  // Helper: Render polished fallback placeholder header for cards without an image
+  function renderPlaceholderHtml(category, isVerified) {
+    const icon = getCategoryPlaceholderIcon(category);
+    const badgeHtml = isVerified
+      ? `<span class="achievement-photo-badge" style="color: #34d399; border-color: rgba(52, 211, 153, 0.35);">Verified Milestone ✓</span>`
+      : `<span class="achievement-photo-badge" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.35);">Self-Reported</span>`;
+
+    return `
+      <div class="achievement-card-placeholder">
+        <div class="ach-placeholder-bg-pattern"></div>
+        <div class="ach-placeholder-content">
+          <div class="ach-placeholder-icon-wrap">
+            <span class="ach-placeholder-icon">${icon}</span>
+          </div>
+          <div class="ach-placeholder-meta">
+            <span class="ach-placeholder-category">${escapeHtml(category)}</span>
+            <span class="ach-placeholder-label">MITS Milestone</span>
+          </div>
+        </div>
+        ${badgeHtml}
+      </div>
+    `;
+  }
+
+  // Global image error handler: smoothly replace broken media header with the styled placeholder (never a blank white box)
+  window.handleAchImgError = function(imgEl, category, isVerified) {
+    if (!imgEl || !imgEl.parentElement) return;
+    const parent = imgEl.parentElement;
+    parent.outerHTML = renderPlaceholderHtml(category, isVerified);
+  };
 
   // Render gallery
   function renderGallery() {
@@ -338,30 +423,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("div");
       card.className = "achievement-card";
 
-      // Media Header (Authentic photograph or clean category placeholder)
+      // Media Header (Authentic photograph or polished category fallback placeholder)
+      const imgUrl = getAchievementImage(item);
       let mediaHeaderHtml = "";
-      if (item.photoUrl) {
+      if (imgUrl) {
         mediaHeaderHtml = `
           <div class="achievement-card-media">
-            <img src="${item.photoUrl}" alt="${escapeHtml(item.title)}" class="achievement-card-img" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'achievement-card-placeholder\\'><div><span style=\\'font-size:24px;\\'>${getCategoryPlaceholderIcon(category)}</span> <span style=\\'font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-left:8px;\\'>${escapeHtml(category)}</span></div><span class=\\'badge-verified\\'>Verified ✓</span></div>';">
+            <img src="${imgUrl}" alt="${escapeHtml(item.title)}" class="achievement-card-img" loading="lazy" onerror="window.handleAchImgError(this, '${escapeHtml(category)}', ${isVerified})">
             <span class="achievement-photo-badge">Authentic Photo</span>
           </div>
         `;
       } else {
-        mediaHeaderHtml = `
-          <div class="achievement-card-placeholder">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 26px;">${getCategoryPlaceholderIcon(category)}</span>
-              <div>
-                <div style="font-family: var(--mono); font-size: 11px; text-transform: uppercase; color: var(--teal); letter-spacing: 0.05em;">${escapeHtml(category)}</div>
-                <div style="font-size: 11px; color: var(--text-dim);">${escapeHtml(dateText)}</div>
-              </div>
-            </div>
-            ${isVerified 
-              ? `<span class="badge-verified" style="font-size: 10px;">Verified ✓</span>` 
-              : `<span class="badge-self-reported" style="font-size: 10px;">Self-Reported</span>`}
-          </div>
-        `;
+        mediaHeaderHtml = renderPlaceholderHtml(category, isVerified);
       }
 
       // Badges
@@ -385,8 +458,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
             <span class="badge-category">${escapeHtml(category)}</span>
             ${typeBadge}
-            ${item.photoUrl ? verificationBadge : ""}
-            ${item.photoUrl && dateText ? `<span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-left: auto;">${escapeHtml(dateText)}</span>` : ""}
+            ${verificationBadge}
+            ${dateText ? `<span style="font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-left: auto;">${escapeHtml(dateText)}</span>` : ""}
           </div>
 
           <h3 class="post-title" style="margin: 0 0 8px; font-size: 17px; line-height: 1.4; color: var(--text);">${escapeHtml(item.title)}</h3>

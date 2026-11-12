@@ -16,6 +16,9 @@ router.post("/", async (req, res) => {
       date,
       evidenceUrl,
       photoUrl,
+      imageUrl,
+      image,
+      photo,
       sourceName,
       sourceUrl,
       stack
@@ -24,6 +27,8 @@ router.post("/", async (req, res) => {
     if (!title || !title.trim()) {
       return res.status(400).json({ error: "Achievement title is required." });
     }
+
+    const resolvedPhoto = (photoUrl || imageUrl || image || photo || "").trim();
 
     const newAchievement = new Achievement({
       userId: userId || null,
@@ -35,7 +40,7 @@ router.post("/", async (req, res) => {
       description: description ? description.trim() : "",
       date: date ? date.trim() : "",
       evidenceUrl: evidenceUrl ? evidenceUrl.trim() : "",
-      photoUrl: photoUrl ? photoUrl.trim() : "",
+      photoUrl: resolvedPhoto,
       sourceName: sourceName ? sourceName.trim() : "Self-Reported Student Submission",
       sourceUrl: sourceUrl ? sourceUrl.trim() : (evidenceUrl ? evidenceUrl.trim() : ""),
       stack: stack ? stack.trim() : "",

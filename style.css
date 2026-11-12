@@ -1412,12 +1412,17 @@ h1 {
   position: relative;
   background: #090f26;
   border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .achievement-card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  background-color: #090f26;
   transition: transform 0.35s ease;
 }
 
@@ -1438,17 +1443,86 @@ h1 {
   font-size: 10px;
   color: var(--teal);
   letter-spacing: 0.03em;
+  z-index: 2;
 }
 
 .achievement-card-placeholder {
   width: 100%;
-  height: 84px;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(34, 211, 238, 0.03) 100%);
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, rgba(56, 189, 248, 0.12) 0%, rgba(8, 14, 33, 0.95) 75%), #090f26;
   border-bottom: 1px solid var(--line);
+}
+
+.ach-placeholder-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    radial-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px, 40px 40px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ach-placeholder-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;
+}
+
+.ach-placeholder-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(15, 26, 59, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.achievement-card:hover .ach-placeholder-icon-wrap {
+  transform: scale(1.08);
+  border-color: var(--teal);
+}
+
+.ach-placeholder-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.ach-placeholder-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ach-placeholder-category {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--teal);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.ach-placeholder-label {
+  font-size: 11px;
+  color: var(--text-dim);
 }
 
 .achievement-card-body {
