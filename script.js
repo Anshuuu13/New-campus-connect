@@ -13,8 +13,42 @@ if (currentUser && !currentUser.profileCompleted) {
   window.location.href = "onboarding.html";
 }
 
-if (document.querySelector(".name-greeting") && currentUser.name) {
-  document.querySelector(".name-greeting").textContent = `Welcome back, ${currentUser.name} 👋`;
+// Dynamic Welcome Heading: displays user's real full name, or enrollment number if full name is unavailable
+function updateDashboardWelcomeGreeting(user) {
+  const greetingEl = document.querySelector(".name-greeting");
+  if (!greetingEl) return;
+
+  const storedUserName = (localStorage.getItem("user.name") || localStorage.getItem("userName") || "").trim();
+  let candidateName = storedUserName || (user && user.name ? String(user.name).trim() : "");
+
+  // Treat placeholders as unavailable
+  if (candidateName === "MITS Member" || candidateName === "Student" || candidateName === "User") {
+    candidateName = "";
+  }
+
+  // Fallback to enrollment number if real full name is unavailable
+  let enrollmentNumber = (user && user.enrollmentNumber ? String(user.enrollmentNumber).trim() : "") ||
+                         (localStorage.getItem("user.enrollmentNumber") || "").trim();
+
+  if (!enrollmentNumber && user && user.email) {
+    const emailPrefix = String(user.email).split("@")[0].trim();
+    const match = emailPrefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
+    if (match) {
+      enrollmentNumber = match[1].toUpperCase();
+    }
+  }
+
+  const finalName = candidateName || enrollmentNumber || (user && user.name) || "Student";
+  greetingEl.textContent = `Welcome back, ${finalName} 👋`;
+}
+
+// Immediately apply dynamic heading text
+updateDashboardWelcomeGreeting(currentUser);
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    updateDashboardWelcomeGreeting(currentUser);
+  });
 }
 
 // Dynamic API resolution (Supports port 5000, 5500 Live Server, file://, and tunnels)
@@ -244,6 +278,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (res.ok) {
       const liveUser = await res.json();
       const mergedUser = { ...user, ...liveUser };
+      if (liveUser.name) {
+        localStorage.setItem("user.name", liveUser.name);
+        localStorage.setItem("userName", liveUser.name);
+      }
+      if (liveUser.enrollmentNumber) {
+        localStorage.setItem("user.enrollmentNumber", liveUser.enrollmentNumber);
+      }
       localStorage.setItem("campusConnectUser", JSON.stringify(mergedUser));
       if (navProfilePic && liveUser.profilePicture) {
         navProfilePic.src = liveUser.profilePicture;
@@ -252,6 +293,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         navUserName.textContent = liveUser.name;
       }
       renderDashboardIdFields(mergedUser);
+      updateDashboardWelcomeGreeting(mergedUser);
     }
   } catch (err) {
     console.warn("Could not refresh live nav profile picture:", err);

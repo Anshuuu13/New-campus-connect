@@ -270,6 +270,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       user.bio = bio;
       user.interests = interests;
       user.profileCompleted = true;
+      localStorage.setItem("user.name", fullName || enrollmentNumber || "");
+      localStorage.setItem("userName", fullName || enrollmentNumber || "");
+      if (enrollmentNumber) {
+        localStorage.setItem("user.enrollmentNumber", enrollmentNumber);
+      }
       localStorage.setItem("campusConnectUser", JSON.stringify(user));
 
       try {

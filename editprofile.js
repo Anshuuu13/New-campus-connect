@@ -113,6 +113,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Update local session
         const updatedLocal = { ...currentUser, ...data };
+        localStorage.setItem("user.name", updatedLocal.name || updatedLocal.enrollmentNumber || "");
+        localStorage.setItem("userName", updatedLocal.name || updatedLocal.enrollmentNumber || "");
+        if (updatedLocal.enrollmentNumber) {
+          localStorage.setItem("user.enrollmentNumber", updatedLocal.enrollmentNumber);
+        }
         localStorage.setItem("campusConnectUser", JSON.stringify(updatedLocal));
 
         alert("Profile updated!");

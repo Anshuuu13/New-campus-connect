@@ -324,14 +324,23 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (res.ok) {
             const savedServerUser = await res.json();
             targetUser = { ...targetUser, ...savedServerUser };
+            localStorage.setItem("user.name", targetUser.name || targetUser.enrollmentNumber || "");
+            localStorage.setItem("userName", targetUser.name || targetUser.enrollmentNumber || "");
+            if (targetUser.enrollmentNumber) localStorage.setItem("user.enrollmentNumber", targetUser.enrollmentNumber);
             localStorage.setItem("campusConnectUser", JSON.stringify({ ...currentUser, ...savedServerUser }));
           } else {
             targetUser = { ...targetUser, ...updatedData };
+            localStorage.setItem("user.name", targetUser.name || targetUser.enrollmentNumber || "");
+            localStorage.setItem("userName", targetUser.name || targetUser.enrollmentNumber || "");
+            if (targetUser.enrollmentNumber) localStorage.setItem("user.enrollmentNumber", targetUser.enrollmentNumber);
             localStorage.setItem("campusConnectUser", JSON.stringify({ ...currentUser, ...updatedData }));
           }
         } catch (err) {
           console.warn("Backend offline during save, saved to localStorage:", err);
           targetUser = { ...targetUser, ...updatedData };
+          localStorage.setItem("user.name", targetUser.name || targetUser.enrollmentNumber || "");
+          localStorage.setItem("userName", targetUser.name || targetUser.enrollmentNumber || "");
+          if (targetUser.enrollmentNumber) localStorage.setItem("user.enrollmentNumber", targetUser.enrollmentNumber);
           localStorage.setItem("campusConnectUser", JSON.stringify({ ...currentUser, ...updatedData }));
         }
 

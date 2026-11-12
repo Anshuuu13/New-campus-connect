@@ -63,12 +63,21 @@ function isFacultyEmail(email) {
   return e.endsWith("@mitsgwalior.in") || /@([a-zA-Z0-9-]+\.)*mitsgwalior\.in$/.test(e);
 }
 
+// Helper: Extract actual MITS enrollment number from email prefix (e.g. 0901cs211044 -> 0901CS211044)
+function extractEnrollmentFromEmail(email) {
+  if (!email) return "";
+  const prefix = email.split("@")[0].trim();
+  const match = prefix.match(/^([0-9]{4}[a-zA-Z]{2,4}[0-9]{4,8})/i);
+  return match ? match[1].toUpperCase() : "";
+}
+
 // Process authenticated Google profile and enforce institutional domain restrictions
 async function processGoogleUser(profile, credential = null, accessToken = null) {
   const email = (profile.email || "").toLowerCase().trim();
-  const name = profile.name || profile.given_name || "MITS Member";
+  const googleFullName = (profile.name || profile.given_name || "").trim();
   const picture = profile.picture || "";
   const googleId = profile.sub || profile.id || `google_${Date.now()}`;
+  const extractedEnrollment = extractEnrollmentFromEmail(email);
 
   // ==============================================================
   // MITS Institutional Domain Check: Allow ALL @mitsgwl.ac.in and @mitsgwalior.in
@@ -78,16 +87,22 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
 
   if (!isStudent && !isFaculty) {
     localStorage.removeItem("campusConnectUser");
+    localStorage.removeItem("user.name");
+    localStorage.removeItem("userName");
     showStatus("Access restricted. Please sign in using your official institutional Google account ending in @mitsgwl.ac.in (students) or @mitsgwalior.in (faculty).", "error");
     return;
   }
 
   showStatus("Verifying MITS institutional account...", "loading");
 
+  // Initial user session with real full name or enrollment number fallback
+  const initialName = googleFullName || extractedEnrollment || "MITS Member";
+
   let userSession = {
     _id: googleId,
     id: googleId,
-    name: name,
+    name: initialName,
+    enrollmentNumber: extractedEnrollment,
     email: email,
     contactEmail: email,
     department: isFaculty ? "Academic Faculty" : "Engineering",
@@ -151,6 +166,27 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
     userSession.branch = userSession.branch || existingLocal.branch;
     userSession.year = userSession.year || existingLocal.year;
     userSession.interests = userSession.interests || existingLocal.interests;
+    if (existingLocal.enrollmentNumber && !userSession.enrollmentNumber) {
+      userSession.enrollmentNumber = existingLocal.enrollmentNumber;
+    }
+  }
+
+  // Resolve user's real full name or fall back to enrollment number
+  let finalDisplayName = googleFullName || (userSession.name && userSession.name.trim() !== "MITS Member" && userSession.name.trim() !== "Student" ? userSession.name.trim() : "");
+  if (!finalDisplayName) {
+    finalDisplayName = userSession.enrollmentNumber || extractedEnrollment || "MITS Member";
+  }
+
+  userSession.name = finalDisplayName;
+  if (!userSession.enrollmentNumber && extractedEnrollment) {
+    userSession.enrollmentNumber = extractedEnrollment;
+  }
+
+  // Store user.name in localStorage upon login as explicitly required
+  localStorage.setItem("user.name", finalDisplayName);
+  localStorage.setItem("userName", finalDisplayName);
+  if (userSession.enrollmentNumber) {
+    localStorage.setItem("user.enrollmentNumber", userSession.enrollmentNumber);
   }
 
   // Save session to localStorage
@@ -158,12 +194,12 @@ async function processGoogleUser(profile, credential = null, accessToken = null)
 
   // Redirect based on onboarding status
   if (!userSession.profileCompleted) {
-    showStatus(`Welcome, ${userSession.name}! Redirecting to profile setup...`, "success");
+    showStatus(`Welcome, ${finalDisplayName}! Redirecting to profile setup...`, "success");
     setTimeout(() => {
       window.location.href = "onboarding.html";
     }, 350);
   } else {
-    showStatus(`Welcome back, ${userSession.name}! Loading campus portal...`, "success");
+    showStatus(`Welcome back, ${finalDisplayName}! Loading campus portal...`, "success");
     setTimeout(() => {
       window.location.href = "index.html";
     }, 350);
